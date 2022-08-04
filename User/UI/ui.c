@@ -6,6 +6,9 @@
 #include "ip5306.h"
 #include "ff.h"
 #include "iwdg.h"
+#include "sw_info.h"
+#include "stdio.h"
+#include "config.h"
 
 static uint32_t battery_value;
 static WM_MESSAGE msg = {
@@ -16,7 +19,7 @@ static osThreadId_t ui_tid;
 static const osThreadAttr_t ui_t_attr =
 {
   .name = "ui",
-  .stack_size = 1024 * 10,
+  .stack_size = 1024 * 20,
   .priority = (osPriority_t)osPriorityNormal,
 };
 
@@ -68,12 +71,12 @@ void skin_init(void)
     BUTTON_SetSkinFlexProps(&prog, BUTTON_SKINFLEX_PI_DISABLED);
     BUTTON_SetSkinFlexProps(&prog, BUTTON_SKINFLEX_PI_ENABLED);
   }
-  
+
   {
     HEADER_SKINFLEX_PROPS prog;
-    
-    HEADER_GetSkinFlexProps(&prog,0);
-    
+
+    HEADER_GetSkinFlexProps(&prog, 0);
+
     prog.aColorLower[0] = GUI_MAKE_COLOR(0xabc88b);
     prog.aColorLower[1] = GUI_MAKE_COLOR(0xabc88b);
     prog.aColorUpper[0] = GUI_MAKE_COLOR(0xabc88b);
@@ -81,24 +84,29 @@ void skin_init(void)
 
     prog.aColorFrame[0] = GUI_MAKE_COLOR(0xabc88b);
     prog.aColorFrame[1] = GUI_MAKE_COLOR(0xabc88b);
-    
+
     prog.ColorArrow = GUI_MAKE_COLOR(0xabc88b);
-    
-    HEADER_SetSkinFlexProps(&prog,0);
+
+    HEADER_SetSkinFlexProps(&prog, 0);
   }
 }
 
+/**
+ * @brief 更新电池状态的图标显示
+ *
+ * @param image 图片控件句柄
+ */
 void ui_battery_level_icon_updata(WM_HWIN image)
 {
-  static resource_icon_st *icon = 0;
-  const char *name;
+  static resource_icon_st* icon = 0;
+  const char* name;
 
   if(icon)
     resource_icon_unload(icon);
 
   battery_status_et status = battery_get_status();
   if(status == BAT_STA_CHARGE)
-  { 
+  {
     name = "battery_charging";
   }
   else
@@ -120,7 +128,7 @@ void ui_battery_level_icon_updata(WM_HWIN image)
   icon = resource_icon_load(name);
 
   if(icon)
-    IMAGE_SetDTA(image,icon->data,icon->size);
+    IMAGE_SetDTA(image, icon->data, icon->size);
 }
 
 /**
@@ -194,7 +202,7 @@ static void ui_key_detect()
       case KEY_PRESS:     GUI_StoreKeyMsg(UI_KEY_EVT_PRESS + key, 1);break;
       case KEY_LONG_PRESS:GUI_StoreKeyMsg(UI_KEY_EVT_LONGPRESS + key, 1);break;
       case KEY_ONCLICK:   GUI_StoreKeyMsg(UI_KEY_EVT_ONCLICK + key, 1);break;
-      //case KEY_DBLCLICK:  GUI_StoreKeyMsg(UI_KEY_EVT_DBLCLICK  + key, 1);break;
+        //case KEY_DBLCLICK:  GUI_StoreKeyMsg(UI_KEY_EVT_DBLCLICK  + key, 1);break;
       case KEY_REPET:     GUI_StoreKeyMsg(UI_KEY_EVT_REPET + key, 1);break;
       default:break;
     }
@@ -209,37 +217,51 @@ static void ui_key_detect()
   }
 }
 
+/**
+ * @brief UI初始化
+ *
+ * @return int 错误码
+ */
 int ui_init(void)
 {
   GUI_Init();
-  
+
+  //显示logo
   ui_show_logo();
 
+  //加载字库
   font_load();
-  
+
+  //控件皮肤初始化
   skin_init();
-  
+
   GUI_SetBkColor(GUI_MAKE_COLOR(0x000000));
-  
+
   GUI_SetColor(GUI_MAKE_COLOR(0xFFFFFF));
-  
+
   GUI_UC_SetEncodeUTF8();
 
   GUI_SetTextMode(GUI_TM_TRANS);
-  
+
   GUI_SetFont(font_ext);
-  
-  #include "sw_info.h"
-  #include "stdio.h"
+
+#if BOOT_SHOW_VERSION
+  //显示版本信息
   char str[128];
-  snprintf(str,sizeof(str),"V%s",sw_info.version);
-  GUI_DispStringInRect(str,&(GUI_RECT){.x0 = 0,.y0 = 300,.x1 = 240,.y1 = 320},GUI_TA_HCENTER | GUI_TA_VCENTER);
-  
+  snprintf(str, sizeof(str), "V%s", sw_info.version);
+  GUI_DispStringInRect(str, &(GUI_RECT){.x0 = 0, .y0 = 300, .x1 = 240, .y1 = 320}, GUI_TA_HCENTER | GUI_TA_VCENTER);
+#endif
+
+  //设置电池状态改变后的回调函数
   battery_set_changed_cb(battery_changed_cb);
 
   return 0;
 }
 
+/**
+ * @brief UI处理
+ *
+ */
 void ui_exec(void)
 {
   uint32_t tick;
@@ -253,7 +275,7 @@ void ui_exec(void)
 
     tick += 40;
     osDelayUntil(tick);
-    
+
     //广播电池信息
     if(msg.Data.v != battery_value)
     {
@@ -265,7 +287,12 @@ void ui_exec(void)
   }
 }
 
-static void ui_task(void *arg)
+/**
+ * @brief UI任务
+ *
+ * @param arg 未使用
+ */
+static void ui_task(void* arg)
 {
   for(;;)
   {
@@ -273,9 +300,14 @@ static void ui_task(void *arg)
   }
 }
 
+/**
+ * @brief 开始UI任务
+ *
+ */
 void ui_start(void)
 {
   osKernelLock();
-  ui_tid = osThreadNew(ui_task,NULL,&ui_t_attr);
+  if(ui_tid == 0)
+    ui_tid = osThreadNew(ui_task, NULL, &ui_t_attr);
   osKernelUnlock();
 }

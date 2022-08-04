@@ -9,7 +9,10 @@ typedef struct resource_icon_s
   uint8_t data[0];
 }resource_icon_st;
 
-resource_icon_st* resource_icon_load(const char *name);
-int resource_icon_unload(resource_icon_st *icon);
+extern const char* audio_file_board_loaded;
+extern const char* audio_file_warning;
+
+resource_icon_st* resource_icon_load(const char* name);
+int resource_icon_unload(resource_icon_st* icon);
 
 #endif

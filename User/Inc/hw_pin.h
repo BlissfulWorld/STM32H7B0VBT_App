@@ -5,7 +5,7 @@
 
 typedef struct hw_pin_s
 {
-  GPIO_TypeDef *gpio;
+  GPIO_TypeDef* gpio;
   uint16_t pin;
 }hw_pin_st;
 

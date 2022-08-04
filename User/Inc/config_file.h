@@ -25,17 +25,13 @@ typedef struct common_config_info_s
 
 #include "test_board.h"
 
-extern const unsigned char config_file_xp7_example[1696];
-extern const unsigned char config_file_xp7plus_example[1700];
-extern const unsigned char config_file_xp8plus_example[1700];
-
 extern const char config_file_update_path[];
 
 const config_file_st* config_file_load_from_board(board_header_st* header);
-const config_file_st* config_file_load_from_disk(const char *path);
+const config_file_st* config_file_load_from_disk(const char* path);
 int config_file_unload(const config_file_st* config_file);
-int config_file_update_to_board_from_disk(board_header_st* header,const char *path);
-int config_file_data_write_to_board(board_header_st* header,const void* pdata, uint32_t size);
-int common_config_info_phase(const config_file_st *config_file,common_config_info_st *info);
+int config_file_update_to_board_from_disk(board_header_st* header, const char* path);
+int config_file_data_write_to_board(board_header_st* header, const void* pdata, uint32_t size);
+int common_config_info_phase(const config_file_st* config_file, common_config_info_st* info);
 
 #endif

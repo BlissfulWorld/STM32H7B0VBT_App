@@ -106,7 +106,7 @@ void adc2_conv_cplt_cb(void)
   {
     key_off_proc(KEY_S3);
   }
-  
+
   if((key_adc_value > 46000) && (key_adc_value < 50000))
   {
     key_on_proc(KEY_S4);
@@ -115,7 +115,7 @@ void adc2_conv_cplt_cb(void)
   {
     key_off_proc(KEY_S4);
   }
-  
+
   if((key_adc_value > 38500) && (key_adc_value < 42500))
   {
     key_on_proc(KEY_S5);
@@ -131,6 +131,7 @@ void key_init(void)
   key_event_cb = 0;
   key_queue.in = 0;
   key_queue.out = 0;
+  MX_ADC2_Init();
   HAL_ADC_Start_IT(&hadc2);
   HAL_TIM_Base_Start(&htim15);
 }

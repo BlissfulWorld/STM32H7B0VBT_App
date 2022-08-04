@@ -4,8 +4,8 @@
 #include "stdint.h"
 #include "GUI.h"
 
-extern const GUI_FONT *font_ext;
+extern const GUI_FONT* font_ext;
 
-uint8_t font_load(void);
+int font_load(void);
 
 #endif

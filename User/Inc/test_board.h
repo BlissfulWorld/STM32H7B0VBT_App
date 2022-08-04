@@ -34,31 +34,41 @@ typedef enum device_e
 
 typedef enum ip_model_e
 {
-  IPHONE_1          = 0x0000,
-  IPHONE_2G         = 0x0001,
-  IPHONE_3G         = 0x0002,
-  IPHONE_3GS        = 0x0003,
-  IPHONE_4          = 0x0004,
-  IPHONE_4S         = 0x0005,
-  IPHONE_5          = 0x0006,
-  IPHONE_5C         = 0x0007,
-  IPHONE_5S         = 0x0008,
-  IPHONE_6          = 0x0009,
-  IPHONE_6P         = 0x000A,
-  IPHONE_SE         = 0x000B,
-  IPHONE_6S         = 0x000C,
-  IPHONE_6SP        = 0x000D,
-  IPHONE_7          = 0x000E,
-  IPHONE_7P         = 0x000F,
-  IPHONE_8          = 0x0010,
-  IPHONE_8P         = 0x0011,
-  IPHONE_X          = 0x0012,
-  IPHONE_XS         = 0x0013,
-  IPHONE_XS_MAX     = 0x0014,
-  IPHONE_XR         = 0x0015,
-  IPHONE_11         = 0x0016,
-  IPHONE_11_PRO     = 0x0017,
-  IPHONE_11_PRO_MAX = 0x0018,
+  IPHONE_1             = 0x0000,
+  IPHONE_2G         ,//= 0x0001,
+  IPHONE_3G         ,//= 0x0002,
+  IPHONE_3GS        ,//= 0x0003,
+  IPHONE_4          ,//= 0x0004,
+  IPHONE_4S         ,//= 0x0005,
+  IPHONE_5          ,//= 0x0006,
+  IPHONE_5C         ,//= 0x0007,
+  IPHONE_5S         ,//= 0x0008,
+  IPHONE_6          ,//= 0x0009,
+  IPHONE_6P         ,//= 0x000A,
+  IPHONE_SE         ,//= 0x000B,
+  IPHONE_6S         ,//= 0x000C,
+  IPHONE_6SP        ,//= 0x000D,
+  IPHONE_7          ,//= 0x000E,
+  IPHONE_7P         ,//= 0x000F,
+  IPHONE_8          ,//= 0x0010,
+  IPHONE_8P         ,//= 0x0011,
+  IPHONE_X          ,//= 0x0012,
+  IPHONE_XS         ,//= 0x0013,
+  IPHONE_XS_MAX     ,//= 0x0014,
+  IPHONE_XR         ,//= 0x0015,
+  IPHONE_11         ,//= 0x0016,
+  IPHONE_11_PRO     ,//= 0x0017,
+  IPHONE_11_PRO_MAX ,//= 0x0018,
+  IPHONE_SE2        ,//= 0x0019,
+  IPHONE_12_MINI    ,//= 0x001A,
+  IPHONE_12         ,//= 0x001B,
+  IPHONE_12_PRO     ,//= 0x001C,
+  IPHONE_12_PRO_MAX ,//= 0x001D,
+  IPHONE_13_MINI    ,//= 0x001E,
+  IPHONE_13         ,//= 0x001F,
+  IPHONE_13_PRO     ,//= 0x0020,
+  IPHONE_13_PRO_MAX ,//= 0x0021,
+  IPHONE_SE3        ,//= 0x0022,
   /*
         .
         .
@@ -90,5 +100,8 @@ typedef struct test_module_s
 
 test_module_st* test_module_load(void);
 int test_module_unload(test_module_st* module);
+test_module_st* test_module_load_dbg(void);
+int board_power_on(void);
+int board_power_off(void);
 
 #endif

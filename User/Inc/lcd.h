@@ -12,7 +12,7 @@ void lcd_write_data(uint8_t data);
 int lcd_init(void);
 void lcd_test(void);
 
-void lcd_pixel_set(uint16_t x,uint16_t y,uint16_t color);
+void lcd_pixel_set(uint16_t x, uint16_t y, uint16_t color);
 void lcd_on(void);
 
 #endif

@@ -14,16 +14,27 @@ void* hw_sim_i2c1;
 
 static hw_sim_i2c_handler_st _hw_sim_i2c1;
 
+/**
+ * @brief 模拟i2c初始化
+ *
+ */
 void hw_sim_i2c_init(void)
 {
-  osMutexDef(hw_sim_i2c1);
-
   memset(&_hw_sim_i2c1, 0, sizeof(_hw_sim_i2c1));
-  _hw_sim_i2c1.mutex = osMutexNew(osMutex(hw_sim_i2c1));
+  _hw_sim_i2c1.mutex = osMutexNew(NULL);
 
   hw_sim_i2c1 = &_hw_sim_i2c1;
 }
 
+/**
+ * @brief 模拟i2c设置引脚
+ *
+ * @param handler 句柄
+ * @param scl scl引脚
+ * @param sda sda引脚
+ * @param timeout 超时，单位系统滴答
+ * @return int 错误码
+ */
 int hw_sim_i2c_set_pin(void* handler, const hw_pin_st* scl, const hw_pin_st* sda, uint32_t timeout)
 {
   int res = 0;
@@ -33,7 +44,7 @@ int hw_sim_i2c_set_pin(void* handler, const hw_pin_st* scl, const hw_pin_st* sda
   if(handler == 0)
   {
     res = -1;
-    goto __hw_sim_i2c_set_pin_exit;
+    goto __exit;
   }
 
   hw_sim_i2c = handler;
@@ -46,7 +57,7 @@ int hw_sim_i2c_set_pin(void* handler, const hw_pin_st* scl, const hw_pin_st* sda
     if((hw_sim_i2c->scl.gpio == 0) || (hw_sim_i2c->scl.pin == 0) || (hw_sim_i2c->sda.gpio == 0) || (hw_sim_i2c->sda.pin == 0))
     {
       res = -3;
-      goto __hw_sim_i2c_set_pin_release;
+      goto __release;
     }
 
     HW_PIN_SET(&hw_sim_i2c->scl);
@@ -68,20 +79,30 @@ int hw_sim_i2c_set_pin(void* handler, const hw_pin_st* scl, const hw_pin_st* sda
   else
   {
     res = -2;
-    goto __hw_sim_i2c_set_pin_exit;
+    goto __exit;
   }
 
-__hw_sim_i2c_set_pin_release:
+__release:
   osMutexRelease(hw_sim_i2c->mutex);
-__hw_sim_i2c_set_pin_exit:
+__exit:
   return res;
 }
 
+/**
+ * @brief 模拟i2c时序中延时
+ *
+ * @param n_unit 延时周期
+ */
 static void hw_sim_i2c_delay(uint32_t n_unit)
 {
   hw_delay_100ns(n_unit * 30);
 }
 
+/**
+ * @brief 发送起始信号
+ *
+ * @param hw_sim_i2c i2c句柄
+ */
 static void hw_sim_i2c_send_start(const hw_sim_i2c_handler_st* hw_sim_i2c)
 {
   HW_PIN_SET(&hw_sim_i2c->sda);
@@ -95,6 +116,11 @@ static void hw_sim_i2c_send_start(const hw_sim_i2c_handler_st* hw_sim_i2c)
   hw_sim_i2c_delay(2);
 }
 
+/**
+ * @brief 发送停止信号
+ *
+ * @param hw_sim_i2c i2c句柄
+ */
 static void hw_sim_i2c_send_stop(const hw_sim_i2c_handler_st* hw_sim_i2c)
 {
   HW_PIN_CLR(&hw_sim_i2c->sda);
@@ -105,6 +131,11 @@ static void hw_sim_i2c_send_stop(const hw_sim_i2c_handler_st* hw_sim_i2c)
   hw_sim_i2c_delay(2);
 }
 
+/**
+ * @brief 发送ack信号
+ *
+ * @param hw_sim_i2c i2c句柄
+ */
 static void hw_sim_i2c_send_ack(const hw_sim_i2c_handler_st* hw_sim_i2c)
 {
   hw_sim_i2c_delay(1);
@@ -115,6 +146,11 @@ static void hw_sim_i2c_send_ack(const hw_sim_i2c_handler_st* hw_sim_i2c)
   HW_PIN_CLR(&hw_sim_i2c->scl);
 }
 
+/**
+ * @brief 发送nack信号
+ *
+ * @param hw_sim_i2c i2c句柄
+ */
 static void hw_sim_i2c_send_nack(const hw_sim_i2c_handler_st* hw_sim_i2c)
 {
   hw_sim_i2c_delay(1);
@@ -125,6 +161,13 @@ static void hw_sim_i2c_send_nack(const hw_sim_i2c_handler_st* hw_sim_i2c)
   HW_PIN_CLR(&hw_sim_i2c->scl);
 }
 
+/**
+ * @brief 发送1字节数据
+ *
+ * @param hw_sim_i2c i2c句柄
+ * @param byte 数据
+ * @return int 错误码
+ */
 static int hw_sim_i2c_send_byte(const hw_sim_i2c_handler_st* hw_sim_i2c, uint8_t byte)
 {
   int res = 0;
@@ -160,10 +203,16 @@ static int hw_sim_i2c_send_byte(const hw_sim_i2c_handler_st* hw_sim_i2c, uint8_t
   HW_PIN_CLR(&hw_sim_i2c->scl);
   hw_sim_i2c_delay(1);
 
-__hw_sim_i2c_send_byte_exit:
+__exit:
   return res;
 }
 
+/**
+ * @brief 接收1字节数据
+ *
+ * @param hw_sim_i2c i2c句柄
+ * @return uint8_t 字节数据
+ */
 static uint8_t hw_sim_i2c_recv_byte(const hw_sim_i2c_handler_st* hw_sim_i2c)
 {
   uint8_t byte = 0;
@@ -190,6 +239,18 @@ static uint8_t hw_sim_i2c_recv_byte(const hw_sim_i2c_handler_st* hw_sim_i2c)
   return byte;
 }
 
+/**
+ * @brief 模拟i2c读写数据
+ *
+ * @param handler i2c句柄
+ * @param addr i2c地址
+ * @param pw 待写入数据的指针
+ * @param wlen 写入长度
+ * @param pr 读出数据的缓存指针
+ * @param rlen 读出长度
+ * @param timeout 超时，单位系统滴答
+ * @return int 错误码
+ */
 int hw_sim_i2c_write_read(const void* handler, uint8_t addr, const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout)
 {
   int res = 0;
@@ -198,7 +259,7 @@ int hw_sim_i2c_write_read(const void* handler, uint8_t addr, const uint8_t* pw, 
   if(handler == 0)
   {
     res = -1;
-    goto __hw_sim_i2c_write_read_exit;
+    goto __exit;
   }
 
   hw_sim_i2c = handler;
@@ -208,7 +269,7 @@ int hw_sim_i2c_write_read(const void* handler, uint8_t addr, const uint8_t* pw, 
     if((hw_sim_i2c->scl.gpio == 0) || (hw_sim_i2c->scl.pin == 0) || (hw_sim_i2c->sda.gpio == 0) || (hw_sim_i2c->sda.pin == 0))
     {
       res = -3;
-      goto __hw_sim_i2c_write_read_release;
+      goto __release;
     }
 
     HW_PIN_SET(&hw_sim_i2c->scl);
@@ -217,7 +278,7 @@ int hw_sim_i2c_write_read(const void* handler, uint8_t addr, const uint8_t* pw, 
     if((HW_PIN_GET(&hw_sim_i2c->scl) == 0) || (HW_PIN_GET(&hw_sim_i2c->sda) == 0))
     {
       res = -4;
-      goto __hw_sim_i2c_write_read_release;
+      goto __release;
     }
 
     portENTER_CRITICAL();
@@ -229,7 +290,7 @@ int hw_sim_i2c_write_read(const void* handler, uint8_t addr, const uint8_t* pw, 
       if(hw_sim_i2c_send_byte(hw_sim_i2c, addr))
       {
         res = -5;
-        goto __hw_sim_i2c_write_read_stop;
+        goto __stop;
       }
 
       for(uint32_t i = 0;i < wlen;i++)
@@ -237,7 +298,7 @@ int hw_sim_i2c_write_read(const void* handler, uint8_t addr, const uint8_t* pw, 
         if(hw_sim_i2c_send_byte(hw_sim_i2c, pw[i]))
         {
           res = -6;
-          goto __hw_sim_i2c_write_read_stop;
+          goto __stop;
         }
       }
     }
@@ -250,7 +311,7 @@ int hw_sim_i2c_write_read(const void* handler, uint8_t addr, const uint8_t* pw, 
       if(hw_sim_i2c_send_byte(hw_sim_i2c, addr | 0x01))
       {
         res = -6;
-        goto __hw_sim_i2c_write_read_stop;
+        goto __stop;
       }
 
       for(uint32_t i = 0;i < rlen;i++)
@@ -266,14 +327,14 @@ int hw_sim_i2c_write_read(const void* handler, uint8_t addr, const uint8_t* pw, 
   else
   {
     res = -2;
-    goto __hw_sim_i2c_write_read_exit;
+    goto __exit;
   }
 
-__hw_sim_i2c_write_read_stop:
+__stop:
   hw_sim_i2c_send_stop(hw_sim_i2c);
   portEXIT_CRITICAL();
-__hw_sim_i2c_write_read_release:
+__release:
   osMutexRelease(hw_sim_i2c->mutex);
-__hw_sim_i2c_write_read_exit:
+__exit:
   return res;
 }

@@ -5,7 +5,7 @@
 #define DEVICE_NAME "XP模组测试机"
 
 // 软件版本
-#define SOFTWARE_VERSION "0.1.0"
+#define SOFTWARE_VERSION "0.1.1"
 
 // <<< Use Configuration Wizard in Context Menu >>>
 
@@ -13,18 +13,18 @@
 // 开机logo至少显示时间,单位毫秒
 #define BOOT_LOGO_TIME_MIN (1000)
 
-//<e> Make Board License
-//生成LICENSE并下载和初始化测试板配置文件
-#define MAKE_BOARD_LICENSE 0
+//<o> Show Version On Booting <0=>No <1=>Yes
+// 开机过程在屏幕下方显示软件版本
+#define BOOT_SHOW_VERSION (1)
 
-//<o>Model <0=>XP7 <1=>XP7P <2=>XP8P
-#define MAKE_BOARD_MODEL (1)
-//</e>
+//<s> Wav File Of Board loaded
+// 发现小板被扣上时播放的声音文件
+#define WAV_FILE_BOARD_LOADED "0:/audio/load.wav"
+
+//<s> Wav File Of Warning
+// 警报声音文件
+#define WAV_FILE_WARNING "0:/audio/warning.wav"
 
 // <<< end of configuration section >>>
-
-#define XP7  0
-#define XP7P 1
-#define XP8P 2
 
 #endif

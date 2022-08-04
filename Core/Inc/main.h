@@ -57,12 +57,22 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define I2S_MCLK_Pin GPIO_PIN_6
+#define I2S_MCLK_GPIO_Port GPIOE
 #define LCD_RESET_Pin GPIO_PIN_0
 #define LCD_RESET_GPIO_Port GPIOC
 #define PWM1_Pin GPIO_PIN_0
 #define PWM1_GPIO_Port GPIOA
 #define PWM2_Pin GPIO_PIN_2
 #define PWM2_GPIO_Port GPIOA
+#define SPEAKER_Pin GPIO_PIN_4
+#define SPEAKER_GPIO_Port GPIOA
+#define I2S_SDO_Pin GPIO_PIN_11
+#define I2S_SDO_GPIO_Port GPIOE
+#define I2S_SCK_Pin GPIO_PIN_12
+#define I2S_SCK_GPIO_Port GPIOE
+#define I2S_WS_Pin GPIO_PIN_13
+#define I2S_WS_GPIO_Port GPIOE
 #define MUTE_Pin GPIO_PIN_14
 #define MUTE_GPIO_Port GPIOE
 #define LCD_CS_Pin GPIO_PIN_12
@@ -75,14 +85,10 @@ void Error_Handler(void);
 #define LCD_WR_GPIO_Port GPIOB
 #define PWM5_Pin GPIO_PIN_14
 #define PWM5_GPIO_Port GPIOD
-#define PWM3_Pin GPIO_PIN_7
-#define PWM3_GPIO_Port GPIOC
 #define PWM2C8_Pin GPIO_PIN_8
 #define PWM2C8_GPIO_Port GPIOC
 #define SPI_FLASH_CS_Pin GPIO_PIN_15
 #define SPI_FLASH_CS_GPIO_Port GPIOA
-#define SPI_FLASH_SCK_Pin GPIO_PIN_3
-#define SPI_FLASH_SCK_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 #define ff_malloc  pvPortMalloc
 #define ff_free  vPortFree

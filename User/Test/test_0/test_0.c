@@ -14,7 +14,7 @@
 #include "json_obj.h"
 #include "ui.h"
 
-const test_0_config_st test_0_config_default = 
+const test_0_config_st test_0_config_default =
 {
 #define VI_CONST_INIT(idx,enable) \
   /*.power[idx-1].json_obj = (const char *[]){json_obj_test,json_obj_power,json_obj_##idx,0},*/\
@@ -25,7 +25,7 @@ const test_0_config_st test_0_config_default =
   .power[idx-1].color_in = 0xFFFFFF,\
   .power[idx-1].color_out = 0xFF0000,\
   .power[idx-1].en = enable
-  
+
 
   VI_CONST_INIT(1,1),
   VI_CONST_INIT(2,1),
@@ -35,10 +35,10 @@ const test_0_config_st test_0_config_default =
   VI_CONST_INIT(6,1),
   VI_CONST_INIT(7,0),
   VI_CONST_INIT(8,0),
-  VI_CONST_INIT(9,0),
-  VI_CONST_INIT(10,0),
-  VI_CONST_INIT(11,0),
-  VI_CONST_INIT(12,0),
+  //VI_CONST_INIT(9,0),
+  //VI_CONST_INIT(10,0),
+  //VI_CONST_INIT(11,0),
+  //VI_CONST_INIT(12,0),
 
   .mvi.i_max = 5000,
   .mvi.i_min = 0,
@@ -53,10 +53,10 @@ static test_0_st test_0;
 extern void test_0_als_init(void);
 extern void test_0_prox_init(void);
 extern int test_0_mic_init(void);
-extern void test_0_als_set_intf(const test_0_interface_st *i);
-extern void test_0_prox_set_intf(const test_0_interface_st *i);
+extern void test_0_als_set_intf(const test_0_interface_st* i);
+extern void test_0_prox_set_intf(const test_0_interface_st* i);
 
-void test_0_init(const test_0_interface_st *intf)
+void test_0_init(const test_0_interface_st* intf)
 {
   uint16_t power_en;
   GPIO_InitTypeDef gpio_init;
@@ -118,14 +118,12 @@ void test_0_init(const test_0_interface_st *intf)
   gpio_init.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   gpio_init.Alternate = GPIO_AF0_MCO;
   HAL_GPIO_Init(GPIOA, &gpio_init);
-  
 
   test_0_als_set_intf(intf);
   test_0_prox_set_intf(intf);
 
   intf->cam_i2c_init();
-  
-  
+
   power_en = 0;
   for(uint32_t i = 0;i < sizeof(test_0.config->power) / sizeof(power_test_st);i++)
   {
@@ -133,7 +131,7 @@ void test_0_init(const test_0_interface_st *intf)
       power_en |= (1 << i);
   }
 
-  pca9535_config_output(1, power_en);
+  pca9535_set_output(1, power_en);
   pca9535_config_port(1, 0x0000);
 
   intf->als_i2c_init();
@@ -164,8 +162,12 @@ extern void test_0_als_update_data(void);
 extern uint8_t test_0_als_get_percentage(void);
 extern uint8_t test_0_als_is_rdy(void);
 
-extern uint8_t test_0_mic_get_percentage(void);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+extern uint8_t test_0_mic_get_percentage(void);
 extern void test_0_mic_update_data(void);
+extern int test_0_mic_record_start(void);
+extern int test_0_mic_record_stop(void);
+extern int test_0_mic_record_play(void);
+extern uint8_t test_0_mic_record_get_progress(void);
 
 static uint8_t spk_pn;
 
@@ -175,7 +177,7 @@ static uint8_t spk_pn_detect(void)
 #define SPK_OUT_N_PIN (9)
 #define SPK_VSENSE_P_PIN (10)
 #define SPK_VSENSE_N_PIN (7)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
   uint8_t p = 0, n = 0;
 
   GPIO_InitTypeDef gpio_init;
@@ -250,15 +252,14 @@ static void test_0_task(void* p)
 {
   int i = 0;
   uint32_t tick;
-  const test_0_interface_st *intf = p;
+  const test_0_interface_st* intf = p;
 
   test_0_init(intf);
   while(test_0_tid)
   {
-    pca9535_config_output(1, 0x103F);
+    pca9535_set_output(1, 0x103F);
 
     stage = TEST_STAGE_WAIT;
-
 
     while(test_0_tid)
     {
@@ -270,6 +271,8 @@ static void test_0_task(void* p)
       else
       {
         i = 0;
+        intf->prox_i2c_fix();
+        intf->als_i2c_fix();
       }
 
       osDelay(50);
@@ -293,7 +296,7 @@ static void test_0_task(void* p)
 
         spk_pn = spk_pn_detect();
         test_0_prox_update_data();
-        
+
         if(test_0_prox_is_rdy() == 0)
           intf->prox_i2c_fix();
 
@@ -320,17 +323,17 @@ void test_0_stop(void)
   test_0_tid = 0;
 }
 
-uint8_t test_0_stage_get(void)
+static uint8_t test_0_stage_get(void)
 {
   return stage;
 }
 
-uint32_t test_0_os_result_get(void)
+static uint32_t test_0_os_result_get(void)
 {
   return 0;
 }
 
-uint8_t test_0_cam_is_rdy(void)
+static uint8_t test_0_cam_is_rdy(void)
 {
   uint8_t cam_id_addr[2];
   uint8_t cam_id[2];
@@ -342,205 +345,200 @@ uint8_t test_0_cam_is_rdy(void)
   return 0;
 }
 
-uint8_t test_0_prox_get(void)
+static uint8_t test_0_prox_get(void)
 {
   return test_0_prox_get_percentage();
 }
 
-uint8_t _test_0_prox_is_rdy(void)
+static uint8_t _test_0_prox_is_rdy(void)
 {
   return test_0_prox_is_rdy();
 }
 
-uint8_t test_0_als_get(void)
+static uint8_t test_0_als_get(void)
 {
   return test_0_als_get_percentage();
 }
 
-uint8_t _test_0_als_is_rdy(void)
+static uint8_t _test_0_als_is_rdy(void)
 {
   return test_0_als_is_rdy();
 }
 
-uint8_t test_0_mic_get(void)
-{
-  return test_0_mic_get_percentage();
-}
-
-uint8_t test_0_spk_pn_get(void)
+static uint8_t test_0_spk_pn_get(void)
 {
   return spk_pn;
 }
 
-static test_0_config_st * config_parse(const config_file_st *config_file)
+static test_0_config_st* config_parse(const config_file_st* config_file)
 {
-  test_0_config_st *config;
-  cJSON *json;
+  test_0_config_st* config;
+  cJSON* json;
   uint32_t str_length;
-  
+
   config = pvPortMalloc(sizeof(test_0_config_st));
   if(config == 0)
   {
     goto __exit;
   }
-  
-  memcpy(config,&test_0_config_default,sizeof(test_0_config_st));
-  
+
+  memcpy(config, &test_0_config_default, sizeof(test_0_config_st));
+
   if(config_file == 0)
   {
     goto __exit;
   }
-  
-  if(memcmp(config_file->file.type,"json",4) != 0)
+
+  if(memcmp(config_file->file.type, "json", 4) != 0)
   {
     goto __exit;
   }
-  
-  json = cJSON_Parse((char *)config_file->file.data);
+
+  json = cJSON_Parse((char*)config_file->file.data);
   if(json == NULL)
   {
     goto __exit;
   }
-  
-  cJSON *j_name = cJSON_GetObjectItem(json,json_obj_name);
+
+  cJSON* j_name = cJSON_GetObjectItem(json, json_obj_name);
   if(j_name != NULL)
   {
-    snprintf(config->info.name,sizeof(config->info.name),"%s",j_name->valuestring);
+    snprintf(config->info.name, sizeof(config->info.name), "%s", j_name->valuestring);
   }
-  
-  cJSON *j_desc = cJSON_GetObjectItem(json,json_obj_description);
+
+  cJSON* j_desc = cJSON_GetObjectItem(json, json_obj_description);
   if(j_desc != NULL)
   {
-    snprintf(config->info.desc,sizeof(config->info.desc),"%s",j_desc->valuestring);
+    snprintf(config->info.desc, sizeof(config->info.desc), "%s", j_desc->valuestring);
   }
-  
-  cJSON *j_version = cJSON_GetObjectItem(json,json_obj_version);
+
+  cJSON* j_version = cJSON_GetObjectItem(json, json_obj_version);
   if(j_version != NULL)
   {
     config->info.version = j_version->valueint;
   }
-  
-  cJSON *j_test = cJSON_GetObjectItem(json,json_obj_test);
+
+  cJSON* j_test = cJSON_GetObjectItem(json, json_obj_test);
   if(j_test != NULL)
   {
-    cJSON *j_power = cJSON_GetObjectItem(j_test,json_obj_power);
+    cJSON* j_power = cJSON_GetObjectItem(j_test, json_obj_power);
     if(j_power != NULL)
     {
       char power_n[3];
       for(uint32_t i = 0;i < sizeof(config->power) / sizeof(power_test_st);i++)
       {
-        snprintf(power_n,sizeof(power_n),"%d",i+1);
-        cJSON *j_power_n = cJSON_GetObjectItem(j_power,power_n);
+        snprintf(power_n, sizeof(power_n), "%d", i + 1);
+        cJSON* j_power_n = cJSON_GetObjectItem(j_power, power_n);
         if(j_power_n != NULL)
         {
-          cJSON *j_power_enable = cJSON_GetObjectItem(j_power_n,json_obj_enable);
+          cJSON* j_power_enable = cJSON_GetObjectItem(j_power_n, json_obj_enable);
           if(j_power_enable != NULL)
           {
             config->power[i].en = j_power_enable->valueint;
           }
 
-          cJSON *j_power_vdd = cJSON_GetObjectItem(j_power_n,json_obj_vdd);
+          cJSON* j_power_vdd = cJSON_GetObjectItem(j_power_n, json_obj_vdd);
           if(j_power_vdd != NULL)
           {
             config->power[i].vdd = j_power_vdd->valuedouble;
           }
 
-          cJSON *j_power_v_max = cJSON_GetObjectItem(j_power_n,json_obj_v_max);
+          cJSON* j_power_v_max = cJSON_GetObjectItem(j_power_n, json_obj_v_max);
           if(j_power_v_max != NULL)
           {
             config->power[i].v_max = j_power_v_max->valuedouble;
           }
 
-          cJSON *j_power_v_min = cJSON_GetObjectItem(j_power_n,json_obj_v_min);
+          cJSON* j_power_v_min = cJSON_GetObjectItem(j_power_n, json_obj_v_min);
           if(j_power_v_min != NULL)
           {
             config->power[i].v_min = j_power_v_min->valuedouble;
           }
 
-          cJSON *j_power_i_max = cJSON_GetObjectItem(j_power_n,json_obj_i_max);
+          cJSON* j_power_i_max = cJSON_GetObjectItem(j_power_n, json_obj_i_max);
           if(j_power_i_max != NULL)
           {
             config->power[i].i_max = j_power_i_max->valuedouble;
           }
 
-          cJSON *j_power_i_min = cJSON_GetObjectItem(j_power_n,json_obj_i_min);
+          cJSON* j_power_i_min = cJSON_GetObjectItem(j_power_n, json_obj_i_min);
           if(j_power_i_min != NULL)
           {
             config->power[i].i_min = j_power_i_min->valuedouble;
           }
 
-          cJSON *j_power_color_in = cJSON_GetObjectItem(j_power_n,json_obj_color_in);
+          cJSON* j_power_color_in = cJSON_GetObjectItem(j_power_n, json_obj_color_in);
           if(j_power_color_in != NULL)
           {
-            sscanf(j_power_color_in->valuestring,"%x",&config->power[i].color_in);
+            sscanf(j_power_color_in->valuestring, "%x", &config->power[i].color_in);
           }
 
-          cJSON *j_power_color_out = cJSON_GetObjectItem(j_power_n,json_obj_color_out);
+          cJSON* j_power_color_out = cJSON_GetObjectItem(j_power_n, json_obj_color_out);
           if(j_power_color_out != NULL)
           {
-            sscanf(j_power_color_out->valuestring,"%x",&config->power[i].color_out);
+            sscanf(j_power_color_out->valuestring, "%x", &config->power[i].color_out);
           }
         }
       }
-      
-      cJSON *j_power_mvi = cJSON_GetObjectItem(j_power,json_obj_mvi);
+
+      cJSON* j_power_mvi = cJSON_GetObjectItem(j_power, json_obj_mvi);
       if(j_power_mvi != NULL)
       {
-        cJSON *j_power_vdd = cJSON_GetObjectItem(j_power_mvi,json_obj_vdd);
+        cJSON* j_power_vdd = cJSON_GetObjectItem(j_power_mvi, json_obj_vdd);
         if(j_power_vdd != NULL)
         {
           config->mvi.vdd = j_power_vdd->valuedouble;
         }
 
-        cJSON *j_power_v_max = cJSON_GetObjectItem(j_power_mvi,json_obj_v_max);
+        cJSON* j_power_v_max = cJSON_GetObjectItem(j_power_mvi, json_obj_v_max);
         if(j_power_v_max != NULL)
         {
           config->mvi.v_max = j_power_v_max->valuedouble;
         }
 
-        cJSON *j_power_v_min = cJSON_GetObjectItem(j_power_mvi,json_obj_v_min);
+        cJSON* j_power_v_min = cJSON_GetObjectItem(j_power_mvi, json_obj_v_min);
         if(j_power_v_min != NULL)
         {
           config->mvi.v_min = j_power_v_min->valuedouble;
         }
 
-        cJSON *j_power_i_max = cJSON_GetObjectItem(j_power_mvi,json_obj_i_max);
+        cJSON* j_power_i_max = cJSON_GetObjectItem(j_power_mvi, json_obj_i_max);
         if(j_power_i_max != NULL)
         {
           config->mvi.i_max = j_power_i_max->valuedouble;
         }
 
-        cJSON *j_power_i_min = cJSON_GetObjectItem(j_power_mvi,json_obj_i_min);
+        cJSON* j_power_i_min = cJSON_GetObjectItem(j_power_mvi, json_obj_i_min);
         if(j_power_i_min != NULL)
         {
           config->mvi.i_min = j_power_i_min->valuedouble;
         }
 
-        cJSON *j_power_color_in = cJSON_GetObjectItem(j_power_mvi,json_obj_color_in);
+        cJSON* j_power_color_in = cJSON_GetObjectItem(j_power_mvi, json_obj_color_in);
         if(j_power_color_in != NULL)
         {
-          sscanf(j_power_color_in->valuestring,"%x",&config->mvi.color_in);
+          sscanf(j_power_color_in->valuestring, "%x", &config->mvi.color_in);
         }
 
-        cJSON *j_power_color_out = cJSON_GetObjectItem(j_power_mvi,json_obj_color_out);
+        cJSON* j_power_color_out = cJSON_GetObjectItem(j_power_mvi, json_obj_color_out);
         if(j_power_color_out != NULL)
         {
-          sscanf(j_power_color_out->valuestring,"%x",&config->mvi.color_out);
+          sscanf(j_power_color_out->valuestring, "%x", &config->mvi.color_out);
         }
       }
     }
   }
-  
+
   cJSON_Delete(json);
 
 __exit:
   return config;
 }
 
-int test_0_start(test_module_st *module,const test_0_interface_st *intf,const char *title)
+int test_0_start(test_module_st* module, const test_0_interface_st* intf, const char* title)
 {
   int err;
-  test_0_config_st *config;
+  test_0_config_st* config;
 
   err = 0;
 
@@ -556,19 +554,23 @@ int test_0_start(test_module_st *module,const test_0_interface_st *intf,const ch
   test_0.prox_is_rdy = test_0_prox_is_rdy;
   test_0.als_get = test_0_als_get;
   test_0.als_is_rdy = test_0_als_is_rdy;
-  test_0.mic_get = test_0_mic_get;
+  test_0.mic_get = test_0_mic_get_percentage;
+  test_0.mic_record_play = test_0_mic_record_play;
+  test_0.mic_record_start = test_0_mic_record_start;
+  test_0.mic_record_get_progress = test_0_mic_record_get_progress;
+  test_0.mic_record_stop = test_0_mic_record_stop;
   test_0.cam_is_rdy = test_0_cam_is_rdy;
   test_0.ma_get = test_ma_get;
   test_0.mv_get = test_mv_get;
   test_0.ma_is_update = test_ma_is_update;
   test_0.spk_pn_get = test_0_spk_pn_get;
 
-  ui_test_0_open(&test_0,title);
+  ui_test_0_open(&test_0, title);
 
   if(start == 0)
   {
     start = 1;
-    test_0_tid = osThreadNew(test_0_task, (void *)intf, &test_0_tid_attr);
+    test_0_tid = osThreadNew(test_0_task, (void*)intf, &test_0_tid_attr);
     if(test_0_tid == NULL)
     {
       start = 0;

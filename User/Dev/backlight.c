@@ -1,25 +1,39 @@
 #include "backlight.h"
 #include "tim.h"
 
-static uint32_t backlight = 0;
+//亮度级别
+static uint8_t backlight = 0;
 
+/**
+ * @brief 打开背光
+ *
+ */
 void backlight_open(void)
 {
   TIM2->CCR1 = backlight;
 
-  //��������(ʹ��pwm)
-  HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_1);
+  //开启背光(使能pwm)
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 }
 
+/**
+ * @brief 关闭背光
+ *
+ */
 void backlight_close(void)
 {
   TIM2->CCR1 = 0;
-  HAL_TIM_PWM_Stop(&htim2,TIM_CHANNEL_1);
+  HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
 }
 
-void backlight_set(uint32_t level)
+/**
+ * @brief 设置背光亮度
+ *
+ * @param level 亮度级别：0~100
+ */
+void backlight_set(uint8_t level)
 {
-  uint32_t val;
+  uint8_t val;
 
   val = level;
 
@@ -30,7 +44,12 @@ void backlight_set(uint32_t level)
   TIM2->CCR1 = val;
 }
 
-uint32_t backlight_get(void)
+/**
+ * @brief 获取背光亮度
+ *
+ * @return uint8_t 亮度级别
+ */
+uint8_t backlight_get(void)
 {
   return (uint8_t)(TIM2->CCR1);
 }

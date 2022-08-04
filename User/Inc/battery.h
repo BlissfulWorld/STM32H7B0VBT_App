@@ -5,7 +5,7 @@
 
 /**
  * @brief 电池状态枚举
- * 
+ *
  */
 typedef enum battery_status_e
 {

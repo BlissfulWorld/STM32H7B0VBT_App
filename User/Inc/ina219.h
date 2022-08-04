@@ -47,7 +47,7 @@
 
 int ina219_init(void);
 int ina219_convert_start(void);
-int ina219_ma_get(uint16_t *ma);
+int ina219_ma_get(uint16_t* ma);
 int ina219_convert_is_ready(void);
 
 #endif

@@ -9,35 +9,35 @@
 
 static uint32_t als_data = 0;
 static uint8_t als_rdy = 0;
-static const test_0_interface_st *intf;
+static const test_0_interface_st* intf;
 
 static uint8_t i2c_write_8a_8d(uint8_t id, uint8_t addr, uint8_t data)
 {
-  uint8_t buffer[2];
-  buffer[0] = addr;
-  buffer[1] = data;
+	uint8_t buffer[2];
+	buffer[0] = addr;
+	buffer[1] = data;
 
-  return intf->als_i2c_write_read(buffer,2,0,0,100);
+	return intf->als_i2c_write_read(buffer, 2, 0, 0, 100);
 }
 
 static uint8_t i2c_write_8a_16d(uint8_t id, uint8_t addr, uint16_t data)
 {
-  uint8_t buffer[3];
-  buffer[0] = addr;
-  buffer[1] = data >> 8;
-  buffer[2] = data;
+	uint8_t buffer[3];
+	buffer[0] = addr;
+	buffer[1] = data >> 8;
+	buffer[2] = data;
 
-  return intf->als_i2c_write_read(buffer,3,0,0,100);
+	return intf->als_i2c_write_read(buffer, 3, 0, 0, 100);
 }
 
 static uint8_t i2c_read(uint8_t id, uint8_t addr, uint8_t* data, uint32_t size)
 {
-  return intf->als_i2c_write_read(&addr,1,data,size,size);
+	return intf->als_i2c_write_read(&addr, 1, data, size, size);
 }
 
-void test_0_als_set_intf(const test_0_interface_st *i)
+void test_0_als_set_intf(const test_0_interface_st* i)
 {
-  intf = i;
+	intf = i;
 }
 
 /**

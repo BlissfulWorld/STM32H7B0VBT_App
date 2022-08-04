@@ -1,24 +1,34 @@
 #include "resource.h"
 #include "fatfs.h"
 #include "stdio.h"
+#include "config.h"
 
-resource_icon_st* resource_icon_load(const char *name)
+const char* audio_file_board_loaded = WAV_FILE_BOARD_LOADED;
+const char* audio_file_warning = WAV_FILE_WARNING;
+
+/**
+ * @brief 从磁盘(内部flash)中加载图标资源
+ *
+ * @param name 图标资源名称
+ * @return resource_icon_st* 图标资源指针
+ */
+resource_icon_st* resource_icon_load(const char* name)
 {
   FRESULT res;
-  FIL *fp;
+  FIL* fp;
   UINT br;
   resource_icon_st* src_p;
   char path[128];
-  
+
   src_p = 0;
 
-  fp = (FIL *)pvPortMalloc(sizeof(FIL));
+  fp = (FIL*)pvPortMalloc(sizeof(FIL));
   if(fp == 0)
   {
     goto __exit;
   }
 
-  snprintf(path, sizeof(path), "%sicon/%s.dta",USERPath,name);
+  snprintf(path, sizeof(path), "%sicon/%s.dta", USERPath, name);
 
   res = f_open(fp, path, FA_READ);
   if(res != FR_OK)
@@ -31,7 +41,7 @@ resource_icon_st* resource_icon_load(const char *name)
   {
     goto __close_fp;
   }
-  
+
   src_p->size = f_size(fp);
 
   res = f_read(fp, src_p->data, src_p->size, &br);
@@ -56,7 +66,13 @@ __exit:
   return src_p;
 }
 
-int resource_icon_unload(resource_icon_st *icon)
+/**
+ * @brief 卸载图标资源
+ *
+ * @param icon 图标资源指针
+ * @return int 错误码
+ */
+int resource_icon_unload(resource_icon_st* icon)
 {
   if(icon)
   {

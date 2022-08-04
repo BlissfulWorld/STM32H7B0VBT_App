@@ -4,7 +4,69 @@
 #include "hash.h"
 #include "cryp.h"
 #include "string.h"
+#include "pca9535.h"
 
+/**
+ * @brief 小板上电
+ * 
+ * @return int 错误码
+ */
+int board_power_on(void)
+{
+  uint16_t output;
+
+  if(pca9535_get_output(1, &output) != 0)
+  {
+    return -1;
+  }
+
+  if(output & (1 << 8))
+  {
+    return 0;
+  }
+
+  if(pca9535_set_output(1, output | (1 << 8)))
+  {
+    return -2;
+  }
+
+  return 0;
+}
+
+/**
+ * @brief 小板掉电
+ * 
+ * @return int 错误码
+ */
+int board_power_off(void)
+{
+  uint16_t output;
+
+  if(pca9535_get_output(1, &output) != 0)
+  {
+    return -1;
+  }
+
+  if((output & (1 << 8)) == 0)
+  {
+    return 0;
+  }
+
+  if(pca9535_set_output(1, output & (~(1 << 8))))
+  {
+    return -2;
+  }
+
+  return 0;
+}
+
+/**
+ * @brief 解密小板头部信息
+ * 
+ * @param header 头部信息指针
+ * @param uid 小板id数据指针
+ * @return int 错误码
+ */
 int board_header_decrypt(board_header_st* header, uint8_t* uid)
 {
   uint8_t iv[16], in_tmp[16], out_tmp[16];
@@ -33,6 +95,11 @@ int board_header_decrypt(board_header_st* header, uint8_t* uid)
   return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @return test_module_st* 
+ */
 test_module_st* test_module_load(void)
 {
   test_module_st* module;
@@ -98,6 +165,37 @@ __test_module_load_exit:
   return module;
 }
 
+test_module_st* test_module_load_dbg(void)
+{
+  test_module_st* module;
+  board_info_st* info;
+
+  module = pvPortMalloc(sizeof(test_module_st));
+  if(module)
+  {
+    memset(module, 0, sizeof(test_module_st));
+
+    info = &module->board_header.info;
+
+    info->config_file_encrypt = 0;
+    info->module_id_code = 0;
+    info->flash_manufacturer_id = 0;
+    info->flash_device_id = 0;
+    info->sector_num = 0;
+    info->sector_size = 0;
+    info->config_file_sector_ofs = 0;
+    info->config_file_encrypt = 0;
+    info->version_major = 0;
+    info->version_minor = 0;
+    info->reserve = 0;
+
+    extern const test_module_id_ut ip7_id;
+    module->id.code = ip7_id.code;
+  }
+
+  return module;
+}
+
 int test_module_unload(test_module_st* module)
 {
   if(module)
@@ -112,6 +210,7 @@ int test_module_unload(test_module_st* module)
   }
 }
 
+#if 0//小板证书创建
 board_header_st* board_header_create(uint32_t module_id_code)
 {
   board_header_st* header;
@@ -218,15 +317,16 @@ int board_header_write(board_header_st* header)
     return -1;
   }
 
-  if(spiflash_erase_sector(0,5000))
+  if(spiflash_erase_sector(0, 5000))
   {
     return -2;
   }
 
-  if(spiflash_write(0x00000000, header, sizeof(board_header_st),2000))
+  if(spiflash_write(0x00000000, header, sizeof(board_header_st), 2000))
   {
     return -3;
   }
 
   return 0;
 }
+#endif

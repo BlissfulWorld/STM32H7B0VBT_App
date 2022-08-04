@@ -4,25 +4,39 @@
 #include "stdio.h"
 #include "string.h"
 
-const GUI_FONT *font_ext;
+const GUI_FONT* font_ext;
 static GUI_FONT font;
 static GUI_XBF_DATA xbf_data;
 static FIL font_fil;
 
-static int xbf_get_data(U32 off,U16 num_byte,void *arg,void *pbuffer)
+/**
+ * @brief 从xbf格式的字库文件中索引文字绘制数据
+ * 
+ * @param off 文件偏移
+ * @param num_byte 读取的字节数
+ * @param arg 文件指针
+ * @param pbuffer 存储文字绘制数据的缓存指针
+ * @return int 错误码
+ */
+static int xbf_get_data(U32 off, U16 num_byte, void* arg, void* pbuffer)
 {
   UINT br;
-  FIL *fil = arg;
-  
-  f_lseek(fil,off);
-  return f_read(fil,pbuffer,num_byte,&br);
+  FIL* fil = arg;
+
+  f_lseek(fil, off);
+  return f_read(fil, pbuffer, num_byte, &br);
 }
 
-uint8_t font_load(void)
+/**
+ * @brief 字体风格加载
+ * 
+ * @return int 错误码 
+ */
+int font_load(void)
 {
-  if(f_open(&font_fil,"0:/font/font.bin",FA_READ) == FR_OK)
+  if(f_open(&font_fil, "0:/font/font.bin", FA_READ) == FR_OK)
   {
-    GUI_XBF_CreateFont(&font,&xbf_data,GUI_XBF_TYPE_PROP,xbf_get_data,&font_fil);
+    GUI_XBF_CreateFont(&font, &xbf_data, GUI_XBF_TYPE_PROP, xbf_get_data, &font_fil);
     font_ext = &font;
   }
   else

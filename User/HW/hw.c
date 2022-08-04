@@ -9,16 +9,29 @@
 
 extern uint32_t SystemCoreClock;
 
+/**
+ * @brief 硬件初始化
+ *
+ */
 void hw_init(void)
 {
+  //用于硬件高精度定时
   DEM_CR |= DEM_CR_TRCENA;
   DWT_CYCCNT = 0;
   DWT_CR |= DWT_CR_CTCCNTENA;
 
+  //i2c初始化
   hw_i2c_init();
+
+  //模拟i2c初始化
   hw_sim_i2c_init();
 }
 
+/**
+ * @brief 硬件延时，此函数不可重入
+ *
+ * @param n_100ns 周期数
+ */
 void hw_delay_100ns(uint32_t n_100ns)
 {
   uint32_t tick, now;

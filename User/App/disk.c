@@ -10,7 +10,7 @@
 FRESULT mount(uint8_t disk)
 {
   FRESULT res;
-  
+
   if(disk > 1) return FR_INVALID_PARAMETER;
 
   if(disk == 0)
@@ -27,7 +27,7 @@ FRESULT mount(uint8_t disk)
 FRESULT umount(uint8_t disk)
 {
   if(disk > 1) return FR_INVALID_PARAMETER;
-  
+
   if(disk == 0)
     return f_mount(0, USERPath, 1);
   else
@@ -41,7 +41,7 @@ FRESULT format(uint8_t disk)
 {
   FRESULT res;
   uint8_t* work;
-  
+
   if(disk > 1) return FR_INVALID_PARAMETER;
 
   work = ff_malloc(_MAX_SS);
@@ -58,7 +58,7 @@ FRESULT format(uint8_t disk)
 /**
   * @brief 获取磁盘总大小和剩余空间，单位字节
   */
-FRESULT disk_get_size(uint8_t disk,uint32_t* total, uint32_t* free)
+FRESULT disk_get_size(uint8_t disk, uint32_t* total, uint32_t* free)
 {
   FATFS* fs;
   FRESULT res;

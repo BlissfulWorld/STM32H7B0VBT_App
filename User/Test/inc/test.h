@@ -33,18 +33,18 @@ typedef struct muc_vdd_io_power_test_s
 }muc_vdd_io_power_test_st;
 
 extern const hw_pin_st test_pin[51];
-extern test_module_st *module;
+extern test_module_st* module;
 
 #define TEST_STAGE_WAIT (0)
 #define TEST_STAGE_OS   (1)
 #define TEST_STAGE_FUNC (2)
 
 void test_init(void);
-int test_start(test_module_st *module);
+int test_start(test_module_st* module);
 double test_ma_get(uint8_t idx);
 double test_mv_get(uint8_t idx);
 uint8_t test_ma_is_update(uint8_t idx);
 
 #include "test_0.h"
-
+#include "test_1.h"
 #endif

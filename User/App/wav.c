@@ -1,13 +1,17 @@
 #include "wav.h"
 #include "ff.h"
 #include "cmsis_os.h"
-#include "dac.h"
-#include "tim.h"
 #include "string.h"
+#include "analog_speaker.h"
 
-#define DAC_DMA_LEN_MAX (0xF000)
+typedef struct wav_play_s
+{
+  FIL fil;
+  uint32_t size;
+  analog_spk_bits_et bits;
+}wav_play_st;
 
-#define _4S2U32(id) (uint32_t)((id[0] << 0u) | (id[1] << 8u) | (id[2] << 16u) |( id[3] << 24u))
+#define _4S2U32(tag) (uint32_t)(((tag)[0] << 0u) | ((tag)[1] << 8u) | ((tag)[2] << 16u) | ((tag)[3] << 24u))
 
 #define ID_RIFF  _4S2U32("RIFF")
 #define ID_FMT   _4S2U32("fmt ")
@@ -15,130 +19,182 @@
 
 #define FMT_WAVE _4S2U32("WAVE")
 
-static const osThreadAttr_t attr = {
-  .name = "audio paly",
-  .stack_size = 1024 * 2,
-  .priority = (osPriority_t)osPriorityNormal1,
-};
-
-static osThreadId_t tid;
-uint32_t count;
-uint8_t* pbuffer;
-
-void HAL_DAC_ConvCpltCallbackCh1(DAC_HandleTypeDef* hdac)
-{
-  if(count != 0)
-  {
-    if(count > DAC_DMA_LEN_MAX)
-    {
-      HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t*)pbuffer, DAC_DMA_LEN_MAX, DAC_ALIGN_8B_R);
-      count -= DAC_DMA_LEN_MAX;
-    }
-    else
-    {
-      HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t*)pbuffer, count, DAC_ALIGN_8B_R);
-      count = 0;
-    }
-  }
-  else
-  {
-    vTaskNotifyGiveFromISR((TaskHandle_t)tid, NULL);
-  }
-}
-
-void HAL_DAC_ConvHalfCpltCallbackCh1(DAC_HandleTypeDef* hdac)
-{
-}
-
-static void play_task(void* arg)
+/**
+ * @brief 音频数据填充回调
+ *
+ * @param wp wav_play_st结构体指针
+ * @param buffer 需要填充的内存的指针
+ * @param max_byte 最大的填充大小
+ * @return uint32_t 已填充的字节数
+ */
+static uint32_t data_cb(void* wp, void* buffer, uint32_t max_byte)
 {
   UINT br;
+  uint32_t count;
+  wav_play_st* wav_play;
+
+  wav_play = wp;
+
+  count = wav_play->size;
+  if(count == 0)
+    return 0;
+
+  if(count > max_byte)
+    count = max_byte;
+
+  if(f_read(&wav_play->fil, buffer, count, &br))
+  {
+    return 0;
+  }
+
+  if(wav_play->bits != ANALOG_SPK_BITS_8)
+  {
+    //转换音频数据为无符号数据
+    uint16_t* p = buffer;
+    uint32_t len = br >> 1;
+    for(uint32_t i = 0;i < len;i++)
+    {
+      p[i] += 0x8000;
+    }
+  }
+
+  wav_play->size -= br;
+
+  return br;
+}
+
+/**
+ * @brief 播放完成
+ *
+ * @param wp wav_play_st结构体指针
+ */
+static void finish_cb(void* wp)
+{
+  wav_play_st* wav_play = wp;
+
+  f_close(&wav_play->fil);
+  vPortFree(wav_play);
+}
+
+/**
+ * @brief 播放wav音频文件
+ *        只能播放:
+ *              通道数：1
+ *              位数 ： 8bit或16bit
+ *              采样率：小于44000Hz
+ *
+ * @param path 文件路径
+ * @return int 错误码
+ */
+int wav_play(const char* path)
+{
+  int err;
+  UINT br;
+  wav_play_st* wav_play;
   FIL* fil;
-  
+  uint32_t count;
+
   uint8_t stage;
-  
+
   chunk_st chunk;
   chunk_riff_st chunk_riff;
   chunk_fmt_st chunk_fmt;
 
-  char* path = arg;
   stage = 0;
 
-  fil = pvPortMalloc(sizeof(FIL));
-  if(fil == 0)
+  if(analog_speaker_is_busy())
   {
-    goto __play_task_exit;
+    err = -1;
+    goto __exit;
   }
+
+  wav_play = pvPortMalloc(sizeof(wav_play_st));
+  if(wav_play == 0)
+  {
+    err = -2;
+    goto __exit;
+  }
+
+  memset(wav_play, 0, sizeof(wav_play_st));
+
+  fil = &wav_play->fil;
 
   if(f_open(fil, path, FA_READ) != FR_OK)
   {
-    goto __play_task_free_fil;
+    err = -3;
+    goto __free_wav_play;
   }
-  
+
+  //读取第一个chunk
   if(f_read(fil, &chunk_riff, sizeof(chunk_riff), &br))
   {
-    goto __play_task_close;
+    err = -4;
+    goto __close;
   }
 
+  //判断是否为wav文件
   if((chunk_riff.chunk.id != ID_RIFF) || (chunk_riff.format != FMT_WAVE))
   {
-    goto __play_task_close;
+    err = -5;
+    goto __close;
   }
 
+  //查找格式信息和音频数据的位置
   while(1)
   {
+    //读取chunk
     if(f_read(fil, &chunk, sizeof(chunk), &br))
     {
-      goto __play_task_close;
+      err = -6;
+      goto __close;
     }
-    
+
+    //判断chunk是否有效
     if((br != sizeof(chunk)) || (chunk.size == 0))
       break;
 
+    //判断是否为格式chunk
     if(chunk.id == ID_FMT)
     {
       uint32_t size;
       chunk_fmt.chunk.id = chunk.id;
       chunk_fmt.chunk.size = chunk.size;
 
+      //限制chunk大小，不能超出chunk_fmt_st的内容大小
       if(chunk_fmt.chunk.size > sizeof(chunk_fmt_st) - sizeof(chunk_st))
         size = sizeof(chunk_fmt_st) - sizeof(chunk_st);
       else
         size = chunk_fmt.chunk.size;
 
+      //读取chunk内容
       if(f_read(fil, chunk_fmt.chunk.data, size, &br))
       {
         break;
       }
-      
+
+      //移动文件指针跳出这个chunk
       if(size < chunk_fmt.chunk.size)
       {
-        f_lseek(fil,f_tell(fil) + (chunk_fmt.chunk.size - size));
+        f_lseek(fil, f_tell(fil) + (chunk_fmt.chunk.size - size));
       }
 
       stage |= 1;
     }
+    //判断是否为数据chunk
     else if(chunk.id == ID_DATA)
     {
       count = chunk.size + 1;
-      pbuffer = pvPortMalloc(count);
-      if(pbuffer == 0)
-      {
-        break;
-      }
-
-      if(f_read(fil, pbuffer, chunk.size, &br))
-      {
-        break;
-      }
+      wav_play->size = count;
 
       stage |= 2;
     }
     else
     {
-      f_lseek(fil,f_tell(fil) + chunk.size);
+      //移动文件指针跳出这个chunk
+      f_lseek(fil, f_tell(fil) + chunk.size);
     }
 
+    //判断是否已经全部找到
     if(stage == 3)
     {
       break;
@@ -148,105 +204,40 @@ static void play_task(void* arg)
       break;
   }
 
+  //没全部找到则退出
   if(stage != 3)
   {
-    if(pbuffer)
-      goto __play_task_free_pbuffer;
-    else
-      goto __play_task_close;
+    err = -7;
+    goto __close;
   }
 
-  if((chunk_fmt.num_of_channels != 1) || (chunk_fmt.bits_per_sample != 8) || (chunk_fmt.sample_rate != 8000))
+  if((chunk_fmt.num_of_channels != 1) || ((chunk_fmt.bits_per_sample != 8) && (chunk_fmt.bits_per_sample != 16)) || (chunk_fmt.sample_rate > 44000))
   {
-    goto __play_task_free_pbuffer;
+    err = -8;
+    goto __close;
   }
 
-  /*for(uint32_t i = 0;i < count;i++)
-  {
-    pbuffer[i] += 128;
-  }*/
-
-  HAL_GPIO_WritePin(MUTE_GPIO_Port, MUTE_Pin, GPIO_PIN_RESET);
-
-  osDelay(200);
-
-  pbuffer[count - 1] = 0x00;
-
-  SCB_CleanDCache_by_Addr((uint32_t*)pbuffer, count);
-
-  if(count > DAC_DMA_LEN_MAX)
-  {
-    HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t*)pbuffer, DAC_DMA_LEN_MAX, DAC_ALIGN_8B_R);
-    count -= DAC_DMA_LEN_MAX;
-  }
+  if(chunk_fmt.bits_per_sample == 8)
+    wav_play->bits = ANALOG_SPK_BITS_8;
   else
+    wav_play->bits = ANALOG_SPK_BITS_16;
+
+  //开始播放
+  if(analog_speaker_play(chunk_fmt.sample_rate, wav_play->bits, data_cb, finish_cb, wav_play))
   {
-    HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t*)pbuffer, count, DAC_ALIGN_8B_R);
-    count = 0;
+    err = -9;
+    goto __close;
   }
-
-  __HAL_TIM_SetAutoreload(&htim5, (280000000 / 2 / chunk_fmt.sample_rate) - 1);
-
-  HAL_TIM_Base_Start(&htim5);
-
-  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-  HAL_GPIO_WritePin(MUTE_GPIO_Port, MUTE_Pin, GPIO_PIN_SET);
-  HAL_TIM_Base_Stop(&htim5);
-  HAL_DAC_Stop_DMA(&hdac1, DAC_CHANNEL_1);
-
-__play_task_free_pbuffer:
-  vPortFree(pbuffer);
-
-__play_task_close:
-  f_close(fil);
-
-__play_task_free_fil:
-  vPortFree(fil);
-
-__play_task_exit:
-  vPortFree(path);
-
-  tid = 0;
-  osThreadExit();
-}
-
-int wav_play(const char* path)
-{
-  int err;
-  char* str;
-
-  vTaskSuspendAll();
 
   err = 0;
+  goto __exit;
 
-  if(tid != 0)
-  {
-    err = -1;
-    goto __wav_play_exit;
-  }
+__close:
+  f_close(fil);
 
-  if(path == 0)
-  {
-    err = -2;
-    goto __wav_play_exit;
-  }
+__free_wav_play:
+  vPortFree(wav_play);
 
-  str = pvPortMalloc(strlen(path));
-  if(str == 0)
-  {
-    err = -3;
-    goto __wav_play_exit;
-  }
-  strcpy(str, path);
-  tid = osThreadNew(play_task, str, &attr);
-  if(tid == 0)
-  {
-    err = -4;
-    vPortFree(str);
-  }
-
-__wav_play_exit:
-  xTaskResumeAll();
+__exit:
   return err;
 }

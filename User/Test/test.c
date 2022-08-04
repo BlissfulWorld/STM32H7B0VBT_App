@@ -7,22 +7,28 @@
 
 typedef struct test_s
 {
-  const test_module_id_ut *id;
-  int (*start)(test_module_st *module,const char *title);
-  const char *title;
+  const test_module_id_ut* id;
+  int (*start)(test_module_st* module, const char* title);
+  const char* title;
 }test_st;
 
 extern const test_module_id_ut ip7_id;
 extern const test_module_id_ut ip7plus_id;
 extern const test_module_id_ut ip8plus_id;
+extern const test_module_id_ut ipx_id;
+extern const test_module_id_ut ipxs_id;
+extern const test_module_id_ut ipxr_id;
 
 test_module_st* module;
 
-static const test_st test_list[] = 
+static const test_st test_list[] =
 {
   {&ip7_id,ip7_test_start,"XP 7 模组"},
   {&ip7plus_id,ip7plus_test_start,"XP 7plus 模组"},
   {&ip8plus_id,ip8plus_test_start,"XP 8plus 模组"},
+  {&ipx_id,ipx_test_start,"XP X 模组"},
+  {&ipxs_id,ipxs_test_start,"XP XS 模组"},
+  {&ipxr_id,ipxr_test_start,"XP XR 模组"},
   {0},
 };
 
@@ -86,10 +92,10 @@ void test_init(void)
 {
   GPIO_InitTypeDef gpio_init;
 
-  pca9535_config_output(0, 0xFFFF);
+  pca9535_set_output(0, 0xFFFF);
   pca9535_config_port(0, 0x0000);
 
-  pca9535_config_output(1, 0x0000);
+  pca9535_set_output(1, 0x0000);
   pca9535_config_port(1, 0x0000);
 
   __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -114,14 +120,16 @@ void test_init(void)
   }
 }
 
+#define MA_MUN (9)
+
 static const osThreadAttr_t test_current_tid_attr = {
   .name = "test current",
   .stack_size = 1024 * 2,
   .priority = (osPriority_t)osPriorityNormal,
 };
 static ina219_handle_t gs_handle[2];
-float test_ma[13], test_mv[13];
-int test_ma_flag[13];
+float test_ma[MA_MUN], test_mv[MA_MUN];
+int test_ma_flag[MA_MUN];
 
 static void test_current(void* arg)
 {
@@ -133,7 +141,6 @@ static void test_current(void* arg)
   memset(test_ma, 0, sizeof(test_ma));
   memset(test_ma_flag, 0, sizeof(test_ma_flag));
 
-
   while(ina219_basic_init(&gs_handle[0], INA219_ADDRESS_0, 0.1))
   {
     osDelay(100);
@@ -144,9 +151,9 @@ static void test_current(void* arg)
     osDelay(100);
   }
 
-  //pca9535_config_output(0,0xFFEF);
+  //pca9535_set_output(0,0xFFEF);
   pca9535_config_port(0, 0x0000);
-  pca9535_config_output(0, ~(1U << i));
+  pca9535_set_output(0, ~(1U << i));
   osDelay(10);
 
   while(1)
@@ -154,7 +161,7 @@ static void test_current(void* arg)
     if(ina219_basic_read(&gs_handle[0], &mv, &ma, &mw))
     {
       //osDelay(5);
-      //hw_i2c_fix(hw_i2c2,10);
+      hw_i2c_fix(hw_i2c2, 10);
     }
     else if(((uint32_t)(test_ma[i] * 100) != (uint32_t)(ma * 100)) || ((uint32_t)(test_mv[i] * 100) != (uint32_t)(mv * 100)))
     {
@@ -170,23 +177,23 @@ static void test_current(void* arg)
         //osDelay(5);
         //hw_i2c_fix(hw_i2c2,10);
       }
-      else if(((uint32_t)(test_ma[12] * 100) != (uint32_t)(ma * 100)) || ((uint32_t)(test_mv[12] * 100) != (uint32_t)(mv * 100)))
+      else if(((uint32_t)(test_ma[MA_MUN - 1] * 100) != (uint32_t)(ma * 100)) || ((uint32_t)(test_mv[MA_MUN - 1] * 100) != (uint32_t)(mv * 100)))
       {
-        test_mv[12] = mv;
-        test_ma[12] = ma;
-        test_ma_flag[12] = 1;
+        test_mv[MA_MUN - 1] = mv;
+        test_ma[MA_MUN - 1] = ma;
+        test_ma_flag[MA_MUN - 1] = 1;
       }
     }
 
     i++;
-    if(i >= 12)
+    if(i >= MA_MUN - 1)
     {
       i = 0;
     }
     //ina219_basic_deinit(&gs_handle[0]);
-    pca9535_config_output(0, 0xFFFF);
+    pca9535_set_output(0, 0xFFFF);
     osDelay(4);
-    pca9535_config_output(0, ~(1U << i));
+    pca9535_set_output(0, ~(1U << i));
     //osDelay(50);
     //ina219_basic_init(&gs_handle[0],INA219_ADDRESS_0,0.1);
     osDelay(96);
@@ -201,14 +208,14 @@ void test_current_start(void)
 
 double test_ma_get(uint8_t idx)
 {
-  if(idx > 12)
+  if(idx > MA_MUN - 1)
     return 0;
   return test_ma[idx];
 }
 
 double test_mv_get(uint8_t idx)
 {
-  if(idx > 12)
+  if(idx > MA_MUN - 1)
     return 0;
   return test_mv[idx];
 }
@@ -217,7 +224,7 @@ uint8_t test_ma_is_update(uint8_t idx)
 {
   uint8_t update = 0;
 
-  if(idx < 13)
+  if(idx < MA_MUN)
   {
     update = test_ma_flag[idx];
     test_ma_flag[idx] = 0;
@@ -226,14 +233,14 @@ uint8_t test_ma_is_update(uint8_t idx)
   return update;
 }
 
-int test_start(test_module_st *module)
+int test_start(test_module_st* module)
 {
   for(uint32_t i = 0;test_list[i].id;i++)
   {
     if(module->id.code == test_list[i].id->code)
     {
       test_current_start();
-      test_list[i].start(module,test_list[i].title);
+      test_list[i].start(module, test_list[i].title);
       return 0;
     }
   }

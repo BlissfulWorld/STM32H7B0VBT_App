@@ -8,12 +8,12 @@ static uint8_t reg_write(uint8_t reg, uint8_t val)
   uint8_t buffer[2];
   buffer[0] = reg;
   buffer[1] = val;
-  return hw_i2c_write_read(hw_i2c2,I2C_ID,buffer,2,0,0,10);
+  return hw_i2c_write_read(hw_i2c2, I2C_ID, buffer, 2, 0, 0, 10);
 }
 
 static uint8_t reg_read(uint8_t reg, uint8_t* val)
 {
-  return hw_i2c_read_8a_8d(hw_i2c2,I2C_ID,reg,val,10);
+  return hw_i2c_read_1a_1d(hw_i2c2, I2C_ID, reg, val, 10);
   //hw_i2c_write_read(hw_i2c2,I2C_ID,&reg,1,val,1,10);
 }
 
@@ -22,7 +22,7 @@ static uint8_t reg_read(uint8_t reg, uint8_t* val)
   * @param state 状态
   * @retval 0：成功 其他：失败
   */
-uint8_t ip5306_charge_sta_get(ip5306_chg_sta_et *state)
+uint8_t ip5306_charge_sta_get(ip5306_chg_sta_et* state)
 {
   uint8_t val;
 
@@ -62,7 +62,7 @@ uint8_t ip5306_key_get(void)
 
   if(reg_read(0x77, &val))
     return 0;
-  
+
   val &= 0x07;
 
   if(val)
@@ -81,7 +81,7 @@ uint8_t ip5306_lvl_get(void)
 
   if(reg_read(0x78, &val))
   {
-    hw_i2c_fix(hw_i2c2,10);
+    hw_i2c_fix(hw_i2c2, 10);
     return 0;
   }
 
@@ -110,7 +110,7 @@ uint8_t ip5306_init(void)
 
   if(reg_read(0x00, &val))
     return 1;
-  
+
   //关闭负载检测
   if(val & (1 << 2))
   {

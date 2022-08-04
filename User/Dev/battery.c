@@ -15,24 +15,29 @@ static osThreadId_t battery_tid;
 static const osThreadAttr_t battery_tid_attr = {
   .name = "battery",
   .stack_size = 1024 * 1,
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t)osPriorityNormal,
 };
 
-static void battery_task(void *p)
+/**
+ * @brief 电池任务
+ *
+ * @param p 未使用
+ */
+static void battery_task(void* p)
 {
-  uint32_t tick,i = 0;
+  uint32_t tick, i = 0;
 
   tick = osKernelGetTickCount();
   while(1)
   {
     charger_detect();
-    
+
     if(i == 10)
     {
       i++;
       battery_level_proc();
     }
-    
+
     tick += 100;
     osDelayUntil(tick);
     i++;
@@ -73,7 +78,7 @@ void battery_init(void)
   {
     status = (battery_status_et)ip5306_chg_sta;
   }
-  
+
   if(battery_tid == NULL)
     battery_tid = osThreadNew(battery_task, NULL, &battery_tid_attr);
 }

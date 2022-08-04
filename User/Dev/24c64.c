@@ -5,7 +5,7 @@
 #define _24C64_I2C_ID (0xA0)
 #define _24C64_PAGE_SIZE (32)
 
-#define TIMEOUT_MS (5)
+#define TIMEOUT_MS (20)
 
 static uint32_t _24c64_i2c_write(uint16_t addr, void* pdata, uint16_t len)
 {
@@ -14,7 +14,7 @@ static uint32_t _24c64_i2c_write(uint16_t addr, void* pdata, uint16_t len)
   tick = HAL_GetTick();
 
   do {
-    if(hw_i2c_write_16a_xd(hw_i2c2,_24C64_I2C_ID,addr,pdata,len,(len >> 3) + 1) == 0) return 0;
+    if(hw_i2c_write_2a_xd(hw_i2c2, _24C64_I2C_ID, addr, pdata, len, (len >> 3) + 1) == 0) return 0;
   } while(HAL_GetTick() - tick < TIMEOUT_MS);
 
   return 1;
@@ -31,7 +31,7 @@ static uint32_t _24c64_i2c_read(uint16_t addr, void* pbuffer, uint16_t len)
   tick = HAL_GetTick();
 
   do {
-    if(hw_i2c_write_read(hw_i2c2,_24C64_I2C_ID,buffer,2,pbuffer,len,(len >> 3) + 1) == 0) return 0;
+    if(hw_i2c_write_read(hw_i2c2, _24C64_I2C_ID, buffer, 2, pbuffer, len, (len >> 3) + 1) == 0) return 0;
   } while(HAL_GetTick() - tick < TIMEOUT_MS);
 
   return 1;

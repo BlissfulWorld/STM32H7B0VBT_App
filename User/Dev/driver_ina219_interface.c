@@ -92,7 +92,7 @@ uint8_t ina219_interface_iic_read(uint8_t addr, uint8_t reg, uint8_t *buf, uint1
  */
 uint8_t ina219_interface_iic_write(uint8_t addr, uint8_t reg, uint8_t *buf, uint16_t len)
 {
-  return hw_i2c_write_8a_xd(hw_i2c2,addr,reg,buf,len,len<<3);
+  return hw_i2c_write_1a_xd(hw_i2c2,addr,reg,buf,len,len<<3);
   //return HAL_I2C_Mem_Write(&hi2c2,addr,reg,I2C_MEMADD_SIZE_8BIT,buf,len,len<<3);
 }
 

@@ -27,22 +27,22 @@ const test_module_id_ut ip7plus_id =
   .number = 0,
 };
 
-static const test_0_interface_st intf = 
+static const test_0_interface_st intf =
 {
   .gnd_pin_list = gnd_pin_list,
-  
+
   .spk_out_p_pin = 8,
   .spk_out_n_pin = 9,
   .spk_vsense_p_pin = 10,
   .spk_vsense_n_pin = 7,
-  
+
   .prox_inti_pin = 38,
   .als_inti_pin = 35,
-  
+
   .cam_i2c_init = cam_i2c_init,
   .cam_i2c_fix = 0,
   .cam_i2c_write_read = cam_i2c_write_read,
-  
+
   .prox_i2c_write_read = prox_i2c_write_read,
   .prox_i2c_init = prox_i2c_init,
   .prox_i2c_fix = prox_i2c_fix,
@@ -75,7 +75,7 @@ static int prox_i2c_init(void)
 
 static int prox_i2c_fix(void)
 {
-  return hw_i2c_fix(hw_i2c4,1000);
+  return hw_i2c_fix(hw_i2c4, 1000);
 }
 
 static int prox_i2c_write_read(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout)
@@ -90,7 +90,7 @@ static int als_i2c_init(void)
 
 static int als_i2c_fix(void)
 {
-  return hw_i2c_fix(hw_i2c1,1000);
+  return hw_i2c_fix(hw_i2c1, 1000);
 }
 
 static int als_i2c_write_read(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout)
@@ -98,7 +98,7 @@ static int als_i2c_write_read(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uin
   return hw_i2c_write_read(hw_i2c1, ALS_I2C_ID, pw, wlen, pr, rlen, timeout);
 }
 
-int ip7plus_test_start(test_module_st *module,const char *title)
+int ip7plus_test_start(test_module_st* module, const char* title)
 {
-  return test_0_start(module,&intf,title);
+  return test_0_start(module, &intf, title);
 }

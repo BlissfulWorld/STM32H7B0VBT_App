@@ -12,21 +12,21 @@ typedef struct hw_i2c_handler_s
 void* hw_i2c1, * hw_i2c2, * hw_i2c4;
 static hw_i2c_handler_st _hw_i2c1, _hw_i2c2, _hw_i2c4;
 
+/**
+ * @brief i2c初始化
+ *
+ */
 void hw_i2c_init(void)
 {
-  osMutexDef(hw_i2c1);
-  osMutexDef(hw_i2c2);
-  osMutexDef(hw_i2c4);
-
-  _hw_i2c1.mutex = osMutexNew(osMutex(hw_i2c1));
+  _hw_i2c1.mutex = osMutexNew(NULL);
   _hw_i2c1.hi2c = &hi2c1;
   _hw_i2c1.init = MX_I2C1_Init;
 
-  _hw_i2c2.mutex = osMutexNew(osMutex(hw_i2c2));
+  _hw_i2c2.mutex = osMutexNew(NULL);
   _hw_i2c2.hi2c = &hi2c2;
   _hw_i2c2.init = MX_I2C2_Init;
 
-  _hw_i2c4.mutex = osMutexNew(osMutex(hw_i2c4));
+  _hw_i2c4.mutex = osMutexNew(NULL);
   _hw_i2c4.hi2c = &hi2c4;
   _hw_i2c4.init = MX_I2C4_Init;
 
@@ -35,6 +35,13 @@ void hw_i2c_init(void)
   hw_i2c4 = &_hw_i2c4;
 }
 
+/**
+ * @brief i2c总线修复
+ *
+ * @param handler hw i2c句柄
+ * @param timeout 超时，单位系统滴答
+ * @return int 错误码
+ */
 int hw_i2c_fix(const void* handler, uint32_t timeout)
 {
   const hw_i2c_handler_st* hw_i2c;
@@ -43,7 +50,7 @@ int hw_i2c_fix(const void* handler, uint32_t timeout)
   if(handler == 0)
   {
     res = -1;
-    goto __hw_i2c_fix_exit;
+    goto __exit;
   }
 
   hw_i2c = handler;
@@ -57,13 +64,25 @@ int hw_i2c_fix(const void* handler, uint32_t timeout)
   else
   {
     res = -2;
-    goto __hw_i2c_fix_exit;
+    goto __exit;
   }
 
-__hw_i2c_fix_exit:
+__exit:
   return res;
 }
 
+/**
+ * @brief i2c读写
+ *
+ * @param handler 句柄
+ * @param addr i2c地址
+ * @param pw 待写入数据的指针
+ * @param wlen 写入长度
+ * @param pr 读出数据的缓存指针
+ * @param rlen 读出长度
+ * @param timeout 超时，单位系统滴答
+ * @return int 错误
+ */
 int hw_i2c_write_read(const void* handler, uint8_t addr, const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout)
 {
   const hw_i2c_handler_st* hw_i2c;
@@ -72,7 +91,7 @@ int hw_i2c_write_read(const void* handler, uint8_t addr, const uint8_t* pw, uint
   if(handler == 0)
   {
     res = -1;
-    goto __hw_i2c_write_read_exit;
+    goto __exit;
   }
 
   hw_i2c = handler;
@@ -96,15 +115,26 @@ int hw_i2c_write_read(const void* handler, uint8_t addr, const uint8_t* pw, uint
   else
   {
     res = -2;
-    goto __hw_i2c_write_read_exit;
+    goto __exit;
   }
 
-__hw_i2c_write_read_exit:
+__exit:
 
   return res;
 }
 
-int hw_i2c_write_8a_xd(const void* handler, uint8_t id, uint8_t addr, const uint8_t* pw, uint32_t wlen, uint32_t timeout)
+/**
+ * @brief i2c写1字节地址x字节数据
+ *
+ * @param handler i2c句柄
+ * @param id i2c地址
+ * @param addr 8位地址
+ * @param pw 待写入数据的指针
+ * @param wlen 写入长度
+ * @param timeout 超时，单位系统滴答
+ * @return int 错误码
+ */
+int hw_i2c_write_1a_xd(const void* handler, uint8_t id, uint8_t addr, const uint8_t* pw, uint32_t wlen, uint32_t timeout)
 {
   const hw_i2c_handler_st* hw_i2c;
   int res = 0;
@@ -112,13 +142,13 @@ int hw_i2c_write_8a_xd(const void* handler, uint8_t id, uint8_t addr, const uint
   if(handler == 0)
   {
     res = -1;
-    goto __hw_i2c_write_8a_xd_exit;
+    goto __exit;
   }
 
   if(!pw || !wlen)
   {
     res = -2;
-    goto __hw_i2c_write_8a_xd_exit;
+    goto __exit;
   }
 
   hw_i2c = handler;
@@ -132,15 +162,26 @@ int hw_i2c_write_8a_xd(const void* handler, uint8_t id, uint8_t addr, const uint
   else
   {
     res = -4;
-    goto __hw_i2c_write_8a_xd_exit;
+    goto __exit;
   }
 
-__hw_i2c_write_8a_xd_exit:
+__exit:
 
   return res;
 }
 
-int hw_i2c_write_16a_xd(const void* handler, uint8_t id, uint16_t addr, const uint8_t* pw, uint32_t wlen, uint32_t timeout)
+/**
+ * @brief i2c写2字节地址x字节数据
+ *
+ * @param handler i2c句柄
+ * @param id i2c地址
+ * @param addr 2字节地址
+ * @param pw 待写入数据的指针
+ * @param wlen 写入长度
+ * @param timeout 超时，单位系统滴答
+ * @return int 错误码
+ */
+int hw_i2c_write_2a_xd(const void* handler, uint8_t id, uint16_t addr, const uint8_t* pw, uint32_t wlen, uint32_t timeout)
 {
   const hw_i2c_handler_st* hw_i2c;
   int res = 0;
@@ -148,13 +189,13 @@ int hw_i2c_write_16a_xd(const void* handler, uint8_t id, uint16_t addr, const ui
   if(handler == 0)
   {
     res = -1;
-    goto __hw_i2c_write_16a_xd_exit;
+    goto __exit;
   }
 
   if(!pw || !wlen)
   {
     res = -2;
-    goto __hw_i2c_write_16a_xd_exit;
+    goto __exit;
   }
 
   hw_i2c = handler;
@@ -168,15 +209,26 @@ int hw_i2c_write_16a_xd(const void* handler, uint8_t id, uint16_t addr, const ui
   else
   {
     res = -4;
-    goto __hw_i2c_write_16a_xd_exit;
+    goto __exit;
   }
 
-__hw_i2c_write_16a_xd_exit:
+__exit:
 
   return res;
 }
 
-int hw_i2c_read_16a_xd(const void* handler, uint8_t id, uint16_t addr, uint8_t* pr, uint32_t rlen, uint32_t timeout)
+/**
+ * @brief i2c写2字节地址读x字节数据
+ *
+ * @param handler i2c句柄
+ * @param id i2c地址
+ * @param addr 2字节地址
+ * @param pr 读出数据的缓存指针
+ * @param rlen 读取长度
+ * @param timeout 超时，单位系统滴答
+ * @return int 错误码
+ */
+int hw_i2c_read_2a_xd(const void* handler, uint8_t id, uint16_t addr, uint8_t* pr, uint32_t rlen, uint32_t timeout)
 {
   const hw_i2c_handler_st* hw_i2c;
   int res = 0;
@@ -184,13 +236,13 @@ int hw_i2c_read_16a_xd(const void* handler, uint8_t id, uint16_t addr, uint8_t* 
   if(handler == 0)
   {
     res = -1;
-    goto __hw_i2c_read_16a_xd_exit;
+    goto __exit;
   }
 
   if(!pr || !rlen)
   {
     res = -2;
-    goto __hw_i2c_read_16a_xd_exit;
+    goto __exit;
   }
 
   hw_i2c = handler;
@@ -204,15 +256,25 @@ int hw_i2c_read_16a_xd(const void* handler, uint8_t id, uint16_t addr, uint8_t* 
   else
   {
     res = -4;
-    goto __hw_i2c_read_16a_xd_exit;
+    goto __exit;
   }
 
-__hw_i2c_read_16a_xd_exit:
+__exit:
 
   return res;
 }
 
-int hw_i2c_read_8a_8d(const void* handler, uint8_t id, uint8_t addr, uint8_t* pr, uint32_t timeout)
+/**
+ * @brief i2c写1字节读1字节
+ *
+ * @param handler i2c句柄
+ * @param id i2c地址
+ * @param addr 1字节地址
+ * @param pr 读出数据的缓存指针
+ * @param timeout 超时，单位系统滴答
+ * @return int 错误码
+ */
+int hw_i2c_read_1a_1d(const void* handler, uint8_t id, uint8_t addr, uint8_t* pr, uint32_t timeout)
 {
   const hw_i2c_handler_st* hw_i2c;
   int res = 0;
@@ -220,13 +282,13 @@ int hw_i2c_read_8a_8d(const void* handler, uint8_t id, uint8_t addr, uint8_t* pr
   if(handler == 0)
   {
     res = -1;
-    goto __hw_i2c_read_8a_8d_exit;
+    goto __exit;
   }
 
   if(pr == 0)
   {
     res = -2;
-    goto __hw_i2c_read_8a_8d_exit;
+    goto __exit;
   }
 
   hw_i2c = handler;
@@ -241,10 +303,10 @@ int hw_i2c_read_8a_8d(const void* handler, uint8_t id, uint8_t addr, uint8_t* pr
   else
   {
     res = -4;
-    goto __hw_i2c_read_8a_8d_exit;
+    goto __exit;
   }
 
-__hw_i2c_read_8a_8d_exit:
+__exit:
 
   return res;
 }

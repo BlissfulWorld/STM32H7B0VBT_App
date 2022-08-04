@@ -20,24 +20,24 @@ typedef struct
 
 static uint8_t prox_rdy;
 static prox_data_st prox_data;
-extern const uint8_t prox_init_data[];
+static const uint8_t prox_init_data[];
 
-static const test_0_interface_st *intf;
+static const test_0_interface_st* intf;
 
 static uint8_t i2c_write_nd(uint8_t slaveId, uint8_t* pdata, uint32_t size)
 {
 	//return HAL_I2C_Master_Transmit(&hi2c4, slaveId, pData, nData, nData);
-  return intf->prox_i2c_write_read(pdata,size,0,0,size);
+	return intf->prox_i2c_write_read(pdata, size, 0, 0, size);
 }
 
 static uint8_t i2c_read(unsigned char slaveId, unsigned char addr, unsigned char* data, unsigned int size)
 {
-	return intf->prox_i2c_write_read(&addr,1,data,size,size);
+	return intf->prox_i2c_write_read(&addr, 1, data, size, size);
 }
 
-void test_0_prox_set_intf(const test_0_interface_st *i)
+void test_0_prox_set_intf(const test_0_interface_st* i)
 {
-  intf = i;
+	intf = i;
 }
 
 /**
@@ -232,7 +232,7 @@ uint16_t test_0_prox_get_percentage(void)
 	* 数据读写地址8位
 	* 0xff表示结束
 	*/
-const uint8_t prox_init_data[] = {
+static const uint8_t prox_init_data[] = {
 0x21,0x00,
 0x21,0x01,
 0x11,0xFE,0x01,

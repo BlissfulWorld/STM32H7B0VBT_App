@@ -33,5 +33,3 @@ const sw_info_st sw_info __attribute__((section(".ARM.__at_0x00000000"))) =
   .map =
     {{0x24000000,0x00040000}},
 };
-
-char* bootloader_version;
