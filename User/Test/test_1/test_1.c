@@ -13,6 +13,8 @@
 #include "cJSON.h"
 #include "json_obj.h"
 #include "ui.h"
+#include "wav.h"
+#include "tim.h"
 
 const test_1_config_st test_1_config_default =
 {
@@ -53,8 +55,10 @@ static test_1_st test_1;
 extern void test_1_als_init(void);
 extern void test_1_prox_init(void);
 extern int test_1_mic_init(void);
+extern void test_1_spkramp_init(void);
 extern void test_1_als_set_intf(const test_1_interface_st* i);
 extern void test_1_prox_set_intf(const test_1_interface_st* i);
+extern void test_1_spkramp_set_intf(const test_1_interface_st* i);
 
 void test_1_init(const test_1_interface_st* intf)
 {
@@ -122,6 +126,7 @@ void test_1_init(const test_1_interface_st* intf)
 
   test_1_als_set_intf(intf);
   test_1_prox_set_intf(intf);
+  test_1_spkramp_set_intf(intf);
 
   power_en = 0;
   for(uint32_t i = 0;i < sizeof(test_1.config->power) / sizeof(power_test_st);i++)
@@ -130,7 +135,7 @@ void test_1_init(const test_1_interface_st* intf)
       power_en |= (1 << i);
   }
 
-  pca9535_set_output(1, power_en);
+  pca9535_set_output(1, power_en | 0x1000);
   pca9535_config_port(1, 0x0000);
 
   intf->als_i2c_init();
@@ -139,6 +144,7 @@ void test_1_init(const test_1_interface_st* intf)
   test_1_als_init();
   test_1_prox_init();
   test_1_mic_init();
+  test_1_spkramp_init();
 }
 
 static int start = 0;
@@ -146,7 +152,7 @@ static uint8_t stage;
 
 static osThreadId_t test_1_tid;
 static const osThreadAttr_t test_1_tid_attr = {
-  .name = "test 0",
+  .name = "test 2",
   .stack_size = 1024 * 8,
   .priority = (osPriority_t)osPriorityNormal,
 };
@@ -167,6 +173,11 @@ extern int test_1_mic_record_start(void);
 extern int test_1_mic_record_stop(void);
 extern int test_1_mic_record_play(void);
 extern uint8_t test_1_mic_record_get_progress(void);
+
+extern void test_1_spkramp_test_poll(void);
+extern void test_1_spkramp_test_poll_end(void);
+extern int test_1_spkramp_play(void);
+extern uint8_t test_1_spkramp_res_get(void);
 
 static uint8_t codec_aout_to_hac_test_res;
 
@@ -199,7 +210,6 @@ static uint8_t codec_aout_to_hac_test(const test_1_interface_st* intf)
     cnt++;
   }
 
-
   //SPK_OUT_P
   HAL_GPIO_WritePin(test_pin[p_pin].gpio, test_pin[p_pin].pin, GPIO_PIN_RESET);
 
@@ -227,18 +237,20 @@ static void test_1_task(void* p)
   int i = 0;
   uint32_t tick;
   const test_1_interface_st* intf = p;
+  uint32_t err_flg;
+  uint32_t err_flg_new;
 
   test_1_init(intf);
   while(test_1_tid)
   {
-    pca9535_set_output(1, 0x103F);
-
     stage = TEST_STAGE_WAIT;
 
-
+    i = 0;
     while(test_1_tid)
     {
-      if((test_1_prox_detect() == 0) || (test_1_als_detect() == 0))
+      codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+      test_1_spkramp_test_poll();
+      if((test_1_prox_detect() == 0) || (test_1_als_detect() == 0) || codec_aout_to_hac_test_res || test_1_spkramp_res_get())
       {
         i++;
         if(i > 5) break;
@@ -259,6 +271,9 @@ static void test_1_task(void* p)
 
     stage = TEST_STAGE_FUNC;
 
+    err_flg = 0;
+    err_flg_new = 0x0000001F;
+    i = 0;
     tick = HAL_GetTick();
     while(test_1_tid)
     {
@@ -269,22 +284,81 @@ static void test_1_task(void* p)
       {
         tick += 50;
 
-        codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+        uint32_t flag = 0;
+
         test_1_prox_update_data();
 
-        if(test_1_prox_is_rdy() == 0)
-          intf->prox_i2c_fix();
-
-        if(test_1_als_detect() != 0)
+        if(test_1_als_detect() == 0)
         {
+          flag |= (1U << 0);
           intf->als_i2c_fix();
-          if(test_1_prox_is_rdy() == 0)
-            break;
+        }
+
+        if(test_1_prox_is_rdy() != 0)
+        {
+          flag |= (1U << 1);
+          intf->prox_i2c_fix();
+        }
+
+        test_1_spkramp_test_poll();
+
+        if((test_1_spkramp_res_get() & 1) != 0)
+        {
+          flag |= (1U << 2);
+        }
+
+        if((test_1_spkramp_res_get() & 2) != 0)
+        {
+          flag |= (1U << 3);
+        }
+
+        codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+        if(codec_aout_to_hac_test_res != 0)
+        {
+          flag |= (1U << 4);
+        }
+
+        if(flag == 0)
+          break;
+
+        err_flg_new &= (~flag);
+
+        i++;
+        if(i == 4)
+        {
+          i = 0;
+
+          if(err_flg_new)
+          {
+            if(err_flg_new != 0x0000001F)
+            {
+              if(err_flg_new != err_flg)
+              {
+                for(uint32_t i = 1;i < (1 << 5);i <<= 1)
+                {
+                  if((err_flg_new & i) != 0 && (err_flg & i) == 0)
+                  {
+                    wav_play(audio_file_warning);
+                    break;
+                  }
+                }
+              }
+            }
+            else
+            {
+              break;
+            }
+          }
+
+          err_flg = err_flg_new;
+          err_flg_new = 0x0000001F;
         }
       }
 
       osDelay(10);
     }
+
+    test_1_spkramp_test_poll_end();
   }
 
   start--;
@@ -296,7 +370,6 @@ void test_1_stop(void)
   if(start == 0) return;
 
   test_1_tid = 0;
-
 }
 
 static uint8_t test_1_stage_get(void)
@@ -332,6 +405,16 @@ static uint8_t _test_1_als_is_rdy(void)
 static uint8_t codec_aout_to_hac_test_res_get(void)
 {
   return codec_aout_to_hac_test_res;
+}
+
+static int spkramp_play(void)
+{
+  return test_1_spkramp_play();
+}
+
+static uint8_t spkramp_test_res_get(void)
+{
+  return test_1_spkramp_res_get();
 }
 
 static test_1_config_st* config_parse(const config_file_st* config_file)
@@ -527,6 +610,8 @@ int test_1_start(test_module_st* module, const test_1_interface_st* intf, const 
   test_1.mv_get = test_mv_get;
   test_1.ma_is_update = test_ma_is_update;
   test_1.codec_aout_to_hac_test_res = codec_aout_to_hac_test_res_get;
+  test_1.spkramp_play = spkramp_play;
+  test_1.spkramp_test_res = spkramp_test_res_get;
 
   ui_test_1_open(&test_1, title);
 

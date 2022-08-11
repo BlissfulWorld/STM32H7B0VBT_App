@@ -5,17 +5,21 @@
 #define DEVICE_NAME "XP模组测试机"
 
 // 软件版本
-#define SOFTWARE_VERSION "0.1.1"
+#define SOFTWARE_VERSION "0.2.39"
 
 // <<< Use Configuration Wizard in Context Menu >>>
 
-//<o>  Min Logo Time (in ms) <0x0-0xFFFFFFFF>
+//<o>  Min Logo Time (units: ms) <0x0-0xFFFFFFFF>
 // 开机logo至少显示时间,单位毫秒
-#define BOOT_LOGO_TIME_MIN (1000)
+#define BOOT_LOGO_TIME_MIN (2000)
 
 //<o> Show Version On Booting <0=>No <1=>Yes
 // 开机过程在屏幕下方显示软件版本
 #define BOOT_SHOW_VERSION (1)
+
+//<o>  Mic Record Time Depth (units: s) <0x0-0xFFFFFFFF>
+// 麦克风录制时间深度(最长可以连续录制多久)，单位秒
+#define MIC_RECORD_TIME_DEPTH (5)
 
 //<s> Wav File Of Board loaded
 // 发现小板被扣上时播放的声音文件

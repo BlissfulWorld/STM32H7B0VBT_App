@@ -7,11 +7,12 @@
 #include "ff.h"
 #include "cmsis_os.h"
 #include "wav.h"
+#include "pwdn_watchdog.h"
 
 typedef struct menu_item_s
 {
   void (*ui_open)(WM_HWIN back);
-  const char *name;
+  const char* name;
 }menu_item_st;
 
 #define FONT_DEF      (font_ext)
@@ -43,11 +44,12 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 static WM_HWIN back;
 static int select = 0;
 
-const menu_item_st menu_item[] = 
+const menu_item_st menu_item[] =
 {
-  {ui_brightness_open,"亮度"},
-  {ui_volume_open,"音量"},
-  {ui_about_open,"关于"}
+  {ui_menu_brightness_open,"亮度"},
+  {ui_menu_volume_open,"系统音量"},
+  {ui_menu_standby_open,"待机"},
+  {ui_menu_about_open,"关于"}
 };
 
 static void _cbDialog(WM_MESSAGE* pMsg) {
@@ -63,7 +65,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       WINDOW_SetBkColor(hItem, GUI_MAKE_COLOR(0));
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem);
+      ui_battery_level_icon_updata(hItem, 0);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_TITLE);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_BOTTOM);
@@ -80,7 +82,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       LISTVIEW_SetColumnWidth(hItem, LISTVIEW_ALL_ITEMS, 40);
       LISTVIEW_SetHeaderHeight(hItem, 0);
 
-      for(uint32_t i = 0;i < sizeof(menu_item)/sizeof(menu_item_st);i++)
+      for(uint32_t i = 0;i < sizeof(menu_item) / sizeof(menu_item_st);i++)
       {
         LISTVIEW_AddRow(hItem, 0);
         LISTVIEW_SetItemText(hItem, 0, i, menu_item[i].name);
@@ -88,7 +90,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       }
 
       LISTVIEW_SetSel(hItem, select);
-      
+
       WM_EnableMemdev(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BACK);
@@ -113,9 +115,11 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetText(hItem, "");
 
       WM_SetFocus(pMsg->hWin);
+      break;
     }
     case WM_KEY:
     {
+      pwdn_watchdog_reload();
       switch(((WM_KEY_INFO*)(pMsg->Data.p))->Key)
       {
         case UI_KEY(UP, REPET):
@@ -153,7 +157,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     case UI_MSG_BATTERY:
     {
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem);
+      ui_battery_level_icon_updata(hItem, 0);
       break;
     }
     case WM_DELETE:

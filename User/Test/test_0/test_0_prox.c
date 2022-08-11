@@ -26,7 +26,6 @@ static const test_0_interface_st* intf;
 
 static uint8_t i2c_write_nd(uint8_t slaveId, uint8_t* pdata, uint32_t size)
 {
-	//return HAL_I2C_Master_Transmit(&hi2c4, slaveId, pData, nData, nData);
 	return intf->prox_i2c_write_read(pdata, size, 0, 0, size);
 }
 

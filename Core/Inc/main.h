@@ -61,8 +61,8 @@ void Error_Handler(void);
 #define I2S_MCLK_GPIO_Port GPIOE
 #define LCD_RESET_Pin GPIO_PIN_0
 #define LCD_RESET_GPIO_Port GPIOC
-#define PWM1_Pin GPIO_PIN_0
-#define PWM1_GPIO_Port GPIOA
+#define LCD_BACKLIGHT_PWM_Pin GPIO_PIN_0
+#define LCD_BACKLIGHT_PWM_GPIO_Port GPIOA
 #define PWM2_Pin GPIO_PIN_2
 #define PWM2_GPIO_Port GPIOA
 #define SPEAKER_Pin GPIO_PIN_4
@@ -85,13 +85,18 @@ void Error_Handler(void);
 #define LCD_WR_GPIO_Port GPIOB
 #define PWM5_Pin GPIO_PIN_14
 #define PWM5_GPIO_Port GPIOD
-#define PWM2C8_Pin GPIO_PIN_8
-#define PWM2C8_GPIO_Port GPIOC
+#define SPKRAMP_PWM_Pin GPIO_PIN_7
+#define SPKRAMP_PWM_GPIO_Port GPIOC
+#define DBG_PIN0_Pin GPIO_PIN_13
+#define DBG_PIN0_GPIO_Port GPIOA
+#define DBG_PIN1_Pin GPIO_PIN_14
+#define DBG_PIN1_GPIO_Port GPIOA
 #define SPI_FLASH_CS_Pin GPIO_PIN_15
 #define SPI_FLASH_CS_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
-#define ff_malloc  pvPortMalloc
-#define ff_free  vPortFree
+#include "stdlib.h"
+#define ff_malloc  malloc//pvPortMalloc
+#define ff_free  free//vPortFree
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

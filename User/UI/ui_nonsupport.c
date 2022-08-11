@@ -10,6 +10,7 @@
 #include "stdio.h"
 #include "config.h"
 #include "sw_info.h"
+#include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
 #define PROG_FONT_DEF (GUI_FONT_20_ASCII)
@@ -51,7 +52,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       WINDOW_SetBkColor(hItem, GUI_MAKE_COLOR(0));
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem);
+      ui_battery_level_icon_updata(hItem, 0);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_TITLE);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_BOTTOM);
@@ -90,15 +91,17 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetText(hItem, "");
 
       WM_SetFocus(pMsg->hWin);
+      break;
     }
     case WM_KEY:
     {
+      pwdn_watchdog_reload();
       break;
     }
     case UI_MSG_BATTERY:
     {
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem);
+      ui_battery_level_icon_updata(hItem, 0);
       break;
     }
     case WM_DELETE:

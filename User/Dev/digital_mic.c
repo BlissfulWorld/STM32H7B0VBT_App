@@ -27,7 +27,7 @@ static void data_cb(es7243_data_st* _pdata, uint32_t _len)
 
 /**
  * @brief 麦克风任务
- * 
+ *
  * @param arg 未使用
  */
 static void digital_mic_task(void* arg)
@@ -42,7 +42,7 @@ static void digital_mic_task(void* arg)
     if(length > data_len)
       length = data_len;
 
-    SCB_InvalidateDCache_by_Addr(pdata, length * sizeof(es7243_data_st));
+    SCB_InvalidateDCache_by_Addr(pdata, (length * sizeof(es7243_data_st) + 32) & (~0x0000001FU));
     for(uint32_t i = 0;i < length;i++)
     {
       uint16_t val = (uint16_t)pdata[i].r;
@@ -56,7 +56,6 @@ static void digital_mic_task(void* arg)
       out_buffer = 0;
       if(cb) cb();
     }
-
   }
 }
 
@@ -181,7 +180,7 @@ __exit:
 
 /**
  * @brief 停止录制
- * 
+ *
  * @return int 错误码
  */
 int digital_mic_record_stop(void)
@@ -202,7 +201,7 @@ int digital_mic_record_stop(void)
 
 /**
  * @brief 获取计数器
- * 
+ *
  * @return uint32_t 计算值
  */
 uint32_t digital_mic_record_get_count(void)
@@ -212,7 +211,7 @@ uint32_t digital_mic_record_get_count(void)
 
 /**
  * @brief 获取当前的mic值，8bit
- * 
+ *
  * @return uint8_t mic值
  */
 uint8_t digital_mic_get_current_value(void)

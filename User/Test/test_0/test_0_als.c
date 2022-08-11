@@ -283,7 +283,7 @@ void test_0_als_update_data(void)
 		{
 			als_data = data;
 		}
-		else if(HAL_GetTick() - tick > 200)
+		else if(HAL_GetTick() - tick > 100)
 		{
 			als_rdy = 0;
 			return;

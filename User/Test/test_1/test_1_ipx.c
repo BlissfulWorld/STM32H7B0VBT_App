@@ -34,6 +34,9 @@ static const test_1_interface_st intf =
   .codec_aout_to_hac_conn_p_pin = 44,
   .codec_aout_to_hac_conn_n_pin = 43,
 
+  .coil_to_spkramp_top_vsense_p_pin = 10,
+  .coil_to_spkramp_top_vsense_n_pin = 7,
+
   .prox_inti_pin = 38,
   .als_inti_pin = 35,
 
@@ -49,7 +52,7 @@ static const test_1_interface_st intf =
 
 static const uint8_t gnd_pin_list[] =
 {
-  11,12,21,23,24,33,0
+  11,12,21,22,23,24,33,0
 };
 
 static int prox_i2c_init(void)

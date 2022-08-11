@@ -11,7 +11,7 @@ static FIL font_fil;
 
 /**
  * @brief 从xbf格式的字库文件中索引文字绘制数据
- * 
+ *
  * @param off 文件偏移
  * @param num_byte 读取的字节数
  * @param arg 文件指针
@@ -29,8 +29,8 @@ static int xbf_get_data(U32 off, U16 num_byte, void* arg, void* pbuffer)
 
 /**
  * @brief 字体风格加载
- * 
- * @return int 错误码 
+ *
+ * @return int 错误码
  */
 int font_load(void)
 {

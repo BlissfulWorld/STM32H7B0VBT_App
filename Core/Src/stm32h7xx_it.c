@@ -210,24 +210,10 @@ void DMA1_Stream1_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Stream1_IRQn 0 */
 
   /* USER CODE END DMA1_Stream1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_dac1_ch1);
+  HAL_DMA_IRQHandler(&hdma_sai2_b);
   /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
 
   /* USER CODE END DMA1_Stream1_IRQn 1 */
-}
-
-/**
-  * @brief This function handles DMA1 stream2 global interrupt.
-  */
-void DMA1_Stream2_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Stream2_IRQn 0 */
-
-  /* USER CODE END DMA1_Stream2_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_sai2_b);
-  /* USER CODE BEGIN DMA1_Stream2_IRQn 1 */
-
-  /* USER CODE END DMA1_Stream2_IRQn 1 */
 }
 
 /**
@@ -243,6 +229,20 @@ void ADC_IRQHandler(void)
   /* USER CODE BEGIN ADC_IRQn 1 */
 
   /* USER CODE END ADC_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream0 global interrupt.
+  */
+void DMA2_Stream0_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream0_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_dac1_ch1);
+  /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream0_IRQn 1 */
 }
 
 /**
@@ -271,6 +271,19 @@ void SAI2_IRQHandler(void)
   /* USER CODE BEGIN SAI2_IRQn 1 */
 
   /* USER CODE END SAI2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles ECC diagnostic Global Interrupt.
+  */
+void ECC_IRQHandler(void)
+{
+  /* USER CODE BEGIN ECC_IRQn 0 */
+
+  /* USER CODE END ECC_IRQn 0 */
+  /* USER CODE BEGIN ECC_IRQn 1 */
+
+  /* USER CODE END ECC_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

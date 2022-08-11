@@ -10,6 +10,7 @@
 #include "analog_speaker.h"
 #include "wav.h"
 #include "user_settings.h"
+#include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
 #define PROG_FONT_DEF (GUI_FONT_20_ASCII)
@@ -57,14 +58,14 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       WINDOW_SetBkColor(hItem, GUI_MAKE_COLOR(0));
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem);
+      ui_battery_level_icon_updata(hItem, 0);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_TITLE);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_BOTTOM);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "音量");
+      TEXT_SetText(hItem, "系统音量");
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -127,6 +128,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     }
     case WM_KEY:
     {
+      pwdn_watchdog_reload();
       uint8_t volume = analog_speaker_volume_get();
       switch(((WM_KEY_INFO*)(pMsg->Data.p))->Key)
       {
@@ -194,7 +196,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     case UI_MSG_BATTERY:
     {
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem);
+      ui_battery_level_icon_updata(hItem, 0);
       break;
     }
     case WM_DELETE:
@@ -212,7 +214,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
   }
 }
 
-void ui_volume_open(WM_HWIN _back_)
+void ui_menu_volume_open(WM_HWIN _back_)
 {
   back = _back_;
   GUI_CreateDialogBox(_aDialogCreate, GUI_COUNTOF(_aDialogCreate), _cbDialog, WM_HBKWIN, 0, 0);

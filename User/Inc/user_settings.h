@@ -32,6 +32,8 @@ typedef struct user_settings_item_s
 
       //音量
       USI(volume, 1);
+
+      USI(standbytime, 4);
     };
     uint8_t data[8 * 1024];
   };

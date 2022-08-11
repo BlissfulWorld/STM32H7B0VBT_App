@@ -3,16 +3,18 @@
 
 #include "stdint.h"
 
-typedef struct resource_icon_s
+typedef struct resource_s
 {
   uint32_t size;
   uint8_t data[0];
-}resource_icon_st;
+}resource_st;
 
 extern const char* audio_file_board_loaded;
 extern const char* audio_file_warning;
 
-resource_icon_st* resource_icon_load(const char* name);
-int resource_icon_unload(resource_icon_st* icon);
+resource_st* resource_icon_load(const char* name);
+resource_st* resource_logo_load(void);
+
+int resource_unload(resource_st* res);
 
 #endif

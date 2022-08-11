@@ -1,5 +1,5 @@
 #include "test_0.h"
-#include "conFig.h"
+#include "config.h"
 #include "main.h"
 #include "gpio.h"
 #include "i2c.h"
@@ -13,6 +13,7 @@
 #include "cJSON.h"
 #include "json_obj.h"
 #include "ui.h"
+#include "wav.h"
 
 const test_0_config_st test_0_config_default =
 {
@@ -131,7 +132,7 @@ void test_0_init(const test_0_interface_st* intf)
       power_en |= (1 << i);
   }
 
-  pca9535_set_output(1, power_en);
+  pca9535_set_output(1, power_en | 0x1000);
   pca9535_config_port(1, 0x0000);
 
   intf->als_i2c_init();
@@ -169,15 +170,22 @@ extern int test_0_mic_record_stop(void);
 extern int test_0_mic_record_play(void);
 extern uint8_t test_0_mic_record_get_progress(void);
 
-static uint8_t spk_pn;
-
-static uint8_t spk_pn_detect(void)
+static uint8_t test_0_cam_detect(void)
 {
-#define SPK_OUT_P_PIN (8)
-#define SPK_OUT_N_PIN (9)
-#define SPK_VSENSE_P_PIN (10)
-#define SPK_VSENSE_N_PIN (7)
+  uint8_t cam_id_addr[2];
+  uint8_t cam_id[2];
+  cam_id_addr[0] = 0;
+  cam_id_addr[1] = 0;
 
+  if(hw_sim_i2c_write_read(hw_sim_i2c1, 0x20, cam_id_addr, 2, cam_id, 2, 100) == 0)
+    return 1;
+  return 0;
+}
+
+static uint8_t spk_pn, cam_rdy;
+
+static uint8_t spk_pn_detect(const test_0_interface_st* intf)
+{
   uint8_t p = 0, n = 0;
 
   GPIO_InitTypeDef gpio_init;
@@ -188,46 +196,46 @@ static uint8_t spk_pn_detect(void)
   gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
 
   //SPK_OUT_P
-  HAL_GPIO_WritePin(test_pin[SPK_OUT_P_PIN].gpio, test_pin[SPK_OUT_P_PIN].pin, GPIO_PIN_SET);
-  gpio_init.Pin = test_pin[SPK_OUT_P_PIN].pin;
-  HAL_GPIO_Init(test_pin[SPK_OUT_P_PIN].gpio, &gpio_init);
+  HAL_GPIO_WritePin(test_pin[intf->spk_out_p_pin].gpio, test_pin[intf->spk_out_p_pin].pin, GPIO_PIN_SET);
+  gpio_init.Pin = test_pin[intf->spk_out_p_pin].pin;
+  HAL_GPIO_Init(test_pin[intf->spk_out_p_pin].gpio, &gpio_init);
 
   //SPK_OUT_N
-  HAL_GPIO_WritePin(test_pin[SPK_OUT_N_PIN].gpio, test_pin[SPK_OUT_N_PIN].pin, GPIO_PIN_SET);
-  gpio_init.Pin = test_pin[SPK_OUT_N_PIN].pin;
-  HAL_GPIO_Init(test_pin[SPK_OUT_N_PIN].gpio, &gpio_init);
+  HAL_GPIO_WritePin(test_pin[intf->spk_out_n_pin].gpio, test_pin[intf->spk_out_n_pin].pin, GPIO_PIN_SET);
+  gpio_init.Pin = test_pin[intf->spk_out_n_pin].pin;
+  HAL_GPIO_Init(test_pin[intf->spk_out_n_pin].gpio, &gpio_init);
 
   osDelay(1);
 
   //SPK_VSENSE_P
-  if(HAL_GPIO_ReadPin(test_pin[SPK_VSENSE_P_PIN].gpio, test_pin[SPK_VSENSE_P_PIN].pin) == GPIO_PIN_SET)
+  if(HAL_GPIO_ReadPin(test_pin[intf->spk_vsense_p_pin].gpio, test_pin[intf->spk_vsense_p_pin].pin) == GPIO_PIN_SET)
   {
     p++;
   }
 
   //SPK_VSENSE_N
-  if(HAL_GPIO_ReadPin(test_pin[SPK_VSENSE_N_PIN].gpio, test_pin[SPK_VSENSE_N_PIN].pin) == GPIO_PIN_SET)
+  if(HAL_GPIO_ReadPin(test_pin[intf->spk_vsense_n_pin].gpio, test_pin[intf->spk_vsense_n_pin].pin) == GPIO_PIN_SET)
   {
     n++;
   }
 
   //SPK_OUT_P
-  HAL_GPIO_WritePin(test_pin[SPK_OUT_P_PIN].gpio, test_pin[SPK_OUT_P_PIN].pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(test_pin[intf->spk_out_p_pin].gpio, test_pin[intf->spk_out_p_pin].pin, GPIO_PIN_RESET);
 
   //SPK_OUT_N
-  HAL_GPIO_WritePin(test_pin[SPK_OUT_N_PIN].gpio, test_pin[SPK_OUT_N_PIN].pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(test_pin[intf->spk_out_n_pin].gpio, test_pin[intf->spk_out_n_pin].pin, GPIO_PIN_RESET);
 
 
   osDelay(1);
 
   //SPK_VSENSE_P
-  if(HAL_GPIO_ReadPin(test_pin[SPK_VSENSE_P_PIN].gpio, test_pin[SPK_VSENSE_P_PIN].pin) == GPIO_PIN_RESET)
+  if(HAL_GPIO_ReadPin(test_pin[intf->spk_vsense_p_pin].gpio, test_pin[intf->spk_vsense_p_pin].pin) == GPIO_PIN_RESET)
   {
     p++;
   }
 
   //SPK_VSENSE_N
-  if(HAL_GPIO_ReadPin(test_pin[SPK_VSENSE_N_PIN].gpio, test_pin[SPK_VSENSE_N_PIN].pin) == GPIO_PIN_RESET)
+  if(HAL_GPIO_ReadPin(test_pin[intf->spk_vsense_n_pin].gpio, test_pin[intf->spk_vsense_n_pin].pin) == GPIO_PIN_RESET)
   {
     n++;
   }
@@ -236,14 +244,14 @@ static uint8_t spk_pn_detect(void)
   gpio_init.Mode = GPIO_MODE_INPUT;
 
   //SPK_OUT_P
-  HAL_GPIO_WritePin(test_pin[SPK_OUT_P_PIN].gpio, test_pin[SPK_OUT_P_PIN].pin, GPIO_PIN_SET);
-  gpio_init.Pin = test_pin[SPK_OUT_P_PIN].pin;
-  HAL_GPIO_Init(test_pin[SPK_OUT_P_PIN].gpio, &gpio_init);
+  HAL_GPIO_WritePin(test_pin[intf->spk_out_p_pin].gpio, test_pin[intf->spk_out_p_pin].pin, GPIO_PIN_SET);
+  gpio_init.Pin = test_pin[intf->spk_out_p_pin].pin;
+  HAL_GPIO_Init(test_pin[intf->spk_out_p_pin].gpio, &gpio_init);
 
   //SPK_OUT_N
-  HAL_GPIO_WritePin(test_pin[SPK_OUT_N_PIN].gpio, test_pin[SPK_OUT_N_PIN].pin, GPIO_PIN_SET);
-  gpio_init.Pin = test_pin[SPK_OUT_N_PIN].pin;
-  HAL_GPIO_Init(test_pin[SPK_OUT_N_PIN].gpio, &gpio_init);
+  HAL_GPIO_WritePin(test_pin[intf->spk_out_n_pin].gpio, test_pin[intf->spk_out_n_pin].pin, GPIO_PIN_SET);
+  gpio_init.Pin = test_pin[intf->spk_out_n_pin].pin;
+  HAL_GPIO_Init(test_pin[intf->spk_out_n_pin].gpio, &gpio_init);
 
   return (p == 2 ? (1) : 0) | (n == 2 ? (2) : 0);
 }
@@ -253,17 +261,19 @@ static void test_0_task(void* p)
   int i = 0;
   uint32_t tick;
   const test_0_interface_st* intf = p;
+  uint32_t err_flg;
+  uint32_t err_flg_new;
 
   test_0_init(intf);
   while(test_0_tid)
   {
-    pca9535_set_output(1, 0x103F);
-
     stage = TEST_STAGE_WAIT;
 
+    i = 0;
     while(test_0_tid)
     {
-      if((test_0_prox_detect() == 0) || (test_0_als_detect() == 0))
+      cam_rdy = test_0_cam_detect();
+      if((test_0_prox_detect() == 0) || (test_0_als_detect() == 0) || cam_rdy)
       {
         i++;
         if(i > 5) break;
@@ -284,6 +294,9 @@ static void test_0_task(void* p)
 
     stage = TEST_STAGE_FUNC;
 
+    err_flg = 0;
+    err_flg_new = 0x0000001F;
+    i = 0;
     tick = HAL_GetTick();
     while(test_0_tid)
     {
@@ -293,18 +306,73 @@ static void test_0_task(void* p)
       if(HAL_GetTick() - tick > 50)
       {
         tick += 50;
+        uint32_t flag = 0;
 
-        spk_pn = spk_pn_detect();
+        cam_rdy = test_0_cam_detect();
+        if(cam_rdy != 0)
+        {
+          flag |= (1U << 0);
+        }
+
+        spk_pn = spk_pn_detect(intf);
+        if((spk_pn & 1) != 0)
+        {
+          flag |= (1U << 1);
+        }
+
+        if((spk_pn & 2) != 0)
+        {
+          flag |= (1U << 2);
+        }
+
         test_0_prox_update_data();
 
-        if(test_0_prox_is_rdy() == 0)
-          intf->prox_i2c_fix();
-
-        if(test_0_als_detect() != 0)
+        if(test_0_prox_is_rdy() != 0)
         {
+          flag |= (1U << 3);
+          intf->prox_i2c_fix();
+        }
+
+        if(test_0_als_detect() == 0)
+        {
+          flag |= (1U << 4);
           intf->als_i2c_fix();
-          if(test_0_prox_is_rdy() == 0)
-            break;
+        }
+
+        if(flag == 0)
+          break;
+
+        err_flg_new &= (~flag);
+
+        i++;
+        if(i == 4)
+        {
+          i = 0;
+
+          if(err_flg_new)
+          {
+            if(err_flg_new != 0x0000001F)
+            {
+              if(err_flg_new != err_flg)
+              {
+                for(uint32_t i = 1;i < (1 << 5);i <<= 1)
+                {
+                  if((err_flg_new & i) != 0 && (err_flg & i) == 0)
+                  {
+                    wav_play(audio_file_warning);
+                    break;
+                  }
+                }
+              }
+            }
+            else
+            {
+              break;
+            }
+          }
+
+          err_flg = err_flg_new;
+          err_flg_new = 0x0000001F;
         }
       }
 
@@ -333,18 +401,6 @@ static uint32_t test_0_os_result_get(void)
   return 0;
 }
 
-static uint8_t test_0_cam_is_rdy(void)
-{
-  uint8_t cam_id_addr[2];
-  uint8_t cam_id[2];
-  cam_id_addr[0] = 0;
-  cam_id_addr[1] = 0;
-
-  if(hw_sim_i2c_write_read(hw_sim_i2c1, 0x20, cam_id_addr, 2, cam_id, 2, 100) == 0)
-    return 1;
-  return 0;
-}
-
 static uint8_t test_0_prox_get(void)
 {
   return test_0_prox_get_percentage();
@@ -368,6 +424,11 @@ static uint8_t _test_0_als_is_rdy(void)
 static uint8_t test_0_spk_pn_get(void)
 {
   return spk_pn;
+}
+
+static uint8_t test_0_cam_is_rdy(void)
+{
+  return cam_rdy;
 }
 
 static test_0_config_st* config_parse(const config_file_st* config_file)

@@ -114,7 +114,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
 
     /* Peripheral DMA init*/
 
-    hdma_sai2_b.Instance = DMA1_Stream2;
+    hdma_sai2_b.Instance = DMA1_Stream1;
     hdma_sai2_b.Init.Request = DMA_REQUEST_SAI2_B;
     hdma_sai2_b.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_sai2_b.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -122,7 +122,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
     hdma_sai2_b.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
     hdma_sai2_b.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
     hdma_sai2_b.Init.Mode = DMA_CIRCULAR;
-    hdma_sai2_b.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+    hdma_sai2_b.Init.Priority = DMA_PRIORITY_MEDIUM;
     hdma_sai2_b.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_sai2_b) != HAL_OK)
     {

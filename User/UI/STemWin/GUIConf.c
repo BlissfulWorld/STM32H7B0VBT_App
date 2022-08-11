@@ -58,7 +58,7 @@ Purpose     : Display controller initialization
 //
 // Define the available number of bytes available for the GUI
 //
-#define GUI_NUMBYTES  (1024 * 300)
+#define GUI_NUMBYTES  (1024 * 384)
 
 /*********************************************************************
 *
@@ -79,8 +79,8 @@ void GUI_X_Config(void) {
   //
   // 32 bit aligned memory area
   //
-  //static U32 aMemory[GUI_NUMBYTES / 4] __attribute__((aligned(4)));
-  U32 *aMemory = pvPortMalloc(GUI_NUMBYTES);
+  static U32 aMemory[GUI_NUMBYTES / 4] __attribute__((section(".AXI_SRAM3")));
+  //U32 *aMemory = pvPortMalloc(GUI_NUMBYTES);
   //
   // Assign memory to emWin
   //

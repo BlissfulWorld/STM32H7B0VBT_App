@@ -7,6 +7,7 @@
 #include "ff.h"
 #include "cmsis_os.h"
 #include "wav.h"
+#include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
 #define PROG_FONT_DEF (GUI_FONT_20_ASCII)
@@ -92,7 +93,7 @@ static long htimer;
 static const char* title;
 static test_0_st* test;
 static uint8_t stage, mic_record;
-static uint8_t error_vi[9], error_prox, error_als, error_cam, error_spk_n, error_spk_p;
+static uint8_t error_vi[9];
 
 static void play_warning(void)
 {
@@ -203,7 +204,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       WINDOW_SetBkColor(hItem, GUI_MAKE_COLOR(0));
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem);
+      ui_battery_level_icon_updata(hItem, 0);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_TITLE);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_BOTTOM);
@@ -361,6 +362,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     }
     case WM_KEY:
     {
+      pwdn_watchdog_reload();
       switch(((WM_KEY_INFO*)(pMsg->Data.p))->Key)
       {
         /*case UI_KEY(UP, ONCLICK):
@@ -421,58 +423,38 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       {
         if(test->prox_is_rdy() == 0)
         {
-          error_prox |= 1;
-          if(error_prox == 1)
-          {
-            play_warning();
-            error_prox = 3;
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_PROX_VAL);
-            PROGBAR_SetText(hItem, "X");
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_PROX);
-            TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
-          }
+          hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_PROX_VAL);
+          PROGBAR_SetValue(hItem, 0);
+          PROGBAR_SetText(hItem, "X");
+          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_PROX);
+          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
         }
         else
         {
-          if(error_prox)
-          {
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_PROX_VAL);
-            PROGBAR_SetText(hItem, 0);
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_PROX);
-            TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
-          }
           uint8_t prox = test->prox_get();
-          error_prox = 0;
           hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_PROX_VAL);
+          PROGBAR_SetText(hItem, 0);
           PROGBAR_SetValue(hItem, prox);
+          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_PROX);
+          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
         }
 
         if(test->als_is_rdy() == 0)
         {
-          error_als |= 1;
-          if(error_als == 1)
-          {
-            play_warning();
-            error_als = 3;
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_ALS_VAL);
-            PROGBAR_SetText(hItem, "X");
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_ALS);
-            TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
-          }
+          hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_ALS_VAL);
+          PROGBAR_SetValue(hItem, 0);
+          PROGBAR_SetText(hItem, "X");
+          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_ALS);
+          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
         }
         else
         {
-          if(error_als)
-          {
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_ALS_VAL);
-            PROGBAR_SetText(hItem, 0);
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_ALS);
-            TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
-          }
           uint8_t als = test->als_get();
-          error_als = 0;
           hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_ALS_VAL);
+          PROGBAR_SetText(hItem, 0);
           PROGBAR_SetValue(hItem, als);
+          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_ALS);
+          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
         }
 
         hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_MIC_VAL);
@@ -493,58 +475,22 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
         TEXT_SetText(hItem, cam_rdy ? " 有" : " 无");
         if(cam_rdy == 0)
         {
-          error_cam |= 1;
-          if(error_cam == 1)
-          {
-            play_warning();
-            error_cam = 3;
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM);
-            TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
-          }
+          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM);
+          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
         }
         else
         {
-          if(error_cam)
-          {
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM);
-            TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
-          }
-          error_cam = 0;
+          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM);
+          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
         }
 
         uint8_t spk_pn = test->spk_pn_get();
 
         hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_P);
         TEXT_SetBkColor(hItem, (spk_pn & 1) == 0 ? GUI_MAKE_COLOR(0xFF0000) : GUI_MAKE_COLOR(0x00A000));
-        if((spk_pn & 1) == 0)
-        {
-          error_spk_n |= 1;
-          if(error_spk_n == 1)
-          {
-            play_warning();
-            error_spk_n = 3;
-          }
-        }
-        else
-        {
-          error_spk_n = 0;
-        }
 
         hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_N);
         TEXT_SetBkColor(hItem, (spk_pn & 2) == 0 ? GUI_MAKE_COLOR(0xFF0000) : GUI_MAKE_COLOR(0x00A000));
-        if((spk_pn & 2) == 0)
-        {
-          error_spk_p |= 1;
-          if(error_spk_p == 1)
-          {
-            play_warning();
-            error_spk_p = 3;
-          }
-        }
-        else
-        {
-          error_spk_p = 0;
-        }
       }
       else
       {
@@ -562,6 +508,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
 
       if(stage != test->stage_get())
       {
+        pwdn_watchdog_reload();
         stage = test->stage_get();
         switch(stage)
         {
@@ -714,7 +661,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     case UI_MSG_BATTERY:
     {
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem);
+      ui_battery_level_icon_updata(hItem, 0);
       break;
     }
     case WM_DELETE:

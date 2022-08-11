@@ -6,7 +6,6 @@
 #include "ip5306.h"
 #include "ff.h"
 #include "iwdg.h"
-#include "sw_info.h"
 #include "stdio.h"
 #include "config.h"
 
@@ -96,16 +95,15 @@ void skin_init(void)
  *
  * @param image 图片控件句柄
  */
-void ui_battery_level_icon_updata(WM_HWIN image)
+void ui_battery_level_icon_updata(WM_HWIN image, uint8_t show_charge_lvl)
 {
-  static resource_icon_st* icon = 0;
+  static resource_st* icon = 0;
   const char* name;
 
   if(icon)
-    resource_icon_unload(icon);
+    resource_unload(icon);
 
-  battery_status_et status = battery_get_status();
-  if(status == BAT_STA_CHARGE)
+  if(!show_charge_lvl && battery_get_status() == BAT_STA_CHARGE)
   {
     name = "battery_charging";
   }
@@ -226,9 +224,6 @@ int ui_init(void)
 {
   GUI_Init();
 
-  //显示logo
-  ui_show_logo();
-
   //加载字库
   font_load();
 
@@ -244,13 +239,6 @@ int ui_init(void)
   GUI_SetTextMode(GUI_TM_TRANS);
 
   GUI_SetFont(font_ext);
-
-#if BOOT_SHOW_VERSION
-  //显示版本信息
-  char str[128];
-  snprintf(str, sizeof(str), "V%s", sw_info.version);
-  GUI_DispStringInRect(str, &(GUI_RECT){.x0 = 0, .y0 = 300, .x1 = 240, .y1 = 320}, GUI_TA_HCENTER | GUI_TA_VCENTER);
-#endif
 
   //设置电池状态改变后的回调函数
   battery_set_changed_cb(battery_changed_cb);

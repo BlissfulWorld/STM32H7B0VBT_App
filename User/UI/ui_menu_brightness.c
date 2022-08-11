@@ -12,6 +12,7 @@
 #include "sw_info.h"
 #include "backlight.h"
 #include "user_settings.h"
+#include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
 #define PROG_FONT_DEF (GUI_FONT_20_ASCII)
@@ -59,7 +60,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       WINDOW_SetBkColor(hItem, GUI_MAKE_COLOR(0));
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem);
+      ui_battery_level_icon_updata(hItem, 0);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_TITLE);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_BOTTOM);
@@ -81,7 +82,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFF));
       TEXT_SetWrapMode(hItem, GUI_WRAPMODE_CHAR);
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "100\n▲\n\n\n\n\n▼\n0");
+      TEXT_SetText(hItem, "10\n▲\n\n\n\n\n▼\n0");
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BRIGHTNESS);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -129,11 +130,12 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     }
     case WM_KEY:
     {
+      pwdn_watchdog_reload();
       uint8_t brightness = backlight_get();
       switch(((WM_KEY_INFO*)(pMsg->Data.p))->Key)
       {
         case UI_KEY(UP, REPET):
-          brightness += 4;
+          brightness += 1;
         case UI_KEY(UP, ONCLICK):
         {
           brightness++;
@@ -141,12 +143,12 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
           brightness = backlight_get();
           hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BRIGHTNESS);
           char str[128];
-          snprintf(str, sizeof(str), "%u", brightness);
+          snprintf(str, sizeof(str), "%u", backlight_get());
           TEXT_SetText(hItem, str);
           break;
         }
         case UI_KEY(DOWN, REPET):
-          if(brightness > 4) brightness -= 4;
+          if(brightness > 1) brightness -= 1;
           else brightness = 0;
         case UI_KEY(DOWN, ONCLICK):
         {
@@ -155,7 +157,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
           brightness = backlight_get();
           hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BRIGHTNESS);
           char str[128];
-          snprintf(str, sizeof(str), "%u", brightness);
+          snprintf(str, sizeof(str), "%u", backlight_get());
           TEXT_SetText(hItem, str);
           break;
         }
@@ -190,7 +192,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     case UI_MSG_BATTERY:
     {
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem);
+      ui_battery_level_icon_updata(hItem, 0);
       break;
     }
     case WM_DELETE:
@@ -208,7 +210,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
   }
 }
 
-void ui_brightness_open(WM_HWIN _back_)
+void ui_menu_brightness_open(WM_HWIN _back_)
 {
   back = _back_;
   GUI_CreateDialogBox(_aDialogCreate, GUI_COUNTOF(_aDialogCreate), _cbDialog, WM_HBKWIN, 0, 0);

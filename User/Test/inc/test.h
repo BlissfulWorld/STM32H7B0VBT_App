@@ -4,6 +4,7 @@
 #include "stdint.h"
 #include "hw_pin.h"
 #include "test_board.h"
+#include "config.h"
 
 typedef struct power_test_s
 {
@@ -47,4 +48,6 @@ uint8_t test_ma_is_update(uint8_t idx);
 
 #include "test_0.h"
 #include "test_1.h"
+#include "test_2.h"
+#include "test_3.h"
 #endif

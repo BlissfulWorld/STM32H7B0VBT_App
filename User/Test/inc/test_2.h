@@ -1,0 +1,68 @@
+#ifndef _test_2_H
+#define _test_2_H
+
+#include "test.h"
+
+typedef struct test_2_config_s
+{
+  common_config_info_st info;
+  power_test_st power[8];
+  muc_vdd_io_power_test_st mvi;
+}test_2_config_st;
+
+typedef struct test_2_s
+{
+  test_2_config_st* config;
+  uint8_t   (*stage_get)                 (void);
+  void      (*init)                      (void);
+  void      (*start)                     (void);
+  uint8_t   (*prox_get)                  (void);
+  uint8_t   (*prox_is_rdy)               (void);
+  uint8_t   (*als_get)                   (void);
+  uint8_t   (*als_is_rdy)                (void);
+  uint8_t   (*mic_get)                   (void);
+  int       (*mic_record_start)          (void);
+  int       (*mic_record_stop)           (void);
+  int       (*mic_record_play)           (void);
+  uint8_t   (*mic_record_get_progress)   (void);
+  double    (*ma_get)                    (uint8_t idx);
+  double    (*mv_get)                    (uint8_t idx);
+  uint8_t   (*ma_is_update)              (uint8_t idx);
+  uint8_t   (*codec_aout_to_hac_test_res)(void);
+  int       (*spkramp_play)              (void);
+  uint8_t   (*spkramp_test_res)          (void);
+}test_2_st;
+
+typedef struct test_2_interface_s
+{
+  const uint8_t* gnd_pin_list;
+
+  uint8_t codec_aout_to_hac_conn_p_pin;
+  uint8_t codec_aout_to_hac_conn_n_pin;
+
+  uint8_t coil_to_spkramp_top_vsense_p_pin;
+  uint8_t coil_to_spkramp_top_vsense_n_pin;
+
+  uint8_t prox_inti_pin;
+  uint8_t als_inti_pin;
+
+  int (*prox_i2c_write_read)(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout);
+  int (*prox_i2c_init)(void);
+  int (*prox_i2c_fix)(void);
+
+  int (*als_i2c_write_read)(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout);
+  int (*als_i2c_init)(void);
+  int (*als_i2c_fix)(void);
+}test_2_interface_st;
+
+extern const test_module_id_ut ip11_id;
+extern const test_module_id_ut ip11pro_id;
+extern const test_module_id_ut ip11promax_id;
+
+int ip11_test_start(test_module_st* module, const char* title);
+#define ip11pro_test_start    ip11_test_start
+#define ip11promax_test_start ip11_test_start
+
+int test_2_start(test_module_st* module, const test_2_interface_st* intf, const char* title);
+
+#endif

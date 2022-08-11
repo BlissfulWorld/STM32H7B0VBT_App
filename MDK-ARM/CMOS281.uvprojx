@@ -495,6 +495,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\App\user_settings.c</FilePath>
             </File>
+            <File>
+              <FileName>pwdn_watchdog.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\App\pwdn_watchdog.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -686,6 +691,11 @@
               <FilePath>..\User\Test\test_1\test_1_mic.c</FilePath>
             </File>
             <File>
+              <FileName>test_1_spkramp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_1\test_1_spkramp.c</FilePath>
+            </File>
+            <File>
               <FileName>test_1_ipx.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Test\test_1\test_1_ipx.c</FilePath>
@@ -696,9 +706,109 @@
               <FilePath>..\User\Test\test_1\test_1_ipxs.c</FilePath>
             </File>
             <File>
+              <FileName>test_1_ipxsmax.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_1\test_1_ipxsmax.c</FilePath>
+            </File>
+            <File>
               <FileName>test_1_ipxr.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Test\test_1\test_1_ipxr.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User/Test/Test_2</GroupName>
+          <Files>
+            <File>
+              <FileName>test_2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_2\test_2.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_2_als.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_2\test_2_als.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_2_mic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_2\test_2_mic.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_2_prox.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_2\test_2_prox.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_2_spkramp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_2\test_2_spkramp.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_2_ip11.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_2\test_2_ip11.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_2_ip11pro.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_2\test_2_ip11pro.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_2_ip11promax.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_2\test_2_ip11promax.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User/Test/Test_3</GroupName>
+          <Files>
+            <File>
+              <FileName>test_3.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_3\test_3.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_3_als.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_3\test_3_als.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_3_mic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_3\test_3_mic.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_3_prox.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_3\test_3_prox.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_3_spkramp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_3\test_3_spkramp.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_3_ip12mini.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_3\test_3_ip12mini.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_3_ip12.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_3\test_3_ip12.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_3_ip12pro.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_3\test_3_ip12pro.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_3_ip12promax.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_3\test_3_ip12promax.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -726,19 +836,14 @@
               <FilePath>..\User\UI\ui_test_1.c</FilePath>
             </File>
             <File>
-              <FileName>ui_menu.c</FileName>
+              <FileName>ui_test_2.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\UI\ui_menu.c</FilePath>
+              <FilePath>..\User\UI\ui_test_2.c</FilePath>
             </File>
             <File>
-              <FileName>ui_about.c</FileName>
+              <FileName>ui_test_3.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\UI\ui_about.c</FilePath>
-            </File>
-            <File>
-              <FileName>ui_brightness.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\UI\ui_brightness.c</FilePath>
+              <FilePath>..\User\UI\ui_test_3.c</FilePath>
             </File>
             <File>
               <FileName>ui_config_update.c</FileName>
@@ -761,9 +866,39 @@
               <FilePath>..\User\UI\ui_nonsupport.c</FilePath>
             </File>
             <File>
-              <FileName>ui_volume.c</FileName>
+              <FileName>ui_menu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\UI\ui_volume.c</FilePath>
+              <FilePath>..\User\UI\ui_menu.c</FilePath>
+            </File>
+            <File>
+              <FileName>ui_menu_brightness.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\UI\ui_menu_brightness.c</FilePath>
+            </File>
+            <File>
+              <FileName>ui_menu_volume.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\UI\ui_menu_volume.c</FilePath>
+            </File>
+            <File>
+              <FileName>ui_menu_standby.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\UI\ui_menu_standby.c</FilePath>
+            </File>
+            <File>
+              <FileName>ui_menu_about.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\UI\ui_menu_about.c</FilePath>
+            </File>
+            <File>
+              <FileName>ui_charge.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\UI\ui_charge.c</FilePath>
+            </File>
+            <File>
+              <FileName>ui_launch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\UI\ui_launch.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1043,6 +1178,62 @@
               <FileName>octospi.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/octospi.c</FilePath>
+            </File>
+            <File>
+              <FileName>ramecc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ramecc.c</FilePath>
+              <FileOption>
+                <CommonProperty>
+                  <UseCPPCompiler>2</UseCPPCompiler>
+                  <RVCTCodeConst>0</RVCTCodeConst>
+                  <RVCTZI>0</RVCTZI>
+                  <RVCTOtherData>0</RVCTOtherData>
+                  <ModuleSelection>0</ModuleSelection>
+                  <IncludeInBuild>1</IncludeInBuild>
+                  <AlwaysBuild>2</AlwaysBuild>
+                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
+                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
+                  <PublicsOnly>2</PublicsOnly>
+                  <StopOnExitCode>11</StopOnExitCode>
+                  <CustomArgument></CustomArgument>
+                  <IncludeLibraryModules></IncludeLibraryModules>
+                  <ComprImg>1</ComprImg>
+                </CommonProperty>
+                <FileArmAds>
+                  <Cads>
+                    <interw>2</interw>
+                    <Optim>0</Optim>
+                    <oTime>2</oTime>
+                    <SplitLS>2</SplitLS>
+                    <OneElfS>2</OneElfS>
+                    <Strict>2</Strict>
+                    <EnumInt>2</EnumInt>
+                    <PlainCh>2</PlainCh>
+                    <Ropi>2</Ropi>
+                    <Rwpi>2</Rwpi>
+                    <wLevel>0</wLevel>
+                    <uThumb>2</uThumb>
+                    <uSurpInc>2</uSurpInc>
+                    <uC99>2</uC99>
+                    <uGnu>2</uGnu>
+                    <useXO>2</useXO>
+                    <v6Lang>0</v6Lang>
+                    <v6LangP>0</v6LangP>
+                    <vShortEn>2</vShortEn>
+                    <vShortWch>2</vShortWch>
+                    <v6Lto>2</v6Lto>
+                    <v6WtE>2</v6WtE>
+                    <v6Rtti>2</v6Rtti>
+                    <VariousControls>
+                      <MiscControls></MiscControls>
+                      <Define></Define>
+                      <Undefine></Undefine>
+                      <IncludePath></IncludePath>
+                    </VariousControls>
+                  </Cads>
+                </FileArmAds>
+              </FileOption>
             </File>
             <File>
               <FileName>sai.c</FileName>
@@ -1482,6 +1673,62 @@
               <FileName>stm32h7xx_hal_ospi.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_ospi.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_ramecc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_ramecc.c</FilePath>
+              <FileOption>
+                <CommonProperty>
+                  <UseCPPCompiler>2</UseCPPCompiler>
+                  <RVCTCodeConst>0</RVCTCodeConst>
+                  <RVCTZI>0</RVCTZI>
+                  <RVCTOtherData>0</RVCTOtherData>
+                  <ModuleSelection>0</ModuleSelection>
+                  <IncludeInBuild>1</IncludeInBuild>
+                  <AlwaysBuild>2</AlwaysBuild>
+                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
+                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
+                  <PublicsOnly>2</PublicsOnly>
+                  <StopOnExitCode>11</StopOnExitCode>
+                  <CustomArgument></CustomArgument>
+                  <IncludeLibraryModules></IncludeLibraryModules>
+                  <ComprImg>1</ComprImg>
+                </CommonProperty>
+                <FileArmAds>
+                  <Cads>
+                    <interw>2</interw>
+                    <Optim>0</Optim>
+                    <oTime>2</oTime>
+                    <SplitLS>2</SplitLS>
+                    <OneElfS>2</OneElfS>
+                    <Strict>2</Strict>
+                    <EnumInt>2</EnumInt>
+                    <PlainCh>2</PlainCh>
+                    <Ropi>2</Ropi>
+                    <Rwpi>2</Rwpi>
+                    <wLevel>0</wLevel>
+                    <uThumb>2</uThumb>
+                    <uSurpInc>2</uSurpInc>
+                    <uC99>2</uC99>
+                    <uGnu>2</uGnu>
+                    <useXO>2</useXO>
+                    <v6Lang>0</v6Lang>
+                    <v6LangP>0</v6LangP>
+                    <vShortEn>2</vShortEn>
+                    <vShortWch>2</vShortWch>
+                    <v6Lto>2</v6Lto>
+                    <v6WtE>2</v6WtE>
+                    <v6Rtti>2</v6Rtti>
+                    <VariousControls>
+                      <MiscControls></MiscControls>
+                      <Define></Define>
+                      <Undefine></Undefine>
+                      <IncludePath></IncludePath>
+                    </VariousControls>
+                  </Cads>
+                </FileArmAds>
+              </FileOption>
             </File>
             <File>
               <FileName>stm32h7xx_hal_sai.c</FileName>

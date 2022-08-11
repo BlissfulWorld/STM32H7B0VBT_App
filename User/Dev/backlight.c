@@ -1,8 +1,39 @@
 #include "backlight.h"
 #include "tim.h"
 
+#define PWM_MAX (999)
+#define BACKLIGHT_LEVEL (10)
+
 //亮度级别
-static uint8_t backlight = 0;
+static uint8_t backlight_lvl = 0;
+
+static uint32_t backlight_to_pwm(uint8_t level)
+{
+  double l;
+
+  if(level > BACKLIGHT_LEVEL)
+  {
+    level = BACKLIGHT_LEVEL;
+  }
+
+  l = level;
+
+  l = (l / BACKLIGHT_LEVEL) * 100;
+
+  if(l <= 8)
+  {
+    l /= 902.3;
+  }
+  else
+  {
+    l = (l + 16) / 116;
+    l = l * l * l;
+  }
+
+  l *= PWM_MAX;
+
+  return (uint32_t)l;
+}
 
 /**
  * @brief 打开背光
@@ -10,7 +41,7 @@ static uint8_t backlight = 0;
  */
 void backlight_open(void)
 {
-  TIM2->CCR1 = backlight;
+  TIM2->CCR1 = backlight_to_pwm(backlight_lvl);
 
   //开启背光(使能pwm)
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
@@ -37,11 +68,11 @@ void backlight_set(uint8_t level)
 
   val = level;
 
-  if(val > 100)
-    val = 100;
+  if(val > BACKLIGHT_LEVEL)
+    val = BACKLIGHT_LEVEL;
 
-  backlight = val;
-  TIM2->CCR1 = val;
+  backlight_lvl = val;
+  TIM2->CCR1 = backlight_to_pwm(backlight_lvl);
 }
 
 /**
@@ -51,5 +82,5 @@ void backlight_set(uint8_t level)
  */
 uint8_t backlight_get(void)
 {
-  return (uint8_t)(TIM2->CCR1);
+  return backlight_lvl;
 }

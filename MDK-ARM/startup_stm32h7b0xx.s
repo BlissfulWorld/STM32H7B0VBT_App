@@ -40,7 +40,7 @@ __initial_sp
 ;   <o>  Heap Size (in Bytes) <0x0-0xFFFFFFFF:8>
 ; </h>
 
-Heap_Size      EQU     0x00
+Heap_Size      EQU     0x10000
 
                 AREA    HEAP, NOINIT, READWRITE, ALIGN=3
 __heap_base
@@ -414,7 +414,7 @@ Default_Handler PROC
                 EXPORT  BDMA2_Channel1_IRQHandler         [WEAK]
                 EXPORT  BDMA2_Channel2_IRQHandler         [WEAK]
                 EXPORT  BDMA2_Channel3_IRQHandler         [WEAK]
-                EXPORT  BDMA2_Channel4_IRQHandler         [WEAK]
+                EXPORT  BDMA2_Channel4_IRQHandler         [WEAK] 
                 EXPORT  BDMA2_Channel5_IRQHandler         [WEAK]
                 EXPORT  BDMA2_Channel6_IRQHandler         [WEAK]
                 EXPORT  BDMA2_Channel7_IRQHandler         [WEAK]

@@ -223,7 +223,7 @@ int wav_play(const char* path)
     wav_play->bits = ANALOG_SPK_BITS_16;
 
   //开始播放
-  if(analog_speaker_play(chunk_fmt.sample_rate, wav_play->bits, data_cb, finish_cb, wav_play))
+  if(analog_speaker_play(chunk_fmt.sample_rate, wav_play->bits, 1, data_cb, finish_cb, wav_play))
   {
     err = -9;
     goto __close;

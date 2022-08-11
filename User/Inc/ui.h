@@ -36,18 +36,29 @@ typedef enum ui_key_num_e //: uint8_t
 
 int ui_init(void);
 void ui_start(void);
+void ui_show_logo(void);
 
-void ui_battery_level_icon_updata(WM_HWIN image);
+void ui_battery_level_icon_updata(WM_HWIN image, uint8_t show_charge_lvl);
 
+extern void ui_launch_open(void);
 extern void ui_home_open(void);
 extern void ui_file_open(void);
 extern void ui_config_open(void);
 extern void ui_config_update_open(void);
-extern void ui_menu_open(WM_HWIN _back_);
-extern void ui_about_open(WM_HWIN _back_);
-extern void ui_brightness_open(WM_HWIN _back_);
+extern void ui_nonsupport_open(void);
+extern void ui_charge_open(void);
+
+
 extern void ui_test_0_open(test_0_st* _test_, const char* _title_);
 extern void ui_test_1_open(test_1_st* _test_, const char* _title_);
-extern void ui_nonsupport_open(void);
-extern void ui_volume_open(WM_HWIN _back_);
+extern void ui_test_2_open(test_2_st* _test_, const char* _title_);
+extern void ui_test_3_open(test_3_st* _test_, const char* _title_);
+
+
+extern void ui_menu_open(WM_HWIN _back_);
+extern void ui_menu_brightness_open(WM_HWIN _back_);
+extern void ui_menu_volume_open(WM_HWIN _back_);
+extern void ui_menu_standby_open(WM_HWIN _back_);
+extern void ui_menu_about_open(WM_HWIN _back_);
+
 #endif

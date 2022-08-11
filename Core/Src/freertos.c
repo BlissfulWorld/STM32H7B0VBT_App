@@ -61,6 +61,13 @@ const osThreadAttr_t MainApp_attributes = {
   .stack_size = 10240 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for speaker */
+osThreadId_t speakerHandle;
+const osThreadAttr_t speaker_attributes = {
+  .name = "speaker",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
+};
 /* Definitions for myEvent01 */
 osEventFlagsId_t myEvent01Handle;
 const osEventFlagsAttr_t myEvent01_attributes = {
@@ -74,6 +81,7 @@ const osEventFlagsAttr_t myEvent01_attributes = {
 
 void StartDefaultTask(void *argument);
 void app_main(void *argument);
+void speaker_task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -109,6 +117,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of MainApp */
   MainAppHandle = osThreadNew(app_main, NULL, &MainApp_attributes);
+
+  /* creation of speaker */
+  speakerHandle = osThreadNew(speaker_task, NULL, &speaker_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -158,6 +169,24 @@ __weak void app_main(void *argument)
     osDelay(1);
   }
   /* USER CODE END app_main */
+}
+
+/* USER CODE BEGIN Header_speaker_task */
+/**
+* @brief Function implementing the speaker thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_speaker_task */
+__weak void speaker_task(void *argument)
+{
+  /* USER CODE BEGIN speaker_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END speaker_task */
 }
 
 /* Private application code --------------------------------------------------*/

@@ -15,9 +15,8 @@ static const uint8_t reg_list_init[];
 static const uint8_t reg_list_start[];
 static const uint8_t reg_list_stop[];
 
-es7243_data_st* es7243_data_pbuffer;
-uint16_t es7243_cnt;
-void (*cb)(es7243_data_st* pdata, uint32_t len);
+ALIGN_32BYTES(static es7243_data_st es7243_data_pbuffer[DATA_BUFFER_MAX] __attribute__((section(".AHB_SRAM2"))));
+static void (*cb)(es7243_data_st* pdata, uint32_t len);
 
 static int es7243_reg_list_exec(const uint8_t* list)
 {
@@ -68,14 +67,6 @@ int es7243_start(uint32_t rate, void (*data_isr_cb)(es7243_data_st* pdata, uint3
     goto __exit;
   }
 
-  //分配内存，用于接收音频数据
-  es7243_data_pbuffer = pvPortMalloc(DATA_BUFFER_MAX * sizeof(es7243_data_st));
-  if(es7243_data_pbuffer == 0)
-  {
-    err = -2;
-    goto __exit;
-  }
-
   GPIO_InitTypeDef GPIO_InitStruct = { 0 };
 
   HAL_GPIO_WritePin(I2S_MCLK_GPIO_Port, I2S_MCLK_Pin, GPIO_PIN_SET);
@@ -98,27 +89,27 @@ int es7243_start(uint32_t rate, void (*data_isr_cb)(es7243_data_st* pdata, uint3
   if(hw_i2c_read_1a_1d(hw_i2c2, ES7243_I2C_ID, 0x0E, &chip_id, 10))
   {
     err = -3;
-    goto __free_buffer;
+    goto __exit;
   }
 
   if(chip_id != CHIP_ID)
   {
     err = -4;
-    goto __free_buffer;
+    goto __exit;
   }
 
   //初始化ES7243
   if(es7243_reg_list_exec(reg_list_init))
   {
     err = -5;
-    goto __free_buffer;
+    goto __exit;
   }
 
   //配置S7243开始工作
   if(es7243_reg_list_exec(reg_list_start))
   {
     err = -6;
-    goto __free_buffer;
+    goto __exit;
   }
 
   cb = data_isr_cb;
@@ -136,14 +127,8 @@ int es7243_start(uint32_t rate, void (*data_isr_cb)(es7243_data_st* pdata, uint3
   hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
   HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BITEXTENDED, 2);
 
-  SCB_InvalidateDCache_by_Addr(es7243_data_pbuffer, DATA_BUFFER_MAX * sizeof(es7243_data_st));
+  //SCB_InvalidateDCache_by_Addr(es7243_data_pbuffer, DATA_BUFFER_MAX * sizeof(es7243_data_st));
   HAL_SAI_Receive_DMA(&hsai_BlockB2, (uint8_t*)es7243_data_pbuffer, DATA_BUFFER_MAX * 2);
-
-  goto __exit;
-
-__free_buffer:
-  vPortFree(es7243_data_pbuffer);
-  es7243_data_pbuffer = 0;
 
 __exit:
   return err;
@@ -160,20 +145,10 @@ int es7243_stop(void)
 
   err = 0;
 
-  if(es7243_data_pbuffer == 0)
-  {
-    err = -1;
-    goto __exit;
-  }
-
   //停止MUC的SAI接口
   HAL_SAI_Abort(&hsai_BlockB2);
   HAL_SAI_DeInit(&hsai_BlockB2);
   __SAI1_FORCE_RESET();
-
-  //释放内存
-  vPortFree(es7243_data_pbuffer);
-  es7243_data_pbuffer = 0;
 
   //
   if(es7243_reg_list_exec(reg_list_stop))
@@ -194,19 +169,13 @@ __exit:
 es7243_data_st* es7243_get_current_value(void)
 {
   uint32_t pos;
-  if(es7243_data_pbuffer)
-  {
-    pos = __HAL_DMA_GET_COUNTER(hsai_BlockB2.hdmarx);
-    pos >>= 1;
-    pos = DATA_BUFFER_MAX - pos;
-    if(pos == 0)
-      pos = DATA_BUFFER_MAX - 1;
-    return es7243_data_pbuffer + pos;
-  }
-  else
-  {
-    return 0;
-  }
+
+  pos = __HAL_DMA_GET_COUNTER(hsai_BlockB2.hdmarx);
+  pos >>= 1;
+  pos = DATA_BUFFER_MAX - pos;
+  if(pos == 0)
+    pos = DATA_BUFFER_MAX - 1;
+  return es7243_data_pbuffer + pos;
 }
 
 static const uint8_t reg_list_init[] =

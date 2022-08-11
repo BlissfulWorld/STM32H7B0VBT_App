@@ -29,6 +29,8 @@ typedef struct test_1_s
   double    (*mv_get)                    (uint8_t idx);
   uint8_t   (*ma_is_update)              (uint8_t idx);
   uint8_t   (*codec_aout_to_hac_test_res)(void);
+  int       (*spkramp_play)              (void);
+  uint8_t   (*spkramp_test_res)          (void);
 }test_1_st;
 
 typedef struct test_1_interface_s
@@ -37,6 +39,9 @@ typedef struct test_1_interface_s
 
   uint8_t codec_aout_to_hac_conn_p_pin;
   uint8_t codec_aout_to_hac_conn_n_pin;
+
+  uint8_t coil_to_spkramp_top_vsense_p_pin;
+  uint8_t coil_to_spkramp_top_vsense_n_pin;
 
   uint8_t prox_inti_pin;
   uint8_t als_inti_pin;
@@ -50,9 +55,15 @@ typedef struct test_1_interface_s
   int (*als_i2c_fix)(void);
 }test_1_interface_st;
 
+extern const test_module_id_ut ipx_id;
+extern const test_module_id_ut ipxs_id;
+extern const test_module_id_ut ipxsmax_id;
+extern const test_module_id_ut ipxr_id;
+
 int ipx_test_start(test_module_st* module, const char* title);
 int ipxs_test_start(test_module_st* module, const char* title);
-int ipxr_test_start(test_module_st* module, const char* title);
+#define ipxsmax_test_start ipxs_test_start
+#define ipxr_test_start    ipx_test_start
 
 int test_1_start(test_module_st* module, const test_1_interface_st* intf, const char* title);
 

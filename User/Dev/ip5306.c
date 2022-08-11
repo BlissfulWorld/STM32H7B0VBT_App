@@ -3,7 +3,7 @@
 
 #define I2C_ID (0xEA)
 
-static uint8_t reg_write(uint8_t reg, uint8_t val)
+static int reg_write(uint8_t reg, uint8_t val)
 {
   uint8_t buffer[2];
   buffer[0] = reg;
@@ -11,7 +11,7 @@ static uint8_t reg_write(uint8_t reg, uint8_t val)
   return hw_i2c_write_read(hw_i2c2, I2C_ID, buffer, 2, 0, 0, 10);
 }
 
-static uint8_t reg_read(uint8_t reg, uint8_t* val)
+static int reg_read(uint8_t reg, uint8_t* val)
 {
   return hw_i2c_read_1a_1d(hw_i2c2, I2C_ID, reg, val, 10);
   //hw_i2c_write_read(hw_i2c2,I2C_ID,&reg,1,val,1,10);
@@ -22,18 +22,18 @@ static uint8_t reg_read(uint8_t reg, uint8_t* val)
   * @param state 状态
   * @retval 0：成功 其他：失败
   */
-uint8_t ip5306_charge_sta_get(ip5306_chg_sta_et* state)
+int ip5306_charge_sta_get(ip5306_chg_sta_et* state)
 {
   uint8_t val;
 
   if(reg_read(0x70, &val))
-    return 1;
+    return -1;
 
   if(val & (1 << 3))
   {
     if(reg_read(0x71, &val))
     {
-      return 1;
+      return -2;
     }
 
     if(val & (1 << 3))
@@ -104,36 +104,76 @@ uint8_t ip5306_lvl_get(void)
   return lvl;
 }
 
-uint8_t ip5306_init(void)
+/**
+ * @brief ip5306初始化
+ * 
+ * @return int 错误码
+ */
+int ip5306_init(void)
 {
   uint8_t val;
 
   if(reg_read(0x00, &val))
-    return 1;
+    return -1;
 
   //关闭负载检测
   if(val & (1 << 2))
   {
     val &= ~(1 << 2);
-    reg_write(0x00, val);
+    if(reg_write(0x00, val))
+      return -2;
   }
 
   //chg_dig_ctl0 default:0xD6
   if(reg_read(0x01, &val))
-    return 1;
+    return -3;
   //设置长按关升压
   val |= 0x80;
   //VIN拔出后不开启升压
   val &= (~0x04);
   //VIN拔出后开启升压
   //val |= (0x04);
-  reg_write(0x01, val);
+  //短按不能开关boost
+  val &= (~(1 << 5));
+  if(reg_write(0x01, val))
+    return -4;
 
   //reg_read(0x77, &val);
   //soutf("IP5306_KEY=%02X.\n", val);
 
   //清除按键状态
-  reg_write(0x77, 0x07);
+  if(reg_write(0x77, 0x07))
+    return -5;
+
+  return 0;
+}
+
+/**
+ * @brief ip5306关闭升压
+ * 
+ * @return int 错误码
+ */
+int ip5306_boost_disable(void)
+{
+  uint8_t val;
+
+  //使能短按开关boost
+  if(reg_read(0x01, &val))
+    return -1;
+
+  val |= (1 << 5);
+
+  if(reg_write(0x01, val))
+    return -2;
+
+  //关闭boost
+  if(reg_read(0x00, &val))
+    return -1;
+
+  val &= (~(1 << 5));
+
+  if(reg_write(0x00, val))
+    return -2;
 
   return 0;
 }

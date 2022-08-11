@@ -6,7 +6,7 @@
 #include "analog_speaker.h"
 
 #define SAMPLE_RATE_HZ        (16000)
-#define MIC_RECORD_MAX_LENGTH (SAMPLE_RATE_HZ * 10)//10√Î
+#define MIC_RECORD_MAX_LENGTH (SAMPLE_RATE_HZ * MIC_RECORD_TIME_DEPTH)
 
 #define STAGE_IDLE       (0)
 #define STAGE_RECORDING  (1)
@@ -68,12 +68,11 @@ int test_0_mic_record_start(void)
     play_count = 0;
     stage = STAGE_RECORDING;
     digital_mic_record_stop();
-    digital_mic_record_start(mic_record, MIC_RECORD_MAX_LENGTH, test_0_mic_record_cb);
-    return 0;
+    return digital_mic_record_start(mic_record, MIC_RECORD_MAX_LENGTH, test_0_mic_record_cb);
   }
   else
   {
-    return -1;
+    return 1;
   }
 }
 
@@ -133,7 +132,7 @@ int test_0_mic_record_play(void)
   {
     if(stage == STAGE_FINISHED)
     {
-      return analog_speaker_play(SAMPLE_RATE_HZ, ANALOG_SPK_BITS_16, data_cb, 0, 0) ? -3 : 0;
+      return analog_speaker_play(SAMPLE_RATE_HZ, ANALOG_SPK_BITS_16, 0, data_cb, 0, 0) ? -3 : 0;
     }
 
     return -2;

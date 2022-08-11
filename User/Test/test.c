@@ -12,24 +12,27 @@ typedef struct test_s
   const char* title;
 }test_st;
 
-extern const test_module_id_ut ip7_id;
-extern const test_module_id_ut ip7plus_id;
-extern const test_module_id_ut ip8plus_id;
-extern const test_module_id_ut ipx_id;
-extern const test_module_id_ut ipxs_id;
-extern const test_module_id_ut ipxr_id;
-
 test_module_st* module;
 
 static const test_st test_list[] =
 {
-  {&ip7_id,ip7_test_start,"XP 7 模组"},
-  {&ip7plus_id,ip7plus_test_start,"XP 7plus 模组"},
-  {&ip8plus_id,ip8plus_test_start,"XP 8plus 模组"},
-  {&ipx_id,ipx_test_start,"XP X 模组"},
-  {&ipxs_id,ipxs_test_start,"XP XS 模组"},
-  {&ipxr_id,ipxr_test_start,"XP XR 模组"},
-  {0},
+  {&ip7_id,           ip7_test_start,         "XP 7"},
+  {&ip7plus_id,       ip7plus_test_start,     "XP 7 PLUS"},
+  {&ip8plus_id,       ip8plus_test_start,     "XP 8 PLUS"},
+  {&ipx_id,           ipx_test_start,         "XP X"},
+  {&ipxs_id,          ipxs_test_start,        "XP XS"},
+  {&ipxsmax_id,       ipxsmax_test_start,     "XP XS MAX"},
+  {&ipxr_id,          ipxr_test_start,        "XP XR"},
+  {&ip11_id,          ip11_test_start,        "XP 11"},
+  {&ip11pro_id,       ip11pro_test_start,     "XP 11 PRO"},
+  {&ip11promax_id,    ip11promax_test_start,  "XP 11 PRO MAX"},
+  {&ip12mini_id,      ip12mini_test_start,    "XP 12 MINI"},
+  {&ip12_id,          ip12_test_start,        "XP 12"},
+  {&ip12pro_id,       ip12pro_test_start,     "XP 12 PRO"},
+  {&ip12promax_id,    ip12promax_test_start,  "XP 12 PRO MAX"},
+
+
+  {0},//结尾
 };
 
 //引脚定义
