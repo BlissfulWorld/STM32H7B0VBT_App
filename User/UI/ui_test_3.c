@@ -104,7 +104,7 @@ static void vi_updata(WM_HWIN listview)
   test_3_config_st* config;
 
   config = test->config;
-  for(int i = 0;i < 8;i++)
+  for(int i = 0;i < 6;i++)
   {
     if(test->config->power[i].en == 0) continue;
 
@@ -161,30 +161,57 @@ static void vi_updata(WM_HWIN listview)
     }
   }
 
-  if(test->ma_is_update(8))
+  if(test->ma_is_update(10))
   {
-    snprintf(str, sizeof(str), "%.0f", test->mv_get(8));
+    snprintf(str, sizeof(str), "%.0f", test->mv_get(10));
+    LISTVIEW_SetItemText(listview, 0, 3, str);
+
+    snprintf(str, sizeof(str), "%.2f", test->ma_get(10));
+    LISTVIEW_SetItemText(listview, 1, 3, str);
+
+    if(test->ma_get(10) > config->mvi.i_max || test->ma_get(10) < config->mvi.i_min)
+    {
+      LISTVIEW_SetItemTextColor(listview, 1, 3, LISTVIEW_CI_UNSEL, config->mvi.color_out);
+      LISTVIEW_SetItemTextColor(listview, 1, 3, LISTVIEW_CI_SEL, config->mvi.color_out);
+      error_vi[6] |= 1;
+      if((stage == TEST_STAGE_FUNC) && error_vi[6] == 1)
+      {
+        play_warning();
+        error_vi[6] = 3;
+      }
+    }
+    else
+    {
+      LISTVIEW_SetItemTextColor(listview, 1, 3, LISTVIEW_CI_UNSEL, config->mvi.color_in);
+      LISTVIEW_SetItemTextColor(listview, 1, 3, LISTVIEW_CI_SEL, config->mvi.color_in);
+      error_vi[6] = 0;
+    }
+  }
+
+  if(test->ma_is_update(12))
+  {
+    snprintf(str, sizeof(str), "%.0f", test->mv_get(12));
     LISTVIEW_SetItemText(listview, 0, 4, str);
 
-    snprintf(str, sizeof(str), "%.2f", test->ma_get(8));
+    snprintf(str, sizeof(str), "%.2f", test->ma_get(12));
     LISTVIEW_SetItemText(listview, 1, 4, str);
 
-    if(test->ma_get(8) > config->mvi.i_max || test->ma_get(8) < config->mvi.i_min)
+    if(test->ma_get(12) > config->mvi.i_max || test->ma_get(12) < config->mvi.i_min)
     {
       LISTVIEW_SetItemTextColor(listview, 1, 4, LISTVIEW_CI_UNSEL, config->mvi.color_out);
       LISTVIEW_SetItemTextColor(listview, 1, 4, LISTVIEW_CI_SEL, config->mvi.color_out);
-      error_vi[8] |= 1;
-      if(error_vi[8] == 1)
+      error_vi[7] |= 1;
+      if(error_vi[7] == 1)
       {
         play_warning();
-        error_vi[8] = 3;
+        error_vi[7] = 3;
       }
     }
     else
     {
       LISTVIEW_SetItemTextColor(listview, 1, 4, LISTVIEW_CI_UNSEL, config->mvi.color_in);
       LISTVIEW_SetItemTextColor(listview, 1, 4, LISTVIEW_CI_SEL, config->mvi.color_in);
-      error_vi[8] = 0;
+      error_vi[7] = 0;
     }
   }
 }

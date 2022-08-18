@@ -6,7 +6,7 @@
 typedef struct test_3_config_s
 {
   common_config_info_st info;
-  power_test_st power[8];
+  power_test_st power[12];
   muc_vdd_io_power_test_st mvi;
 }test_3_config_st;
 

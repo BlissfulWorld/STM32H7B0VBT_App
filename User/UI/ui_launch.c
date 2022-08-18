@@ -24,19 +24,45 @@
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
 #define ID_IMAGE_LOGO       (GUI_ID_USER + 0x03)
 
-#define ID_TEXT_INFO        (GUI_ID_USER + 0x10)
-
 static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { WINDOW_CreateIndirect,  0, ID_WINDOW_0,              0,   0, 240, 320,   0,  0x0, 0},
   { BUTTON_CreateIndirect,  0, ID_BUTTON_0,            240, 320,   1,   1,   0,  0x0, 0},
 
-  { IMAGE_CreateIndirect,   0, ID_IMAGE_LOGO,          0,  0,  240,  320,   0,  0x0, 0},
-
-  { TEXT_CreateIndirect,    0, ID_TEXT_INFO,             0,  320 - 44, 240,  44, 0,  0x00, 0},
+  { IMAGE_CreateIndirect,   0, ID_IMAGE_LOGO,            0,   0, 240, 320,   0,  0x0, 0},
 };
 
 static long timer;
-static resource_st* res;
+
+static void image_cb(WM_MESSAGE* pMsg)
+{
+  switch(pMsg->MsgId)
+  {
+    case WM_POST_PAINT:
+    {
+      resource_st* rsc = resource_logo_load();
+      if(rsc)
+      {
+        GUI_BMP_Draw(rsc->data, 0, 0);
+        resource_unload(rsc);
+      }
+#if BOOT_SHOW_VERSION
+      GUI_UC_SetEncodeUTF8();
+      GUI_SetColor(GUI_MAKE_COLOR(0xFFFFFF));
+      GUI_SetFont(FONT_DEF);
+      GUI_SetTextMode(GUI_TM_TRANS);
+      char str[128];
+      snprintf(str, sizeof(str), "V%s", sw_info.version);
+      GUI_DispStringInRect(str, &(GUI_RECT){.x0 = 0, .y0 = 300, .x1 = 240, .y1 = 320}, GUI_TA_HCENTER | GUI_TA_VCENTER);
+#endif
+      break;
+    }
+    default:
+    {
+      WM_DefaultProc(pMsg);
+      break;
+    }
+  }
+}
 
 static void _cbDialog(WM_MESSAGE* pMsg) {
   WM_HWIN                hItem;
@@ -50,21 +76,8 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       hItem = pMsg->hWin;
       WINDOW_SetBkColor(hItem, GUI_MAKE_COLOR(0));
 
-      resource_st* res = resource_logo_load();
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LOGO);
-      if(res)
-        IMAGE_SetBMP(hItem, res->data, res->size);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_INFO);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0x000000));
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFF));
-      TEXT_SetWrapMode(hItem, GUI_WRAPMODE_CHAR);
-      TEXT_SetFont(hItem, FONT_DEF);
-
-      char str[128];
-      snprintf(str, sizeof(str), "V%s", sw_info.version);
-      TEXT_SetText(hItem, str);
+      WM_SetCallback(hItem, image_cb);
 
       timer = WM_CreateTimer(pMsg->hWin, 0, BOOT_LOGO_TIME_MIN, 0);
 
@@ -79,9 +92,6 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     }
     case WM_DELETE:
     {
-      if(res)
-        resource_unload(res);
-
       uint32_t standby = 5 * 60 * 1000;
       US_GET(standbytime, &standby);
       pwdn_watchdog_start(standby);

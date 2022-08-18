@@ -123,7 +123,7 @@ void test_init(void)
   }
 }
 
-#define MA_MUN (9)
+#define MA_MUN (13)
 
 static const osThreadAttr_t test_current_tid_attr = {
   .name = "test current",

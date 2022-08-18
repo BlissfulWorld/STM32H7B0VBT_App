@@ -28,6 +28,5 @@ LR_IROM2 0x24000000 0x00040000  {    ; load region size_region
 LR_IROM1 0x00000000 0x00010000  {
   ER_IROM1 0x00000000 0x00010000  {  ; load address = execution address
    .ANY (+RO +XO)
-   ;stm32h7xx_it.o (+RO +XO)
   }
 }

@@ -184,7 +184,7 @@ uint16_t test_3_prox_get_percentage(void)
 
 	if(prox_data.data2[5] != 0xFF)
 	{
-		val = (val / 0x1300) * 100;
+		val = ((double)val / 0x1300) * 100;
 	}
 	else
 	{
@@ -194,7 +194,7 @@ uint16_t test_3_prox_get_percentage(void)
 	if(val > 100)
 		val = 100;
 
-	return 100 - val;
+	return val;
 }
 
 /**

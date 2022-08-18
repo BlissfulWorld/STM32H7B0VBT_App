@@ -163,15 +163,15 @@ static void vi_updata(WM_HWIN listview)
     }
   }
 
-  if(test->ma_is_update(8))
+  if(test->ma_is_update(12))
   {
-    snprintf(str, sizeof(str), "%.0f", test->mv_get(8));
+    snprintf(str, sizeof(str), "%.0f", test->mv_get(12));
     LISTVIEW_SetItemText(listview, 0, 4, str);
 
-    snprintf(str, sizeof(str), "%.2f", test->ma_get(8));
+    snprintf(str, sizeof(str), "%.2f", test->ma_get(12));
     LISTVIEW_SetItemText(listview, 1, 4, str);
 
-    if(test->ma_get(8) > config->mvi.i_max || test->ma_get(8) < config->mvi.i_min)
+    if(test->ma_get(12) > config->mvi.i_max || test->ma_get(12) < config->mvi.i_min)
     {
       LISTVIEW_SetItemTextColor(listview, 1, 4, LISTVIEW_CI_UNSEL, config->mvi.color_out);
       LISTVIEW_SetItemTextColor(listview, 1, 4, LISTVIEW_CI_SEL, config->mvi.color_out);

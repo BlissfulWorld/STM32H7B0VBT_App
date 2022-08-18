@@ -269,11 +269,12 @@ static void test_1_task(void* p)
 
     osDelay(1000);
 
-    stage = TEST_STAGE_FUNC;
 
     err_flg = 0;
     err_flg_new = 0x0000001F;
     i = 0;
+    test_1_spkramp_play();
+    stage = TEST_STAGE_FUNC;
     tick = HAL_GetTick();
     while(test_1_tid)
     {
@@ -478,11 +479,11 @@ static test_1_config_st* config_parse(const config_file_st* config_file)
         cJSON* j_power_n = cJSON_GetObjectItem(j_power, power_n);
         if(j_power_n != NULL)
         {
-          cJSON* j_power_enable = cJSON_GetObjectItem(j_power_n, json_obj_enable);
-          if(j_power_enable != NULL)
-          {
-            config->power[i].en = j_power_enable->valueint;
-          }
+          //          cJSON* j_power_enable = cJSON_GetObjectItem(j_power_n, json_obj_enable);
+          //          if(j_power_enable != NULL)
+          //          {
+          //            config->power[i].en = j_power_enable->valueint;
+          //          }
 
           cJSON* j_power_vdd = cJSON_GetObjectItem(j_power_n, json_obj_vdd);
           if(j_power_vdd != NULL)

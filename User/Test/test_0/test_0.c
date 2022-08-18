@@ -492,11 +492,11 @@ static test_0_config_st* config_parse(const config_file_st* config_file)
         cJSON* j_power_n = cJSON_GetObjectItem(j_power, power_n);
         if(j_power_n != NULL)
         {
-          cJSON* j_power_enable = cJSON_GetObjectItem(j_power_n, json_obj_enable);
-          if(j_power_enable != NULL)
-          {
-            config->power[i].en = j_power_enable->valueint;
-          }
+//          cJSON* j_power_enable = cJSON_GetObjectItem(j_power_n, json_obj_enable);
+//          if(j_power_enable != NULL)
+//          {
+//            config->power[i].en = j_power_enable->valueint;
+//          }
 
           cJSON* j_power_vdd = cJSON_GetObjectItem(j_power_n, json_obj_vdd);
           if(j_power_vdd != NULL)

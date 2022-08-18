@@ -26,7 +26,7 @@
 
 CRYP_HandleTypeDef hcryp;
 __ALIGN_BEGIN static const uint32_t pKeyCRYP[4] __ALIGN_END = {
-                            0xC281ABCD,0x20200326,0x96C815AA,0x873BF5E5};
+                            0xC281ABCD,0x20220818,0x91C895AA,0x9E77C713};
 
 /* CRYP init function */
 void MX_CRYP_Init(void)

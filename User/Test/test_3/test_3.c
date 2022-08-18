@@ -37,10 +37,10 @@ const test_3_config_st test_3_config_default =
   VI_CONST_INIT(6,1),
   VI_CONST_INIT(7,0),
   VI_CONST_INIT(8,0),
-  //VI_CONST_INIT(9,0),
-  //VI_CONST_INIT(10,0),
-  //VI_CONST_INIT(11,0),
-  //VI_CONST_INIT(12,0),
+  VI_CONST_INIT(9,0),
+  VI_CONST_INIT(10,0),
+  VI_CONST_INIT(11,1),
+  VI_CONST_INIT(12,0),
 
   .mvi.i_max = 5000,
   .mvi.i_min = 0,
@@ -152,7 +152,7 @@ static uint8_t stage;
 
 static osThreadId_t test_3_tid;
 static const osThreadAttr_t test_3_tid_attr = {
-  .name = "test 2",
+  .name = "test 3",
   .stack_size = 1024 * 8,
   .priority = (osPriority_t)osPriorityNormal,
 };
@@ -478,11 +478,11 @@ static test_3_config_st* config_parse(const config_file_st* config_file)
         cJSON* j_power_n = cJSON_GetObjectItem(j_power, power_n);
         if(j_power_n != NULL)
         {
-          cJSON* j_power_enable = cJSON_GetObjectItem(j_power_n, json_obj_enable);
-          if(j_power_enable != NULL)
-          {
-            config->power[i].en = j_power_enable->valueint;
-          }
+//          cJSON* j_power_enable = cJSON_GetObjectItem(j_power_n, json_obj_enable);
+//          if(j_power_enable != NULL)
+//          {
+//            config->power[i].en = j_power_enable->valueint;
+//          }
 
           cJSON* j_power_vdd = cJSON_GetObjectItem(j_power_n, json_obj_vdd);
           if(j_power_vdd != NULL)
