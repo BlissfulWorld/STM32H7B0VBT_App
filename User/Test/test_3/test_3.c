@@ -29,7 +29,7 @@ const test_3_config_st test_3_config_default =
   .power[idx-1].en = enable
 
 
-  VI_CONST_INIT(1,1),
+  VI_CONST_INIT(1,0),
   VI_CONST_INIT(2,1),
   VI_CONST_INIT(3,1),
   VI_CONST_INIT(4,1),

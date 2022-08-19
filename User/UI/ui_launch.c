@@ -52,7 +52,7 @@ static void image_cb(WM_MESSAGE* pMsg)
       GUI_SetTextMode(GUI_TM_TRANS);
       char str[128];
       snprintf(str, sizeof(str), "V%s", sw_info.version);
-      GUI_DispStringInRect(str, &(GUI_RECT){.x0 = 0, .y0 = 300, .x1 = 240, .y1 = 320}, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      GUI_DispStringInRect(str, &(GUI_RECT){.x0 = 0, .y0 = 320 - 28, .x1 = 240, .y1 = 320}, GUI_TA_HCENTER | GUI_TA_TOP);
 #endif
       break;
     }

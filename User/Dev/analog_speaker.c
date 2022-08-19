@@ -151,8 +151,18 @@ void speaker_task(void* argument)
     //关闭静音须等待一段时间
     osDelayUntil(osKernelGetTickCount() + 150);
 
+    vPortEnterCritical();
+    
+    __DSB();
+    __ISB();
+    
     //开始转换
     HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t*)buffer, DAC_DMA_LEN_MAX, align);
+    
+    __DSB();
+    __ISB();
+    
+    vPortExitCritical();
 
     half_size = size >> 1;
     p = 0;

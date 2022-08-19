@@ -38,9 +38,9 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { TEXT_CreateIndirect,    0, ID_TEXT_MAX_MIN,         90,  99,  60, 130,   0,  0x00, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_VOLUME,          90, 144,  60,  40,   0,  0x00, 0},
 
-  { TEXT_CreateIndirect,    0, ID_TEXT_BACK,             0, 320 - 30,  80,  30,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_OK,              80, 320 - 30,  80,  30,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_SAVE,           160, 320 - 30,  80,  30,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_BACK,            20, 320 - 28,  60,  28,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_OK,              90, 320 - 28,  60,  28,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_SAVE,           160, 320 - 28,  60,  28,   0,  0x0, 0},
 };
 
 static WM_HWIN back;
@@ -93,21 +93,21 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetText(hItem, str);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BACK);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "返回");
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OK);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "播放");
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SAVE);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);

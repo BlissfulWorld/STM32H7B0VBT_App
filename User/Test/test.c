@@ -168,6 +168,7 @@ static void test_current(void* arg)
     }
     else if(((uint32_t)(test_ma[i] * 100) != (uint32_t)(ma * 100)) || ((uint32_t)(test_mv[i] * 100) != (uint32_t)(mv * 100)))
     {
+      if(ma < 0) ma = 0;
       test_mv[i] = mv;
       test_ma[i] = ma;
       test_ma_flag[i] = 1;
@@ -182,6 +183,7 @@ static void test_current(void* arg)
       }
       else if(((uint32_t)(test_ma[MA_MUN - 1] * 100) != (uint32_t)(ma * 100)) || ((uint32_t)(test_mv[MA_MUN - 1] * 100) != (uint32_t)(mv * 100)))
       {
+        if(ma < 0) ma = 0;
         test_mv[MA_MUN - 1] = mv;
         test_ma[MA_MUN - 1] = ma;
         test_ma_flag[MA_MUN - 1] = 1;

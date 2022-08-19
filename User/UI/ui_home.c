@@ -26,6 +26,7 @@
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
 #define ID_TEXT_TITLE       (GUI_ID_USER + 0x02)
 #define ID_IMAGE_LEVEL      (GUI_ID_USER + 0x03)
+#define ID_TEXT_BOTTOM      (GUI_ID_USER + 0x04)
 
 #define ID_TEXT_UPDATE      (GUI_ID_USER + 0x10)
 #define ID_TEXT_OK          (GUI_ID_USER + 0x11)
@@ -47,6 +48,7 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { BUTTON_CreateIndirect,  0, ID_BUTTON_0,            240, 320,   1,   1,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_TITLE,            0,   0, 240,  44,   0,  0x0, 0},
   { IMAGE_CreateIndirect,   0, ID_IMAGE_LEVEL,         180,  24,  20,  20,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_BOTTOM,           0, 320 - 30, 240,  30,   0,  0x0, 0},
 
   { TEXT_CreateIndirect,    0, ID_TEXT_T_NAME,           0,  44, 240,  20,   0,  0x00, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_NAME,             0,  64, 240,  40,   0,  0x00, 0},
@@ -59,9 +61,9 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 
   { TEXT_CreateIndirect,    0, ID_TEXT_INFO,            70, 144, 100,  40,   0,  0x00, 0},
 
-  { TEXT_CreateIndirect,    0, ID_TEXT_UPDATE,           0, 320 - 30,  80,  30,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_OK,              80, 320 - 30,  80,  30,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_FILE,           160, 320 - 30,  80,  30,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_UPDATE,          20, 320 - 28,  60,  28,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_OK,              90, 320 - 28,  60,  28,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_FILE,           160, 320 - 28,  60,  28,   0,  0x0, 0},
 };
 
 static uint32_t btn;
@@ -132,6 +134,13 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "配置");
+      
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
+      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
+      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
+      TEXT_SetFont(hItem, FONT_DEF);
+      TEXT_SetText(hItem, "");
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_T_NAME);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -197,21 +206,21 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetText(hItem, "");
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_UPDATE);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "");
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OK);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "");
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_FILE);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);

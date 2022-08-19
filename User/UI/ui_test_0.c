@@ -16,6 +16,7 @@
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
 #define ID_TEXT_TITLE       (GUI_ID_USER + 0x02)
 #define ID_IMAGE_LEVEL      (GUI_ID_USER + 0x03)
+#define ID_TEXT_BOTTOM      (GUI_ID_USER + 0x04)
 
 #define ID_TEXT_WAIT        (GUI_ID_USER + 0x0A)
 
@@ -61,6 +62,7 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { WINDOW_CreateIndirect,  0, ID_WINDOW_0,              0,   0, 240, 320,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_TITLE,            0,   0, 240,  44,   0,  0x0, 0},
   { IMAGE_CreateIndirect,   0, ID_IMAGE_LEVEL,         180,  24,  20,  20,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_BOTTOM,           0, 320 - 30, 240,  30,   0,  0x0, 0},
 
   { TEXT_CreateIndirect,    0, ID_TEXT_WAIT,             0,  42, 240, ITEM7_OFFSET - 42,  0,  0x0, 0},
 
@@ -84,9 +86,9 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 
   { LISTVIEW_CreateIndirect,0, ID_LISTVIEW_CURRENT,      0, ITEM7_OFFSET, 240,  88, 0, 0x00, 0},
 
-  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_NONE,         0, 320 - 30,  80,  30,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_MENU,        80, 320 - 30,  80,  30,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_MIC,        160, 320 - 30,  80,  30,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_NONE,        20, 320 - 28,  60,  28,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_MENU,        90, 320 - 28,  60,  28,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_MIC,        160, 320 - 28,  60,  28,   0,  0x0, 0},
 };
 
 static long htimer;
@@ -213,6 +215,13 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetFont(hItem, FONT_DEF);
       if(title)
         TEXT_SetText(hItem, title);
+      
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
+      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
+      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
+      TEXT_SetFont(hItem, FONT_DEF);
+      TEXT_SetText(hItem, "");
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_WAIT);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -334,26 +343,27 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
 
       WM_EnableMemdev(hItem);
 
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_NONE);
+      TEXT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_TOP);
+      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
+      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
+      TEXT_SetFont(hItem, FONT_DEF);
+      TEXT_SetText(hItem, "");
+
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_MENU);
+      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
+      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
+      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
+      TEXT_SetFont(hItem, FONT_DEF);
+      TEXT_SetText(hItem, "菜单");
+      
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_MIC);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "录/播");
 
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_MENU);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "菜单");
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_NONE);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "");
 
       htimer = WM_CreateTimer(pMsg->hWin, 0, 100, 0);
 

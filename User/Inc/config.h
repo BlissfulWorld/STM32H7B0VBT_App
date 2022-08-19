@@ -5,7 +5,7 @@
 #define DEVICE_NAME "XP模组测试机"
 
 // 软件版本
-#define SOFTWARE_VERSION "0.3.2"
+#define SOFTWARE_VERSION "0.3.5"
 
 // <<< Use Configuration Wizard in Context Menu >>>
 

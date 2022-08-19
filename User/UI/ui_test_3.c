@@ -82,9 +82,9 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 
   { LISTVIEW_CreateIndirect,0, ID_LISTVIEW_CURRENT,      0, ITEM7_OFFSET, 240,  88,   0, 0x00, 0},
 
-  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_SPKRAMP,      0, 320 - 30,  80,  30,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_MENU,        80, 320 - 30,  80,  30,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_MIC,        160, 320 - 30,  80,  30,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_SPKRAMP,     20, 320 - 28,  60,  28,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_MENU,        90, 320 - 28,  60,  28,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_MIC,        160, 320 - 28,  60,  28,   0,  0x0, 0},
 };
 
 static long htimer;
@@ -360,27 +360,27 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
 
       WM_EnableMemdev(hItem);
 
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_MIC);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "录/播");
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_MENU);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "菜单");
-
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_SPKRAMP);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "喇叭播放");
       WM_HideWindow(hItem);
+
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_MENU);
+      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
+      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
+      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
+      TEXT_SetFont(hItem, FONT_DEF);
+      TEXT_SetText(hItem, "菜单");
+
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_MIC);
+      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_TOP);
+      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
+      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
+      TEXT_SetFont(hItem, FONT_DEF);
+      TEXT_SetText(hItem, "录/播");
 
       htimer = WM_CreateTimer(pMsg->hWin, 0, 100, 0);
 
