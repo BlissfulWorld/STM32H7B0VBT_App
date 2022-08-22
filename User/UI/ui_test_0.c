@@ -193,6 +193,83 @@ static void vi_updata(WM_HWIN listview)
   }
 }
 
+static void update_func_test_result(WM_HWIN win)
+{
+  WM_HWIN hItem;
+  char str_buf[128];
+
+  if(test->prox_is_rdy() == 0)
+  {
+    hItem = WM_GetDialogItem(win, ID_PROGBAR_PROX_VAL);
+    PROGBAR_SetValue(hItem, 0);
+    PROGBAR_SetText(hItem, "X");
+    hItem = WM_GetDialogItem(win, ID_TEXT_PROX);
+    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
+  }
+  else
+  {
+    uint8_t prox = test->prox_get();
+    hItem = WM_GetDialogItem(win, ID_PROGBAR_PROX_VAL);
+    PROGBAR_SetText(hItem, 0);
+    PROGBAR_SetValue(hItem, prox);
+    hItem = WM_GetDialogItem(win, ID_TEXT_PROX);
+    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
+  }
+
+  if(test->als_is_rdy() == 0)
+  {
+    hItem = WM_GetDialogItem(win, ID_PROGBAR_ALS_VAL);
+    PROGBAR_SetValue(hItem, 0);
+    PROGBAR_SetText(hItem, "X");
+    hItem = WM_GetDialogItem(win, ID_TEXT_ALS);
+    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
+  }
+  else
+  {
+    uint8_t als = test->als_get();
+    hItem = WM_GetDialogItem(win, ID_PROGBAR_ALS_VAL);
+    PROGBAR_SetText(hItem, 0);
+    PROGBAR_SetValue(hItem, als);
+    hItem = WM_GetDialogItem(win, ID_TEXT_ALS);
+    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
+  }
+
+  hItem = WM_GetDialogItem(win, ID_PROGBAR_MIC_VAL);
+  if(mic_record == 0)
+  {
+    PROGBAR_SetValue(hItem, test->mic_get());
+  }
+  else
+  {
+    uint8_t prog = test->mic_record_get_progress();
+    PROGBAR_SetValue(hItem, prog);
+    snprintf(str_buf, sizeof(str_buf), "REC %u%%", prog);
+    PROGBAR_SetText(hItem, str_buf);
+  }
+
+  uint8_t cam_rdy = test->cam_is_rdy();
+  hItem = WM_GetDialogItem(win, ID_TEXT_CAM_RES);
+  TEXT_SetText(hItem, cam_rdy ? " 有" : " 无");
+  if(cam_rdy == 0)
+  {
+    hItem = WM_GetDialogItem(win, ID_TEXT_CAM);
+    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
+  }
+  else
+  {
+    hItem = WM_GetDialogItem(win, ID_TEXT_CAM);
+    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
+  }
+
+  uint8_t spk_pn = test->spk_pn_get();
+
+  hItem = WM_GetDialogItem(win, ID_TEXT_SPK_P);
+  TEXT_SetBkColor(hItem, (spk_pn & 1) == 0 ? GUI_MAKE_COLOR(0xFF0000) : GUI_MAKE_COLOR(0x00A000));
+
+  hItem = WM_GetDialogItem(win, ID_TEXT_SPK_N);
+  TEXT_SetBkColor(hItem, (spk_pn & 2) == 0 ? GUI_MAKE_COLOR(0xFF0000) : GUI_MAKE_COLOR(0x00A000));
+}
+
 static void _cbDialog(WM_MESSAGE* pMsg) {
   WM_HWIN                hItem;
   int                    NCode;
@@ -215,7 +292,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetFont(hItem, FONT_DEF);
       if(title)
         TEXT_SetText(hItem, title);
-      
+
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
@@ -356,7 +433,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "菜单");
-      
+
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_MIC);
       TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
@@ -431,76 +508,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
 
       if(stage == TEST_STAGE_FUNC)
       {
-        if(test->prox_is_rdy() == 0)
-        {
-          hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_PROX_VAL);
-          PROGBAR_SetValue(hItem, 0);
-          PROGBAR_SetText(hItem, "X");
-          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_PROX);
-          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
-        }
-        else
-        {
-          uint8_t prox = test->prox_get();
-          hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_PROX_VAL);
-          PROGBAR_SetText(hItem, 0);
-          PROGBAR_SetValue(hItem, prox);
-          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_PROX);
-          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
-        }
-
-        if(test->als_is_rdy() == 0)
-        {
-          hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_ALS_VAL);
-          PROGBAR_SetValue(hItem, 0);
-          PROGBAR_SetText(hItem, "X");
-          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_ALS);
-          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
-        }
-        else
-        {
-          uint8_t als = test->als_get();
-          hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_ALS_VAL);
-          PROGBAR_SetText(hItem, 0);
-          PROGBAR_SetValue(hItem, als);
-          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_ALS);
-          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
-        }
-
-        hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_MIC_VAL);
-        if(mic_record == 0)
-        {
-          PROGBAR_SetValue(hItem, test->mic_get());
-        }
-        else
-        {
-          uint8_t prog = test->mic_record_get_progress();
-          PROGBAR_SetValue(hItem, prog);
-          snprintf(str_buf, sizeof(str_buf), "REC %u%%", prog);
-          PROGBAR_SetText(hItem, str_buf);
-        }
-
-        uint8_t cam_rdy = test->cam_is_rdy();
-        hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM_RES);
-        TEXT_SetText(hItem, cam_rdy ? " 有" : " 无");
-        if(cam_rdy == 0)
-        {
-          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM);
-          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
-        }
-        else
-        {
-          hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM);
-          TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
-        }
-
-        uint8_t spk_pn = test->spk_pn_get();
-
-        hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_P);
-        TEXT_SetBkColor(hItem, (spk_pn & 1) == 0 ? GUI_MAKE_COLOR(0xFF0000) : GUI_MAKE_COLOR(0x00A000));
-
-        hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_N);
-        TEXT_SetBkColor(hItem, (spk_pn & 2) == 0 ? GUI_MAKE_COLOR(0xFF0000) : GUI_MAKE_COLOR(0x00A000));
+        update_func_test_result(pMsg->hWin);
       }
       else
       {
@@ -610,6 +618,8 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
           }
           case TEST_STAGE_FUNC:
           {
+            update_func_test_result(pMsg->hWin);
+
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_WAIT);
             WM_HideWindow(hItem);
 

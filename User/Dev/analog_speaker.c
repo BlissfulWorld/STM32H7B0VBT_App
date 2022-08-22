@@ -7,7 +7,7 @@
 
 extern osThreadId_t speakerHandle;
 
-uint32_t align;
+uint32_t align, rate;
 
 static analog_speaker_play_finished_cb_func_t f_cb;
 static analog_speaker_get_data_func_t d_cb;
@@ -151,26 +151,29 @@ void speaker_task(void* argument)
     //关闭静音须等待一段时间
     osDelayUntil(osKernelGetTickCount() + 150);
 
-    vPortEnterCritical();
-    
-    __DSB();
-    __ISB();
-    
-    //开始转换
-    HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t*)buffer, DAC_DMA_LEN_MAX, align);
-    
-    __DSB();
-    __ISB();
-    
-    vPortExitCritical();
-
     half_size = size >> 1;
+    while(1)
+    {
+      vPortEnterCritical();
+      //开始转换
+      HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t*)buffer, DAC_DMA_LEN_MAX, align);
+      vPortExitCritical();
+
+      uint32_t delay_tick = pdMS_TO_TICKS(((double)half_size / (double)rate) * 1000.0);
+      delay_tick += (delay_tick >> 1);
+      uint32_t val = ulTaskNotifyTake(pdTRUE, delay_tick);
+      if(val == 1)
+        break;
+
+      vPortEnterCritical();
+      HAL_DAC_Stop_DMA(&hdac1, DAC_CHANNEL_1);
+      vPortExitCritical();
+    }
+
     p = 0;
 
     while(1)
     {
-      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
       if(count == 0)
         break;
 
@@ -180,11 +183,15 @@ void speaker_task(void* argument)
         p = (uint8_t*)buffer + half_size;
 
       count = get_data(p, half_size);
+
+      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     }
 
+    vPortEnterCritical();
     //结束转换
     HAL_DAC_Stop_DMA(&hdac1, DAC_CHANNEL_1);
     HAL_TIM_Base_Stop(&htim5);
+    vPortExitCritical();
 
   __exit:
     //开启静音
@@ -208,11 +215,11 @@ void speaker_task(void* argument)
  * @param user 用户指针
  * @return int 错误码
  */
-int analog_speaker_play(uint32_t rate, analog_spk_bits_et bits, uint8_t is_volume_adjust, analog_speaker_get_data_func_t data_get, analog_speaker_play_finished_cb_func_t finished_cb, void* user)
+int analog_speaker_play(uint32_t rate_hz, analog_spk_bits_et bits, uint8_t is_volume_adjust, analog_speaker_get_data_func_t data_get, analog_speaker_play_finished_cb_func_t finished_cb, void* user)
 {
   int err;
 
-  if(rate == 0 || data_get == 0)
+  if(rate_hz == 0 || data_get == 0)
   {
     err = -1;
     goto __exit;
@@ -243,6 +250,7 @@ int analog_speaker_play(uint32_t rate, analog_spk_bits_et bits, uint8_t is_volum
   f_cb = finished_cb;
   user_p = user;
   volume_adjust = is_volume_adjust;
+  rate = rate_hz;
 
   uint32_t period = ((280000000 / (double)rate) + 0.5) - 1;
   __HAL_TIM_SetAutoreload(&htim5, period);

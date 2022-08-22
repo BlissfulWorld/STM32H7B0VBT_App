@@ -129,7 +129,13 @@ void test_0_init(const test_0_interface_st* intf)
   for(uint32_t i = 0;i < sizeof(test_0.config->power) / sizeof(power_test_st);i++)
   {
     if(test_0.config->power[i].en)
-      power_en |= (1 << i);
+      power_en |= (1U << i);
+  }
+
+  for(uint32_t i = 8;(i < sizeof(test_0.config->power) / sizeof(power_test_st)) && (i < 12);i++)
+  {
+    if(test_0.config->power[i].en)
+      power_en |= (1U << ((12 - 1 - i) + 8));
   }
 
   pca9535_set_output(1, power_en | 0x1000);
@@ -292,11 +298,16 @@ static void test_0_task(void* p)
 
     osDelay(1000);
 
-    stage = TEST_STAGE_FUNC;
 
     err_flg = 0;
     err_flg_new = 0x0000001F;
     i = 0;
+    spk_pn = spk_pn_detect(intf);
+    cam_rdy = test_0_cam_detect();
+    test_0_mic_update_data();
+    test_0_als_update_data();
+    test_0_prox_update_data();
+    stage = TEST_STAGE_FUNC;
     tick = HAL_GetTick();
     while(test_0_tid)
     {
@@ -492,11 +503,11 @@ static test_0_config_st* config_parse(const config_file_st* config_file)
         cJSON* j_power_n = cJSON_GetObjectItem(j_power, power_n);
         if(j_power_n != NULL)
         {
-//          cJSON* j_power_enable = cJSON_GetObjectItem(j_power_n, json_obj_enable);
-//          if(j_power_enable != NULL)
-//          {
-//            config->power[i].en = j_power_enable->valueint;
-//          }
+          //          cJSON* j_power_enable = cJSON_GetObjectItem(j_power_n, json_obj_enable);
+          //          if(j_power_enable != NULL)
+          //          {
+          //            config->power[i].en = j_power_enable->valueint;
+          //          }
 
           cJSON* j_power_vdd = cJSON_GetObjectItem(j_power_n, json_obj_vdd);
           if(j_power_vdd != NULL)

@@ -128,7 +128,9 @@ int es7243_start(uint32_t rate, void (*data_isr_cb)(es7243_data_st* pdata, uint3
   HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BITEXTENDED, 2);
 
   //SCB_InvalidateDCache_by_Addr(es7243_data_pbuffer, DATA_BUFFER_MAX * sizeof(es7243_data_st));
+  vPortEnterCritical();
   HAL_SAI_Receive_DMA(&hsai_BlockB2, (uint8_t*)es7243_data_pbuffer, DATA_BUFFER_MAX * 2);
+  vPortExitCritical();
 
 __exit:
   return err;

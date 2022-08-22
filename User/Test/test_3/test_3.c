@@ -123,16 +123,21 @@ void test_3_init(const test_3_interface_st* intf)
   gpio_init.Alternate = GPIO_AF0_MCO;
   HAL_GPIO_Init(GPIOA, &gpio_init);
 
-
   test_3_als_set_intf(intf);
   test_3_prox_set_intf(intf);
   test_3_spkramp_set_intf(intf);
 
   power_en = 0;
-  for(uint32_t i = 0;i < sizeof(test_3.config->power) / sizeof(power_test_st);i++)
+  for(uint32_t i = 0;(i < sizeof(test_3.config->power) / sizeof(power_test_st)) && (i < 8);i++)
   {
     if(test_3.config->power[i].en)
-      power_en |= (1 << i);
+      power_en |= (1U << i);
+  }
+
+  for(uint32_t i = 8;(i < sizeof(test_3.config->power) / sizeof(power_test_st)) && (i < 12);i++)
+  {
+    if(test_3.config->power[i].en)
+      power_en |= (1U << ((12 - 1 - i) + 8));
   }
 
   pca9535_set_output(1, power_en | 0x1000);
@@ -269,11 +274,18 @@ static void test_3_task(void* p)
 
     osDelay(1000);
 
-    stage = TEST_STAGE_FUNC;
 
     err_flg = 0;
     err_flg_new = 0x0000001F;
     i = 0;
+    test_3_spkramp_test_poll();
+    codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+    test_3_mic_update_data();
+    test_3_als_update_data();
+    test_3_prox_update_data();
+    test_3_prox_update_data();
+    test_3_spkramp_play();
+    stage = TEST_STAGE_FUNC;
     tick = HAL_GetTick();
     while(test_3_tid)
     {
@@ -478,11 +490,11 @@ static test_3_config_st* config_parse(const config_file_st* config_file)
         cJSON* j_power_n = cJSON_GetObjectItem(j_power, power_n);
         if(j_power_n != NULL)
         {
-//          cJSON* j_power_enable = cJSON_GetObjectItem(j_power_n, json_obj_enable);
-//          if(j_power_enable != NULL)
-//          {
-//            config->power[i].en = j_power_enable->valueint;
-//          }
+          //          cJSON* j_power_enable = cJSON_GetObjectItem(j_power_n, json_obj_enable);
+          //          if(j_power_enable != NULL)
+          //          {
+          //            config->power[i].en = j_power_enable->valueint;
+          //          }
 
           cJSON* j_power_vdd = cJSON_GetObjectItem(j_power_n, json_obj_vdd);
           if(j_power_vdd != NULL)

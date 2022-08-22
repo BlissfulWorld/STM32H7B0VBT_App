@@ -123,7 +123,6 @@ void test_1_init(const test_1_interface_st* intf)
   gpio_init.Alternate = GPIO_AF0_MCO;
   HAL_GPIO_Init(GPIOA, &gpio_init);
 
-
   test_1_als_set_intf(intf);
   test_1_prox_set_intf(intf);
   test_1_spkramp_set_intf(intf);
@@ -132,7 +131,13 @@ void test_1_init(const test_1_interface_st* intf)
   for(uint32_t i = 0;i < sizeof(test_1.config->power) / sizeof(power_test_st);i++)
   {
     if(test_1.config->power[i].en)
-      power_en |= (1 << i);
+      power_en |= (1U << i);
+  }
+
+  for(uint32_t i = 8;(i < sizeof(test_1.config->power) / sizeof(power_test_st)) && (i < 12);i++)
+  {
+    if(test_1.config->power[i].en)
+      power_en |= (1U << ((12 - 1 - i) + 8));
   }
 
   pca9535_set_output(1, power_en | 0x1000);
@@ -273,6 +278,11 @@ static void test_1_task(void* p)
     err_flg = 0;
     err_flg_new = 0x0000001F;
     i = 0;
+    test_1_spkramp_test_poll();
+    codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+    test_1_mic_update_data();
+    test_1_als_update_data();
+    test_1_prox_update_data();
     test_1_spkramp_play();
     stage = TEST_STAGE_FUNC;
     tick = HAL_GetTick();

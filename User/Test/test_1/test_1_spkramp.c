@@ -2,7 +2,7 @@
 #include "tim.h"
 #include "cmsis_os.h"
 
-#define PLAY_COUNT_MAX (60)
+#define PLAY_COUNT_MAX (30)
 
 static const test_1_interface_st* intf;
 static uint8_t result;

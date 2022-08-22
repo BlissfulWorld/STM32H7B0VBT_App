@@ -9,8 +9,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
   }
   else if(hadc == &hadc1)
   {
-    extern void adc1_conv_cplt_cb(void);
-    adc1_conv_cplt_cb();
+    /*extern void adc1_conv_cplt_cb(void);
+    adc1_conv_cplt_cb();*/
   }
 }
 
@@ -18,7 +18,7 @@ void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc)
 {
   if(hadc == &hadc1)
   {
-    extern void adc1_conv_half_cplt_cb(void);
-    adc1_conv_half_cplt_cb();
+    /*extern void adc1_conv_half_cplt_cb(void);
+    adc1_conv_half_cplt_cb();*/
   }
 }

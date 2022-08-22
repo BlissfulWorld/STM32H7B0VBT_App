@@ -1,0 +1,19 @@
+{
+  "files.associations": {
+    "stdio.h": "c",
+    "ui.h": "c",
+    "config.h": "c"
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/heap_1.c": true,
+    "**/heap_2.c": true,
+    "**/heap_3.c": true,
+    "**/heap_5.c": true
+  }
+}

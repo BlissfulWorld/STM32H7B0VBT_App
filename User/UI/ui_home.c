@@ -134,7 +134,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "配置");
-      
+
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));

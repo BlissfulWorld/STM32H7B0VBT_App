@@ -576,11 +576,6 @@
               <FilePath>..\User\Dev\analog_speaker.c</FilePath>
             </File>
             <File>
-              <FileName>analog_mic.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Dev\analog_mic.c</FilePath>
-            </File>
-            <File>
               <FileName>digital_mic.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Dev\digital_mic.c</FilePath>
