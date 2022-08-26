@@ -37,6 +37,7 @@ typedef enum ui_key_num_e //: uint8_t
 int ui_init(void);
 void ui_start(void);
 void ui_show_logo(void);
+int ui_screenshot(void);
 
 void ui_battery_level_icon_updata(WM_HWIN image, uint8_t show_charge_lvl);
 

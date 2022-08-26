@@ -143,8 +143,7 @@ void test_1_init(const test_1_interface_st* intf)
   pca9535_set_output(1, power_en | 0x1000);
   pca9535_config_port(1, 0x0000);
 
-  intf->als_i2c_init();
-  intf->prox_i2c_init();
+  intf->i2c_init();
 
   test_1_als_init();
   test_1_prox_init();
@@ -185,6 +184,18 @@ extern int test_1_spkramp_play(void);
 extern uint8_t test_1_spkramp_res_get(void);
 
 static uint8_t codec_aout_to_hac_test_res;
+static uint8_t yogi_rdy;
+
+static uint8_t test_1_yogi_detect(const test_1_interface_st* intf)
+{
+  uint8_t addr[1] = { 0 };
+  uint8_t data[2];
+
+  if(intf->i2c_write_read(0x66, addr, sizeof(addr), data, sizeof(data), 100) == 0)
+    return 1;
+
+  return 0;
+}
 
 static uint8_t codec_aout_to_hac_test(const test_1_interface_st* intf)
 {
@@ -254,8 +265,9 @@ static void test_1_task(void* p)
     while(test_1_tid)
     {
       codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+      yogi_rdy = test_1_yogi_detect(intf);
       test_1_spkramp_test_poll();
-      if((test_1_prox_detect() == 0) || (test_1_als_detect() == 0) || codec_aout_to_hac_test_res || test_1_spkramp_res_get())
+      if((test_1_prox_detect() == 0) || (test_1_als_detect() == 0) || codec_aout_to_hac_test_res || test_1_spkramp_res_get() || yogi_rdy)
       {
         i++;
         if(i > 5) break;
@@ -263,8 +275,7 @@ static void test_1_task(void* p)
       else
       {
         i = 0;
-        intf->prox_i2c_fix();
-        intf->als_i2c_fix();
+        intf->i2c_fix();
       }
 
       osDelay(50);
@@ -276,10 +287,11 @@ static void test_1_task(void* p)
 
 
     err_flg = 0;
-    err_flg_new = 0x0000001F;
+    err_flg_new = 0x0000003F;
     i = 0;
     test_1_spkramp_test_poll();
     codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+    yogi_rdy = test_1_yogi_detect(intf);
     test_1_mic_update_data();
     test_1_als_update_data();
     test_1_prox_update_data();
@@ -298,20 +310,23 @@ static void test_1_task(void* p)
         uint32_t flag = 0;
 
         test_1_prox_update_data();
-
-        if(test_1_als_detect() == 0)
-        {
-          flag |= (1U << 0);
-          intf->als_i2c_fix();
-        }
+        test_1_spkramp_test_poll();
+        codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+        yogi_rdy = test_1_yogi_detect(intf);
 
         if(test_1_prox_is_rdy() != 0)
         {
-          flag |= (1U << 1);
-          intf->prox_i2c_fix();
+          flag |= (1U << 0);
+        }
+        else
+        {
+          intf->i2c_fix();
         }
 
-        test_1_spkramp_test_poll();
+        if(test_1_als_detect() == 0)
+        {
+          flag |= (1U << 1);
+        }
 
         if((test_1_spkramp_res_get() & 1) != 0)
         {
@@ -323,10 +338,14 @@ static void test_1_task(void* p)
           flag |= (1U << 3);
         }
 
-        codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
         if(codec_aout_to_hac_test_res != 0)
         {
           flag |= (1U << 4);
+        }
+
+        if(yogi_rdy != 0)
+        {
+          flag |= (1U << 5);
         }
 
         if(flag == 0)
@@ -341,11 +360,11 @@ static void test_1_task(void* p)
 
           if(err_flg_new)
           {
-            if(err_flg_new != 0x0000001F)
+            if(err_flg_new != 0x0000003F)
             {
               if(err_flg_new != err_flg)
               {
-                for(uint32_t i = 1;i < (1 << 5);i <<= 1)
+                for(uint32_t i = 1;i < (1 << 6);i <<= 1)
                 {
                   if((err_flg_new & i) != 0 && (err_flg & i) == 0)
                   {
@@ -362,7 +381,7 @@ static void test_1_task(void* p)
           }
 
           err_flg = err_flg_new;
-          err_flg_new = 0x0000001F;
+          err_flg_new = 0x0000003F;
         }
       }
 
@@ -426,6 +445,16 @@ static int spkramp_play(void)
 static uint8_t spkramp_test_res_get(void)
 {
   return test_1_spkramp_res_get();
+}
+
+static uint8_t yogi_is_rdy(void)
+{
+  return yogi_rdy;
+}
+
+static uint8_t hall_get(void)
+{
+  return HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_11) == GPIO_PIN_SET ? 1 : 0;
 }
 
 static test_1_config_st* config_parse(const config_file_st* config_file)
@@ -623,6 +652,16 @@ int test_1_start(test_module_st* module, const test_1_interface_st* intf, const 
   test_1.codec_aout_to_hac_test_res = codec_aout_to_hac_test_res_get;
   test_1.spkramp_play = spkramp_play;
   test_1.spkramp_test_res = spkramp_test_res_get;
+  test_1.yogi_is_rdy = yogi_is_rdy;
+
+  if(module->id.code == ipxs_id.code || module->id.code == ipxsmax_id.code)
+  {
+    test_1.hall_get = hall_get;
+  }
+  else
+  {
+    test_1.hall_get = 0;
+  }
 
   ui_test_1_open(&test_1, title);
 

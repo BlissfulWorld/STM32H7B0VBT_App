@@ -5,6 +5,8 @@
 
 #define DAC_DMA_LEN_MAX (8196)
 
+#define HTIM (&htim8)
+
 extern osThreadId_t speakerHandle;
 
 uint32_t align, rate;
@@ -146,7 +148,7 @@ void speaker_task(void* argument)
 
     HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
 
-    HAL_TIM_Base_Start(&htim5);
+    HAL_TIM_Base_Start(HTIM);
 
     //关闭静音须等待一段时间
     osDelayUntil(osKernelGetTickCount() + 150);
@@ -190,7 +192,7 @@ void speaker_task(void* argument)
     vPortEnterCritical();
     //结束转换
     HAL_DAC_Stop_DMA(&hdac1, DAC_CHANNEL_1);
-    HAL_TIM_Base_Stop(&htim5);
+    HAL_TIM_Base_Stop(HTIM);
     vPortExitCritical();
 
   __exit:
@@ -253,7 +255,7 @@ int analog_speaker_play(uint32_t rate_hz, analog_spk_bits_et bits, uint8_t is_vo
   rate = rate_hz;
 
   uint32_t period = ((280000000 / (double)rate) + 0.5) - 1;
-  __HAL_TIM_SetAutoreload(&htim5, period);
+  __HAL_TIM_SetAutoreload(HTIM, period);
 
   HAL_DMA_Init(hdac1.DMA_Handle1);
 

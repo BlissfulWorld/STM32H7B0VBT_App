@@ -11,6 +11,8 @@ typedef struct
 	uint8_t data2[30];
 }prox_data_st;
 
+#define PROX_I2C_ID (0xB0)
+
 static uint8_t prox_rdy;
 static prox_data_st prox_data;
 static const uint8_t prox_init_data[];
@@ -19,12 +21,12 @@ static const test_2_interface_st* intf;
 
 static uint8_t i2c_write_nd(uint8_t* pdata, uint32_t size)
 {
-	return intf->prox_i2c_write_read(pdata, size, 0, 0, size);
+	return intf->i2c_write_read(PROX_I2C_ID, pdata, size, 0, 0, size);
 }
 
 static uint8_t i2c_read(unsigned char addr, unsigned char* data, unsigned int size)
 {
-	return intf->prox_i2c_write_read(&addr, 1, data, size, size);
+	return intf->i2c_write_read(PROX_I2C_ID, &addr, 1, data, size, size);
 }
 
 void test_2_prox_set_intf(const test_2_interface_st* i)

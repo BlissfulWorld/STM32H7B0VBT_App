@@ -5,7 +5,7 @@
 #define DEVICE_NAME "XP模组测试机"
 
 // 软件版本
-#define SOFTWARE_VERSION "0.3.9"
+#define SOFTWARE_VERSION "0.4.1 Cap"
 
 // <<< Use Configuration Wizard in Context Menu >>>
 
@@ -16,6 +16,10 @@
 //<o> Show Version On Booting <0=>No <1=>Yes
 // 开机过程在屏幕下方显示软件版本
 #define BOOT_SHOW_VERSION (1)
+
+//<o> Screenshot Function <0=>Disable <1=>Enable
+// 截屏功能
+#define SCREENSHOT_ENABLE (0)
 
 //<o>  Mic Record Time Depth (units: s) <0x0-0xFFFFFFFF>
 // 麦克风录制时间深度(最长可以连续录制多久)，单位秒

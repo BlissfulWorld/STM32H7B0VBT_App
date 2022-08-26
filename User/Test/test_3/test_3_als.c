@@ -5,7 +5,7 @@
 #include "cmsis_os.h"
 #include "test.h"
 
-#define ALS_I2C_ID 0x52
+#define ALS_I2C_ID (0x52)
 
 static uint8_t als_data = 0;
 static uint8_t als_rdy = 0;
@@ -17,7 +17,7 @@ static uint8_t i2c_write_8a_8d(uint8_t addr, uint8_t data)
 	buffer[0] = addr;
 	buffer[1] = data;
 
-	return intf->als_i2c_write_read(buffer, 2, 0, 0, 100);
+	return intf->i2c_write_read(ALS_I2C_ID, buffer, 2, 0, 0, 100);
 }
 
 static uint8_t i2c_write_8a_16d(uint8_t addr, uint16_t data)
@@ -27,12 +27,12 @@ static uint8_t i2c_write_8a_16d(uint8_t addr, uint16_t data)
 	buffer[1] = data >> 8;
 	buffer[2] = data;
 
-	return intf->als_i2c_write_read(buffer, 3, 0, 0, 100);
+	return intf->i2c_write_read(ALS_I2C_ID, buffer, 3, 0, 0, 100);
 }
 
 static uint8_t i2c_read(uint8_t addr, uint8_t* data, uint32_t size)
 {
-	return intf->als_i2c_write_read(&addr, 1, data, size, size);
+	return intf->i2c_write_read(ALS_I2C_ID, &addr, 1, data, size, size);
 }
 
 void test_3_als_set_intf(const test_3_interface_st* i)

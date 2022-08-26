@@ -112,7 +112,6 @@ int es7243_start(uint32_t rate, void (*data_isr_cb)(es7243_data_st* pdata, uint3
     goto __exit;
   }
 
-  cb = data_isr_cb;
 
   //配置MCU的SAI接口
   hsai_BlockB2.Instance = SAI2_Block_B;
@@ -127,10 +126,29 @@ int es7243_start(uint32_t rate, void (*data_isr_cb)(es7243_data_st* pdata, uint3
   hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
   HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BITEXTENDED, 2);
 
-  //SCB_InvalidateDCache_by_Addr(es7243_data_pbuffer, DATA_BUFFER_MAX * sizeof(es7243_data_st));
   vPortEnterCritical();
   HAL_SAI_Receive_DMA(&hsai_BlockB2, (uint8_t*)es7243_data_pbuffer, DATA_BUFFER_MAX * 2);
   vPortExitCritical();
+
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
+  GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  for(uint32_t i = 0;i < 20;i++)
+  {
+    osDelay(5);
+    HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_6 | GPIO_PIN_7);
+  }
+  GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  cb = data_isr_cb;
 
 __exit:
   return err;
@@ -187,12 +205,14 @@ static const uint8_t reg_list_init[] =
 
 static const uint8_t reg_list_start[] =
 {
+  0x07,0x80,
+  0x09,0x60,
   0x00,0x01,
   0x06,0x00,
   0x05,0x1B,
   0x01,0x0C,
-  0x08,0x43,
-  0x05,0x13,
+  0x08,0x4B,
+  0x05,0x30,
   0xFF//end
 };
 

@@ -49,6 +49,7 @@ Purpose     : Display controller configuration (single layer)
 #include "GUI.h"
 #include "GUIDRV_FlexColor.h"
 #include "lcd.h"
+#include "config.h"
 /*********************************************************************
 *
 *       Layer configuration (to be modified)
@@ -93,6 +94,43 @@ Purpose     : Display controller configuration (single layer)
 *
 **********************************************************************
 */
+#if SCREENSHOT_ENABLE
+#define SET_AXIS(axis_s,axis_e,data,idx) \
+do\
+{\
+  if(idx == 0)\
+  {\
+    axis_s &= 0x00FF;\
+    axis_s |= ((data << 8) & 0xFF00);\
+  }\
+  else if(idx == 1)\
+  {\
+    axis_s &= 0xFF00;\
+    axis_s |= (data & 0x00FF);\
+  }\
+  else if(idx == 2)\
+  {\
+    axis_e &= 0x00FF;\
+    axis_e |= ((data << 8) & 0xFF00);\
+  }\
+  else if(idx == 3)\
+  {\
+    axis_e &= 0xFF00;\
+    axis_e |= (data & 0x00FF);\
+  }\
+}while(0)
+
+uint8_t reg, reg_i;
+uint16_t x_s, x_e, y_s, y_e;
+uint16_t x, y;
+uint16_t* px;
+
+void lcd_conf_set_ptr(uint16_t* ptr)
+{
+  px = ptr;
+}
+#endif
+
 /********************************************************************
 *
 *       LcdWriteReg
@@ -103,6 +141,13 @@ Purpose     : Display controller configuration (single layer)
 static void LcdWriteReg(U16 Data) {
   // ... TBD by user
   lcd_write_cmd(Data);
+#if SCREENSHOT_ENABLE
+  if(px)
+  {
+    reg = Data;
+    reg_i = 0;
+  }
+#endif
 }
 
 /********************************************************************
@@ -115,6 +160,36 @@ static void LcdWriteReg(U16 Data) {
 static void LcdWriteData(U16 Data) {
   // ... TBD by user
   lcd_write_data(Data);
+#if SCREENSHOT_ENABLE
+  if(px)
+  {
+    switch(reg)
+    {
+      case 0x2A:
+      {
+        SET_AXIS(x_s, x_e, Data, reg_i);
+        x = x_s;
+        reg_i++;
+        break;
+      }
+      case 0x2B:
+      {
+        SET_AXIS(y_s, y_e, Data, reg_i);
+        y = y_s;
+        reg_i++;
+        break;
+      }
+      case 0x20:
+      {
+        break;
+      }
+      case 0x21:
+      {
+        break;
+      }
+    }
+  }
+#endif
 }
 
 /********************************************************************
@@ -129,6 +204,31 @@ static void LcdWriteDataMultiple(U16 * pData, int NumItems) {
   {
     lcd_write_data(pData[i] >> 8);
     lcd_write_data(pData[i]);
+#if SCREENSHOT_ENABLE
+    if(px)
+    {
+      if(reg == 0x2C)
+      {
+        uint16_t r, g, b;
+        r = pData[i] >> 11;
+        g = pData[i] & 0x07E0;
+        b = pData[i] << 11;;
+
+        px[y * 240 + x] = r | g | b;
+        x++;
+        if(x > x_e)
+        {
+          x = x_s;
+
+          y++;
+          if(y > y_e)
+          {
+            y = y_s;
+          }
+        }
+      }
+    }
+#endif
   }
 }
 

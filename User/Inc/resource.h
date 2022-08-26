@@ -17,4 +17,6 @@ resource_st* resource_logo_load(void);
 
 int resource_unload(resource_st* res);
 
+extern const uint8_t res_image_dta_speaker[84];
+
 #endif

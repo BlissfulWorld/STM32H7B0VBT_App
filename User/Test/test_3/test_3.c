@@ -143,8 +143,7 @@ void test_3_init(const test_3_interface_st* intf)
   pca9535_set_output(1, power_en | 0x1000);
   pca9535_config_port(1, 0x0000);
 
-  intf->als_i2c_init();
-  intf->prox_i2c_init();
+  intf->i2c_init();
 
   test_3_als_init();
   test_3_prox_init();
@@ -185,6 +184,30 @@ extern int test_3_spkramp_play(void);
 extern uint8_t test_3_spkramp_res_get(void);
 
 static uint8_t codec_aout_to_hac_test_res;
+static uint8_t yogi_rdy;
+static uint8_t compass_rdy;
+
+static uint8_t test_3_yogi_detect(const test_3_interface_st* intf)
+{
+  uint8_t addr[1] = { 0 };
+  uint8_t data[2];
+
+  if(intf->i2c_write_read(0x66, addr, sizeof(addr), data, sizeof(data), 100) == 0)
+    return 1;
+
+  return 0;
+}
+
+static uint8_t test_3_compass_detect(const test_3_interface_st* intf)
+{
+  uint8_t addr[1] = { 0 };
+  uint8_t data[1];
+
+  if(intf->i2c_write_read(0x1C, addr, sizeof(addr), data, sizeof(data), 100) == 0)
+    return 1;
+
+  return 0;
+}
 
 static uint8_t codec_aout_to_hac_test(const test_3_interface_st* intf)
 {
@@ -254,8 +277,10 @@ static void test_3_task(void* p)
     while(test_3_tid)
     {
       codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+      yogi_rdy = test_3_yogi_detect(intf);
+      compass_rdy = test_3_compass_detect(intf);
       test_3_spkramp_test_poll();
-      if((test_3_prox_detect() == 0) || (test_3_als_detect() == 0) || codec_aout_to_hac_test_res || test_3_spkramp_res_get())
+      if((test_3_prox_detect() == 0) || (test_3_als_detect() == 0) || codec_aout_to_hac_test_res || test_3_spkramp_res_get() || yogi_rdy || compass_rdy)
       {
         i++;
         if(i > 5) break;
@@ -263,8 +288,7 @@ static void test_3_task(void* p)
       else
       {
         i = 0;
-        intf->prox_i2c_fix();
-        intf->als_i2c_fix();
+        intf->i2c_fix();
       }
 
       osDelay(50);
@@ -276,13 +300,14 @@ static void test_3_task(void* p)
 
 
     err_flg = 0;
-    err_flg_new = 0x0000001F;
+    err_flg_new = 0x0000007F;
     i = 0;
     test_3_spkramp_test_poll();
     codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+    yogi_rdy = test_3_yogi_detect(intf);
+    compass_rdy = test_3_compass_detect(intf);
     test_3_mic_update_data();
     test_3_als_update_data();
-    test_3_prox_update_data();
     test_3_prox_update_data();
     test_3_spkramp_play();
     stage = TEST_STAGE_FUNC;
@@ -299,20 +324,24 @@ static void test_3_task(void* p)
         uint32_t flag = 0;
 
         test_3_prox_update_data();
-
-        if(test_3_als_detect() == 0)
-        {
-          flag |= (1U << 0);
-          intf->als_i2c_fix();
-        }
+        test_3_spkramp_test_poll();
+        codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+        yogi_rdy = test_3_yogi_detect(intf);
+        compass_rdy = test_3_compass_detect(intf);
 
         if(test_3_prox_is_rdy() != 0)
         {
-          flag |= (1U << 1);
-          intf->prox_i2c_fix();
+          flag |= (1U << 0);
+        }
+        else
+        {
+          intf->i2c_fix();
         }
 
-        test_3_spkramp_test_poll();
+        if(test_3_als_detect() == 0)
+        {
+          flag |= (1U << 1);
+        }
 
         if((test_3_spkramp_res_get() & 1) != 0)
         {
@@ -324,10 +353,19 @@ static void test_3_task(void* p)
           flag |= (1U << 3);
         }
 
-        codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
         if(codec_aout_to_hac_test_res != 0)
         {
           flag |= (1U << 4);
+        }
+
+        if(yogi_rdy != 0)
+        {
+          flag |= (1U << 5);
+        }
+
+        if(compass_rdy != 0)
+        {
+          flag |= (1U << 6);
         }
 
         if(flag == 0)
@@ -342,11 +380,11 @@ static void test_3_task(void* p)
 
           if(err_flg_new)
           {
-            if(err_flg_new != 0x0000001F)
+            if(err_flg_new != 0x0000007F)
             {
               if(err_flg_new != err_flg)
               {
-                for(uint32_t i = 1;i < (1 << 5);i <<= 1)
+                for(uint32_t i = 1;i < (1 << 7);i <<= 1)
                 {
                   if((err_flg_new & i) != 0 && (err_flg & i) == 0)
                   {
@@ -363,7 +401,7 @@ static void test_3_task(void* p)
           }
 
           err_flg = err_flg_new;
-          err_flg_new = 0x0000001F;
+          err_flg_new = 0x0000007F;
         }
       }
 
@@ -427,6 +465,16 @@ static int spkramp_play(void)
 static uint8_t spkramp_test_res_get(void)
 {
   return test_3_spkramp_res_get();
+}
+
+static uint8_t yogi_is_rdy(void)
+{
+  return yogi_rdy;
+}
+
+static uint8_t compass_is_rdy(void)
+{
+  return compass_rdy;
 }
 
 static test_3_config_st* config_parse(const config_file_st* config_file)
@@ -624,6 +672,8 @@ int test_3_start(test_module_st* module, const test_3_interface_st* intf, const 
   test_3.codec_aout_to_hac_test_res = codec_aout_to_hac_test_res_get;
   test_3.spkramp_play = spkramp_play;
   test_3.spkramp_test_res = spkramp_test_res_get;
+  test_3.yogi_is_rdy = yogi_is_rdy;
+  test_3.compass_is_rdy = compass_is_rdy;
 
   ui_test_3_open(&test_3, title);
 

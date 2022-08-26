@@ -7,6 +7,7 @@
 #include "ff.h"
 #include "iwdg.h"
 #include "stdio.h"
+#include "string.h"
 #include "config.h"
 
 static uint32_t battery_value;
@@ -191,6 +192,8 @@ static void battery_changed_cb(uint8_t lvl, uint8_t status)
 static void ui_key_detect()
 {
   uint8_t key, evt;
+  static uint32_t ip5306_key_tick;
+  static uint8_t ip5306_key_flag;
 
   while(key_get(&key, &evt))
   {
@@ -209,11 +212,210 @@ static void ui_key_detect()
   key = ip5306_key_get();
   if(key)
   {
-    if(key & 0x01) GUI_StoreKeyMsg(UI_KEY_EVT_ONCLICK + UI_KEY_10, 1);
+    if(key & 0x01)
+    {
+      if(ip5306_key_flag == 0)
+      {
+        ip5306_key_tick = HAL_GetTick();
+      }
+      else
+      {
+#if SCREENSHOT_ENABLE
+        ui_screenshot();
+#endif
+        GUI_StoreKeyMsg(UI_KEY_EVT_DBLCLICK + UI_KEY_10, 1);
+      }
+      ip5306_key_flag = !ip5306_key_flag;
+    }
     if(key & 0x02) GUI_StoreKeyMsg(UI_KEY_EVT_LONGPRESS + UI_KEY_10, 1);
-    if(key & 0x04) GUI_StoreKeyMsg(UI_KEY_EVT_DBLCLICK + UI_KEY_10, 1);
+    //if(key & 0x04) GUI_StoreKeyMsg(UI_KEY_EVT_DBLCLICK + UI_KEY_10, 1);
+  }
+
+  if(ip5306_key_flag && (HAL_GetTick() - ip5306_key_tick > 300))
+  {
+    ip5306_key_flag = 0;
+    GUI_StoreKeyMsg(UI_KEY_EVT_ONCLICK + UI_KEY_10, 1);
   }
 }
+
+#if SCREENSHOT_ENABLE
+/**
+  * @brief 生成用于屏幕内容截取后文件保存路径名的序号
+  * @param root 文件保存路径
+  * @retval 序号
+  */
+static FRESULT make_file_num(const char* root, uint32_t* num)
+{
+  FRESULT res;
+  DIR* dir;
+  UINT i = 0;
+  FILINFO* fno;
+  uint32_t file_num = 0;
+
+  dir = pvPortMalloc(sizeof(DIR));
+  if(dir == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __list_scan_files_exit;
+  }
+
+  fno = pvPortMalloc(sizeof(FILINFO));
+  if(fno == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __list_scan_files_free_dir;
+  }
+
+  memset(dir, 0, sizeof(DIR));
+  memset(fno, 0, sizeof(FILINFO));
+
+  res = f_opendir(dir, root);
+  if(res == FR_OK)
+  {
+    for(;;)
+    {
+      res = f_readdir(dir, fno);
+      if(res != FR_OK || fno->fname[0] == 0)
+        break;
+
+      if((fno->fattrib & AM_DIR) == 0)
+      {
+        uint32_t num = atoi(fno->fname);
+        if(num > file_num) file_num = num;
+        i++;
+      }
+    }
+  }
+  else
+  {
+    goto __list_scan_files_free_fno;
+  }
+
+  f_closedir(dir);
+__list_scan_files_free_fno:
+  vPortFree(fno);
+__list_scan_files_free_dir:
+  vPortFree(dir);
+__list_scan_files_exit:
+
+  if(res == FR_OK)
+  {
+    *num = ++file_num;
+  }
+
+  return res;
+}
+
+static void ui_screenshot_write(uint8_t data, void* p)
+{
+  UINT bw;
+  FIL* fp = p;
+  f_write(fp, &data, 1, &bw);
+  IWDG1->KR = IWDG_KEY_RELOAD;
+}
+
+extern void lcd_conf_set_ptr(uint16_t* ptr);
+
+static uint8_t ui_screenshot_busy;
+static const osThreadAttr_t ui_ss_t_attr =
+{
+  .name = "ui ss",
+  .stack_size = 1024 * 2,
+  .priority = (osPriority_t)osPriorityBelowNormal,
+};
+
+static void ui_screenshot_task(void* arg)
+{
+  FRESULT res;
+  FIL* fp;
+  UINT br;
+  uint32_t num;
+  char path[64];
+  GUI_MEMDEV_Handle handle;
+
+  handle = (GUI_MEMDEV_Handle)arg;
+
+  if(make_file_num("1:/", &num))
+  {
+    goto __exit;
+  }
+
+  snprintf(path, sizeof(path), "1:/%u.bmp", num);
+
+  fp = (FIL*)ff_malloc(sizeof(FIL));
+  if(fp == 0)
+  {
+    goto __delele_memdev;
+  }
+
+  res = f_open(fp, path, FA_WRITE | FA_CREATE_NEW);
+  if(res != FR_OK)
+  {
+    goto __free_fp;
+  }
+
+  GUI_MEMDEV_SerializeBMP(handle, ui_screenshot_write, fp);
+
+  f_close(fp);
+
+__free_fp:
+  ff_free(fp);
+
+__delele_memdev:
+  GUI_MEMDEV_Delete(handle);
+
+__exit:
+  ui_screenshot_busy = 0;
+  osThreadExit();
+}
+
+int ui_screenshot(void)
+{
+  int err = 0;
+
+  osKernelLock();
+  if(ui_screenshot_busy)
+  {
+    err = 1;
+    osKernelUnlock();
+    goto __exit;
+  }
+  ui_screenshot_busy = 1;
+
+  osKernelUnlock();
+
+  GUI_MEMDEV_Handle handle;
+  handle = GUI_MEMDEV_Create(0, 0, GUI_GetScreenSizeX(), GUI_GetScreenSizeY());
+  if(handle == 0)
+  {
+    err = -1;
+    goto __reset_busy;
+  }
+
+  lcd_conf_set_ptr(GUI_MEMDEV_GetDataPtr(handle));
+  GUI_RECT rect;
+  rect.x0 = 0;
+  rect.x1 = GUI_GetScreenSizeX();
+  rect.y0 = 0;
+  rect.y1 = GUI_GetScreenSizeY();
+  WM_InvalidateArea(&rect);
+  GUI_Exec();
+  lcd_conf_set_ptr(0);
+
+  if(osThreadNew(ui_screenshot_task, (void*)handle, &ui_ss_t_attr) == 0)
+  {
+    GUI_MEMDEV_Delete(handle);
+    goto __reset_busy;
+  }
+
+  goto __exit;
+
+__reset_busy:
+  ui_screenshot_busy = 0;
+__exit:
+  return err;
+}
+#endif
 
 /**
  * @brief UI初始化

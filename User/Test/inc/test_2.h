@@ -31,6 +31,7 @@ typedef struct test_2_s
   uint8_t   (*codec_aout_to_hac_test_res)(void);
   int       (*spkramp_play)              (void);
   uint8_t   (*spkramp_test_res)          (void);
+  uint8_t   (*yogi_is_rdy)               (void);
 }test_2_st;
 
 typedef struct test_2_interface_s
@@ -46,13 +47,9 @@ typedef struct test_2_interface_s
   uint8_t prox_inti_pin;
   uint8_t als_inti_pin;
 
-  int (*prox_i2c_write_read)(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout);
-  int (*prox_i2c_init)(void);
-  int (*prox_i2c_fix)(void);
-
-  int (*als_i2c_write_read)(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout);
-  int (*als_i2c_init)(void);
-  int (*als_i2c_fix)(void);
+  int (*i2c_write_read)(uint8_t i2c_addr, const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout);
+  int (*i2c_init)(void);
+  int (*i2c_fix)(void);
 }test_2_interface_st;
 
 extern const test_module_id_ut ip11_id;

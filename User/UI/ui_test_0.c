@@ -8,6 +8,7 @@
 #include "cmsis_os.h"
 #include "wav.h"
 #include "pwdn_watchdog.h"
+#include "analog_speaker.h"
 
 #define FONT_DEF      (font_ext)
 #define PROG_FONT_DEF (GUI_FONT_20_ASCII)
@@ -16,7 +17,8 @@
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
 #define ID_TEXT_TITLE       (GUI_ID_USER + 0x02)
 #define ID_IMAGE_LEVEL      (GUI_ID_USER + 0x03)
-#define ID_TEXT_BOTTOM      (GUI_ID_USER + 0x04)
+#define ID_IMAGE_SPEAKER    (GUI_ID_USER + 0x04)
+#define ID_TEXT_BOTTOM      (GUI_ID_USER + 0x05)
 
 #define ID_TEXT_WAIT        (GUI_ID_USER + 0x0A)
 
@@ -62,6 +64,7 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { WINDOW_CreateIndirect,  0, ID_WINDOW_0,              0,   0, 240, 320,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_TITLE,            0,   0, 240,  44,   0,  0x0, 0},
   { IMAGE_CreateIndirect,   0, ID_IMAGE_LEVEL,         180,  24,  20,  20,   0,  0x0, 0},
+  { IMAGE_CreateIndirect,   0, ID_IMAGE_SPEAKER,        40,  24,  20,  20,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_BOTTOM,           0, 320 - 30, 240,  30,   0,  0x0, 0},
 
   { TEXT_CreateIndirect,    0, ID_TEXT_WAIT,             0,  42, 240, ITEM7_OFFSET - 42,  0,  0x0, 0},
@@ -285,6 +288,10 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
       ui_battery_level_icon_updata(hItem, 0);
 
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_SPEAKER);
+      IMAGE_SetDTA(hItem, res_image_dta_speaker, sizeof(res_image_dta_speaker));
+      WM_HideWindow(hItem);
+
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_TITLE);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_BOTTOM);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
@@ -505,6 +512,16 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     case WM_TIMER:
     {
       WM_RestartTimer(htimer, 100);
+
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_SPEAKER);
+      if(analog_speaker_is_busy())
+      {
+        WM_ShowWindow(hItem);
+      }
+      else
+      {
+        WM_HideWindow(hItem);
+      }
 
       if(stage == TEST_STAGE_FUNC)
       {

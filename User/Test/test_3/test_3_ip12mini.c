@@ -9,13 +9,9 @@
 static int cam_i2c_init(void);
 static int cam_i2c_write_read(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout);
 
-static int prox_i2c_init(void);
-static int prox_i2c_fix(void);
-static int prox_i2c_write_read(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout);
-
-static int als_i2c_init(void);
-static int als_i2c_fix(void);
-static int als_i2c_write_read(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout);
+static int i2c_init(void);
+static int i2c_fix(void);
+static int i2c_write_read(uint8_t i2c_addr, const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout);
 
 static const uint8_t gnd_pin_list[];
 
@@ -40,13 +36,9 @@ static const test_3_interface_st intf =
   .prox_inti_pin = 38,
   .als_inti_pin = 35,
 
-  .prox_i2c_write_read = prox_i2c_write_read,
-  .prox_i2c_init = prox_i2c_init,
-  .prox_i2c_fix = prox_i2c_fix,
-
-  .als_i2c_write_read = als_i2c_write_read,
-  .als_i2c_init = als_i2c_init,
-  .als_i2c_fix = als_i2c_fix,
+  .i2c_write_read = i2c_write_read,
+  .i2c_init = i2c_init,
+  .i2c_fix = i2c_fix,
 };
 
 
@@ -55,34 +47,19 @@ static const uint8_t gnd_pin_list[] =
   11,21,22,23,24,0
 };
 
-static int prox_i2c_init(void)
+static int i2c_init(void)
 {
-  return prox_i2c_fix();
+  return i2c_fix();
 }
 
-static int prox_i2c_fix(void)
+static int i2c_fix(void)
 {
   return hw_i2c_fix(hw_i2c4, 1000);
 }
 
-static int prox_i2c_write_read(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout)
+static int i2c_write_read(uint8_t i2c_addr, const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout)
 {
-  return hw_i2c_write_read(hw_i2c4, PROX_I2C_ID, pw, wlen, pr, rlen, timeout);
-}
-
-static int als_i2c_init(void)
-{
-  return als_i2c_fix();
-}
-
-static int als_i2c_fix(void)
-{
-  return hw_i2c_fix(hw_i2c4, 1000);
-}
-
-static int als_i2c_write_read(const uint8_t* pw, uint32_t wlen, uint8_t* pr, uint32_t rlen, uint32_t timeout)
-{
-  return hw_i2c_write_read(hw_i2c4, ALS_I2C_ID, pw, wlen, pr, rlen, timeout);
+  return hw_i2c_write_read(hw_i2c4, i2c_addr, pw, wlen, pr, rlen, timeout);
 }
 
 int ip12mini_test_start(test_module_st* module, const char* title)

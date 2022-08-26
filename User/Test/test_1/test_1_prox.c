@@ -11,6 +11,8 @@ typedef struct
 	uint8_t data2[30];
 }prox_data_st;
 
+#define PROX_I2C_ID (0xB0)
+
 static uint8_t prox_rdy;
 static prox_data_st prox_data;
 static const uint8_t prox_init_data[];
@@ -19,12 +21,12 @@ static const test_1_interface_st* intf;
 
 static uint8_t i2c_write_nd(uint8_t* pdata, uint32_t size)
 {
-	return intf->prox_i2c_write_read(pdata, size, 0, 0, size);
+	return intf->i2c_write_read(PROX_I2C_ID, pdata, size, 0, 0, size);
 }
 
 static uint8_t i2c_read(unsigned char addr, unsigned char* data, unsigned int size)
 {
-	return intf->prox_i2c_write_read(&addr, 1, data, size, size);
+	return intf->i2c_write_read(PROX_I2C_ID, &addr, 1, data, size, size);
 }
 
 void test_1_prox_set_intf(const test_1_interface_st* i)
@@ -175,19 +177,17 @@ void test_1_prox_update_data(void)
 	}
 }
 
-/**
-	*	@描述 获取PROX百分比
-	*/
 uint16_t test_1_prox_get_percentage(void)
 {
-	uint16_t val = (prox_data.data2[1] << 8) | (prox_data.data2[2]);
+	int32_t val1 = (int16_t)(prox_data.data2[1] << 8) | prox_data.data2[2];
+	int32_t val2 = (int16_t)(prox_data.data2[5] << 8) | prox_data.data2[6];
 
-	val = (val > 0x2400) ? ((val - 0x2400) / 50) : 0;
+	int16_t val = ((val1 * val2) / (14000000 / 100));
 
-	if(val > 100)
-		val = 100;
+	if(val < 0) val = 0;
+	else if(val > 100) val = 100;
 
-	return 100 - val;
+	return val;
 }
 
 /**

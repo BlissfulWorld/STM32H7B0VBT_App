@@ -8,6 +8,7 @@
 #include "cmsis_os.h"
 #include "wav.h"
 #include "pwdn_watchdog.h"
+#include "analog_speaker.h"
 
 #define FONT_DEF      (font_ext)
 #define PROG_FONT_DEF (GUI_FONT_20_ASCII)
@@ -16,7 +17,8 @@
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
 #define ID_TEXT_TITLE       (GUI_ID_USER + 0x02)
 #define ID_IMAGE_LEVEL      (GUI_ID_USER + 0x03)
-#define ID_TEXT_BOTTOM      (GUI_ID_USER + 0x04)
+#define ID_IMAGE_SPEAKER    (GUI_ID_USER + 0x04)
+#define ID_TEXT_BOTTOM      (GUI_ID_USER + 0x05)
 
 #define ID_TEXT_WAIT        (GUI_ID_USER + 0x0A)
 
@@ -37,6 +39,8 @@
 #define ID_TEXT_SPK_P       (GUI_ID_USER + 0x70)
 #define ID_TEXT_SPK_N       (GUI_ID_USER + 0x71)
 #define ID_TEXT_CATHC       (GUI_ID_USER + 0x72)
+#define ID_TEXT_YOGI        (GUI_ID_USER + 0x73)
+#define ID_TEXT_HALL        (GUI_ID_USER + 0x74)
 
 #define ID_TEXT_BTN_SPKRAMP (GUI_ID_USER + 0xA0)
 #define ID_TEXT_BTN_MENU    (GUI_ID_USER + 0xA1)
@@ -60,6 +64,7 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { WINDOW_CreateIndirect,  0, ID_WINDOW_0,              0,   0, 240, 320,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_TITLE,            0,   0, 240,  44,   0,  0x0, 0},
   { IMAGE_CreateIndirect,   0, ID_IMAGE_LEVEL,         180,  24,  20,  20,   0,  0x0, 0},
+  { IMAGE_CreateIndirect,   0, ID_IMAGE_SPEAKER,        40,  24,  20,  20,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_BOTTOM,           0, 320 - 30, 240,  30,   0,  0x0, 0},
 
   { TEXT_CreateIndirect,    0, ID_TEXT_WAIT,             0,  42, 240, ITEM7_OFFSET - 42,   0,  0x0, 0},
@@ -79,6 +84,9 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { TEXT_CreateIndirect,    0, ID_TEXT_SPK_P,       0, ITEM5_OFFSET, TEXT_WIDTH,  TEXT_HEIGHT,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_SPK_N,       240 / 3, ITEM5_OFFSET, TEXT_WIDTH,  TEXT_HEIGHT,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_CATHC,       240 / 3 * 2, ITEM5_OFFSET, TEXT_WIDTH,  TEXT_HEIGHT, 0,  0x0, 0},
+
+  { TEXT_CreateIndirect,    0, ID_TEXT_YOGI,        0, ITEM6_OFFSET, TEXT_WIDTH,  TEXT_HEIGHT,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_HALL,        240 / 3, ITEM6_OFFSET, TEXT_WIDTH,  TEXT_HEIGHT,   0,  0x0, 0},
 
   { LISTVIEW_CreateIndirect,0, ID_LISTVIEW_CURRENT,      0, ITEM7_OFFSET, 240,  88,   0, 0x00, 0},
 
@@ -197,7 +205,7 @@ static void update_func_test_result(WM_HWIN win)
   if(test->prox_is_rdy() == 0)
   {
     hItem = WM_GetDialogItem(win, ID_PROGBAR_PROX_VAL);
-    PROGBAR_SetValue(hItem, 0);
+    PROGBAR_SetValue(hItem, 1);
     PROGBAR_SetText(hItem, "X");
     hItem = WM_GetDialogItem(win, ID_TEXT_PROX);
     TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
@@ -215,8 +223,8 @@ static void update_func_test_result(WM_HWIN win)
   if(test->als_is_rdy() == 0)
   {
     hItem = WM_GetDialogItem(win, ID_PROGBAR_ALS_VAL);
-    PROGBAR_SetValue(hItem, 0);
     PROGBAR_SetText(hItem, "X");
+    PROGBAR_SetValue(hItem, 1);
     hItem = WM_GetDialogItem(win, ID_TEXT_ALS);
     TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
   }
@@ -251,10 +259,17 @@ static void update_func_test_result(WM_HWIN win)
   hItem = WM_GetDialogItem(win, ID_TEXT_SPK_N);
   TEXT_SetBkColor(hItem, (spk_pn & 2) == 0 ? GUI_MAKE_COLOR(0xFF0000) : GUI_MAKE_COLOR(0x00A000));
 
-  uint8_t res = test->codec_aout_to_hac_test_res();
-
   hItem = WM_GetDialogItem(win, ID_TEXT_CATHC);
-  TEXT_SetBkColor(hItem, res ? GUI_MAKE_COLOR(0x00A000) : GUI_MAKE_COLOR(0xFF0000));
+  TEXT_SetBkColor(hItem, test->codec_aout_to_hac_test_res() ? GUI_MAKE_COLOR(0x00A000) : GUI_MAKE_COLOR(0xFF0000));
+
+  hItem = WM_GetDialogItem(win, ID_TEXT_YOGI);
+  TEXT_SetBkColor(hItem, test->yogi_is_rdy() ? GUI_MAKE_COLOR(0x00A000) : GUI_MAKE_COLOR(0xFF0000));
+
+  if(test->hall_get)
+  {
+    hItem = WM_GetDialogItem(win, ID_TEXT_HALL);
+    TEXT_SetBkColor(hItem, test->hall_get() ? GUI_MAKE_COLOR(0x00A000) : GUI_MAKE_COLOR(0x0000A0));
+  }
 }
 
 static void _cbDialog(WM_MESSAGE* pMsg) {
@@ -271,6 +286,10 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
       ui_battery_level_icon_updata(hItem, 0);
+
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_SPEAKER);
+      IMAGE_SetDTA(hItem, res_image_dta_speaker, sizeof(res_image_dta_speaker));
+      WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_TITLE);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_BOTTOM);
@@ -370,6 +389,22 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xFF0000));
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "喇叭感应");
+      WM_HideWindow(hItem);
+
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_YOGI);
+      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFFFF));
+      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xFF0000));
+      TEXT_SetFont(hItem, FONT_DEF);
+      TEXT_SetText(hItem, "YOGI");
+      WM_HideWindow(hItem);
+
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_HALL);
+      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFFFF));
+      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0x00A000));
+      TEXT_SetFont(hItem, FONT_DEF);
+      TEXT_SetText(hItem, "HALL");
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_LISTVIEW_CURRENT);
@@ -493,6 +528,16 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     {
       WM_RestartTimer(htimer, 100);
 
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_SPEAKER);
+      if(analog_speaker_is_busy())
+      {
+        WM_ShowWindow(hItem);
+      }
+      else
+      {
+        WM_HideWindow(hItem);
+      }
+
       if(stage == TEST_STAGE_FUNC)
       {
         update_func_test_result(pMsg->hWin);
@@ -552,6 +597,15 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CATHC);
             WM_HideWindow(hItem);
 
+            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_YOGI);
+            WM_HideWindow(hItem);
+
+            if(test->hall_get)
+            {
+              hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_HALL);
+              WM_HideWindow(hItem);
+            }
+
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_SPKRAMP);
             WM_HideWindow(hItem);
 
@@ -594,6 +648,15 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
 
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CATHC);
             WM_HideWindow(hItem);
+
+            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_YOGI);
+            WM_HideWindow(hItem);
+
+            if(test->hall_get)
+            {
+              hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_HALL);
+              WM_HideWindow(hItem);
+            }
 
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_SPKRAMP);
             WM_HideWindow(hItem);
@@ -656,6 +719,15 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
 
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CATHC);
             WM_ShowWindow(hItem);
+
+            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_YOGI);
+            WM_ShowWindow(hItem);
+
+            if(test->hall_get)
+            {
+              hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_HALL);
+              WM_ShowWindow(hItem);
+            }
 
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_SPKRAMP);
             WM_ShowWindow(hItem);

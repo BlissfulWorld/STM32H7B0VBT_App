@@ -143,8 +143,7 @@ void test_2_init(const test_2_interface_st* intf)
   pca9535_set_output(1, power_en | 0x1000);
   pca9535_config_port(1, 0x0000);
 
-  intf->als_i2c_init();
-  intf->prox_i2c_init();
+  intf->i2c_init();
 
   test_2_als_init();
   test_2_prox_init();
@@ -185,6 +184,18 @@ extern int test_2_spkramp_play(void);
 extern uint8_t test_2_spkramp_res_get(void);
 
 static uint8_t codec_aout_to_hac_test_res;
+static uint8_t yogi_rdy;
+
+static uint8_t test_2_yogi_detect(const test_2_interface_st* intf)
+{
+  uint8_t addr[1] = { 0 };
+  uint8_t data[2];
+
+  if(intf->i2c_write_read(0x66, addr, sizeof(addr), data, sizeof(data), 100) == 0)
+    return 1;
+
+  return 0;
+}
 
 static uint8_t codec_aout_to_hac_test(const test_2_interface_st* intf)
 {
@@ -254,8 +265,9 @@ static void test_2_task(void* p)
     while(test_2_tid)
     {
       codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+      yogi_rdy = test_2_yogi_detect(intf);
       test_2_spkramp_test_poll();
-      if((test_2_prox_detect() == 0) || (test_2_als_detect() == 0) || codec_aout_to_hac_test_res || test_2_spkramp_res_get())
+      if((test_2_prox_detect() == 0) || (test_2_als_detect() == 0) || codec_aout_to_hac_test_res || test_2_spkramp_res_get() || yogi_rdy)
       {
         i++;
         if(i > 5) break;
@@ -263,8 +275,7 @@ static void test_2_task(void* p)
       else
       {
         i = 0;
-        intf->prox_i2c_fix();
-        intf->als_i2c_fix();
+        intf->i2c_fix();
       }
 
       osDelay(50);
@@ -276,10 +287,11 @@ static void test_2_task(void* p)
 
 
     err_flg = 0;
-    err_flg_new = 0x0000001F;
+    err_flg_new = 0x0000003F;
     i = 0;
     test_2_spkramp_test_poll();
     codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+    yogi_rdy = test_2_yogi_detect(intf);
     test_2_mic_update_data();
     test_2_als_update_data();
     test_2_prox_update_data();
@@ -298,20 +310,23 @@ static void test_2_task(void* p)
         uint32_t flag = 0;
 
         test_2_prox_update_data();
-
-        if(test_2_als_detect() == 0)
-        {
-          flag |= (1U << 0);
-          intf->als_i2c_fix();
-        }
+        test_2_spkramp_test_poll();
+        codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+        yogi_rdy = test_2_yogi_detect(intf);
 
         if(test_2_prox_is_rdy() != 0)
         {
-          flag |= (1U << 1);
-          intf->prox_i2c_fix();
+          flag |= (1U << 0);
+        }
+        else
+        {
+          intf->i2c_fix();
         }
 
-        test_2_spkramp_test_poll();
+        if(test_2_als_detect() == 0)
+        {
+          flag |= (1U << 1);
+        }
 
         if((test_2_spkramp_res_get() & 1) != 0)
         {
@@ -323,10 +338,14 @@ static void test_2_task(void* p)
           flag |= (1U << 3);
         }
 
-        codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
         if(codec_aout_to_hac_test_res != 0)
         {
           flag |= (1U << 4);
+        }
+
+        if(yogi_rdy != 0)
+        {
+          flag |= (1U << 5);
         }
 
         if(flag == 0)
@@ -341,11 +360,11 @@ static void test_2_task(void* p)
 
           if(err_flg_new)
           {
-            if(err_flg_new != 0x0000001F)
+            if(err_flg_new != 0x0000003F)
             {
               if(err_flg_new != err_flg)
               {
-                for(uint32_t i = 1;i < (1 << 5);i <<= 1)
+                for(uint32_t i = 1;i < (1 << 6);i <<= 1)
                 {
                   if((err_flg_new & i) != 0 && (err_flg & i) == 0)
                   {
@@ -362,7 +381,7 @@ static void test_2_task(void* p)
           }
 
           err_flg = err_flg_new;
-          err_flg_new = 0x0000001F;
+          err_flg_new = 0x0000003F;
         }
       }
 
@@ -426,6 +445,11 @@ static int spkramp_play(void)
 static uint8_t spkramp_test_res_get(void)
 {
   return test_2_spkramp_res_get();
+}
+
+static uint8_t yogi_is_rdy(void)
+{
+  return yogi_rdy;
 }
 
 static test_2_config_st* config_parse(const config_file_st* config_file)
@@ -623,6 +647,7 @@ int test_2_start(test_module_st* module, const test_2_interface_st* intf, const 
   test_2.codec_aout_to_hac_test_res = codec_aout_to_hac_test_res_get;
   test_2.spkramp_play = spkramp_play;
   test_2.spkramp_test_res = spkramp_test_res_get;
+  test_2.yogi_is_rdy = yogi_is_rdy;
 
   ui_test_2_open(&test_2, title);
 

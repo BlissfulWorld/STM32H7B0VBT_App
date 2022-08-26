@@ -126,11 +126,11 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM15_Init();
   MX_DAC1_Init();
-  MX_TIM5_Init();
   MX_IWDG1_Init();
   MX_SPI3_Init();
   MX_TIM3_Init();
   MX_RAMECC_Init();
+  MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
