@@ -195,12 +195,11 @@ int8_t STORAGE_GetCapacity_HS(uint8_t lun, uint32_t *block_num, uint16_t *block_
 {
   /* USER CODE BEGIN 10 */
   UNUSED(lun);
-  
 
   if(w25qxx)
   {
-    *block_num  = w25qxx->sector_num / 2;
-    *block_num  = w25qxx->sector_num - *block_num;
+    *block_num = w25qxx->sector_num / 2;
+    *block_num = w25qxx->sector_num - *block_num;
 
     *block_size = w25qxx->sector_size;
   }
@@ -209,7 +208,7 @@ int8_t STORAGE_GetCapacity_HS(uint8_t lun, uint32_t *block_num, uint16_t *block_
     *block_num = 0;
     *block_size = 0;
   }
-  
+
   return (USBD_OK);
   /* USER CODE END 10 */
 }
@@ -256,7 +255,7 @@ int8_t STORAGE_Read_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t bl
   if(w25qxx)
   {
     blk_addr += (w25qxx->sector_num / 2);
-    if(w25qxx->read(buf,blk_addr * w25qxx->sector_size,blk_len * w25qxx->sector_size) == 0)
+    if(w25qxx->read(buf, blk_addr * w25qxx->sector_size, blk_len * w25qxx->sector_size) == 0)
       res = USBD_OK;
   }
 
@@ -280,7 +279,7 @@ int8_t STORAGE_Write_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t b
   if(w25qxx)
   {
     uint32_t i;
-    
+
     blk_addr += (w25qxx->sector_num / 2);
     for(i = 0;i < blk_len;i++)
     {
@@ -290,12 +289,12 @@ int8_t STORAGE_Write_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t b
         break;
       }
 
-      if(w25qxx->write(buf + (i * w25qxx->sector_size),addr,w25qxx->sector_size))
+      if(w25qxx->write(buf + (i * w25qxx->sector_size), addr, w25qxx->sector_size))
       {
         break;
       }
     }
-    
+
     if(i == blk_len) res = USBD_OK;
   }
 

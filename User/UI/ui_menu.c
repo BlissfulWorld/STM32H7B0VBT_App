@@ -43,7 +43,8 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { TEXT_CreateIndirect,    0, ID_TEXT_NONE,           160, 320 - 28,  60,  28,   0,  0x0, 0},
 };
 
-static WM_HWIN back;
+static ui_close_cb_func_t close_cb;
+static void* user_p;
 static int select = 0;
 
 const menu_item_st menu_item[] =
@@ -51,6 +52,8 @@ const menu_item_st menu_item[] =
   {ui_menu_brightness_open,"亮度"},
   {ui_menu_volume_open,"系统音量"},
   {ui_menu_standby_open,"待机"},
+  {ui_menu_u_disk_mode_open,"U盘模式"},
+  {ui_menu_clone_app,"克隆"},
   {ui_menu_about_open,"关于"}
 };
 
@@ -173,8 +176,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     {
       if(select == -1)
       {
-        WM_SetFocus(back);
-        //WM_ShowWindow(back);
+        close_cb(user_p);
       }
       break;
     }
@@ -186,9 +188,10 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
   }
 }
 
-void ui_menu_open(WM_HWIN _back_)
+void ui_menu_open(ui_close_cb_func_t cb, void* user)
 {
   select = 0;
-  back = _back_;
+  close_cb = cb;
+  user_p = user;
   GUI_CreateDialogBox(_aDialogCreate, GUI_COUNTOF(_aDialogCreate), _cbDialog, WM_HBKWIN, 0, 0);
 }

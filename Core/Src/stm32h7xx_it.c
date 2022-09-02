@@ -57,7 +57,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
+extern HCD_HandleTypeDef hhcd_USB_OTG_HS;
 extern DMA_HandleTypeDef hdma_adc1;
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
@@ -65,7 +65,7 @@ extern DMA_HandleTypeDef hdma_dac1_ch1;
 extern DMA_HandleTypeDef hdma_sai2_b;
 extern SAI_HandleTypeDef hsai_BlockB2;
 /* USER CODE BEGIN EV */
-
+extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -251,11 +251,12 @@ void DMA2_Stream0_IRQHandler(void)
 void OTG_HS_IRQHandler(void)
 {
   /* USER CODE BEGIN OTG_HS_IRQn 0 */
-
+  if(USB_GetMode(USB_OTG_HS) == USB_OTG_MODE_HOST)
   /* USER CODE END OTG_HS_IRQn 0 */
-  HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
+  HAL_HCD_IRQHandler(&hhcd_USB_OTG_HS);
   /* USER CODE BEGIN OTG_HS_IRQn 1 */
-
+  else
+    HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
   /* USER CODE END OTG_HS_IRQn 1 */
 }
 

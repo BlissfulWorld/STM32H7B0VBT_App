@@ -58,18 +58,13 @@ FRESULT format(uint8_t disk)
 /**
   * @brief 获取磁盘总大小和剩余空间，单位字节
   */
-FRESULT disk_get_size(uint8_t disk, uint32_t* total, uint32_t* free)
+FRESULT disk_get_size(const char* disk, uint32_t* total, uint32_t* free)
 {
   FATFS* fs;
   FRESULT res;
   uint32_t clust;
 
-  if(disk > 1) return FR_INVALID_PARAMETER;
-
-  if(disk == 0)
-    res = f_getfree(USERPath, (DWORD*)&clust, &fs);
-  else
-    res = f_getfree(USERPath2, (DWORD*)&clust, &fs);
+  res = f_getfree(disk, (DWORD*)&clust, &fs);
 
   if(res == FR_OK)
   {
@@ -77,6 +72,100 @@ FRESULT disk_get_size(uint8_t disk, uint32_t* total, uint32_t* free)
     *free = (clust * fs->csize) * 4096;
   }
 
+  return res;
+}
+
+FRESULT disk_copy_file(const char* file_dst, const char* file_src, file_copy_stat_cb_func_t stat_cb, void* user)
+{
+  FRESULT res;
+  FIL* fil_src, * fil_dst;
+  UINT br, bw;
+  uint32_t size, count;
+  uint8_t* pbuffer;
+
+  fil_src = ff_malloc(sizeof(FIL));
+  if(fil_src == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __exit;
+  }
+
+  fil_dst = ff_malloc(sizeof(FIL));
+  if(fil_dst == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __free_fil_src;
+  }
+
+  res = f_open(fil_src, file_src, FA_READ);
+  if(res != FR_OK)
+  {
+    goto __free_fil_dst;
+  }
+
+  size = f_size(fil_src);
+
+  if(stat_cb)
+  {
+    stat_cb(size, 0, user);
+  }
+
+  res = f_open(fil_dst, file_dst, FA_CREATE_ALWAYS | FA_WRITE);
+  if(res != FR_OK)
+  {
+    goto __close_fil_src;
+  }
+
+  pbuffer = ff_malloc(4096);
+  if(pbuffer == 0)
+  {
+    goto __close_fil_dst;
+  }
+
+  count = 0;
+
+  while(1)
+  {
+    res = f_read(fil_src, pbuffer, 4096, &br);
+    if(res != FR_OK)
+    {
+      break;
+    }
+
+    if(br == 0)
+    {
+      break;
+    }
+
+    res = f_write(fil_dst, pbuffer, br, &bw);
+    if(res != FR_OK)
+    {
+      break;
+    }
+
+    count += br;
+
+    if(stat_cb)
+    {
+      stat_cb(size, count, user);
+    }
+  }
+
+  ff_free(pbuffer);
+
+__close_fil_dst:
+  f_close(fil_dst);
+
+__close_fil_src:
+  f_close(fil_src);
+
+__free_fil_dst:
+  ff_free(fil_dst);
+
+__free_fil_src:
+  ff_free(fil_src);
+
+__exit:
   return res;
 }
 

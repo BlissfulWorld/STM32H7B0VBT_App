@@ -30,7 +30,7 @@
 
 #define ID_TEXT_UPDATE      (GUI_ID_USER + 0x10)
 #define ID_TEXT_OK          (GUI_ID_USER + 0x11)
-#define ID_TEXT_FILE        (GUI_ID_USER + 0x12)
+#define ID_TEXT_MENU        (GUI_ID_USER + 0x12)
 
 #define ID_TEXT_T_NAME      (GUI_ID_USER + 0x20)
 #define ID_TEXT_NAME        (GUI_ID_USER + 0x21)
@@ -63,12 +63,17 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 
   { TEXT_CreateIndirect,    0, ID_TEXT_UPDATE,          20, 320 - 28,  60,  28,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_OK,              90, 320 - 28,  60,  28,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_FILE,           160, 320 - 28,  60,  28,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_MENU,           160, 320 - 28,  60,  28,   0,  0x0, 0},
 };
 
 static uint32_t btn;
 static long timer;
 static uint8_t* new_config_file_md5;
+
+static void menu_close_cb(void* p)
+{
+  ui_home_open();
+}
 
 static uint8_t* new_config_file_md5_get(void)
 {
@@ -219,12 +224,12 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "");
 
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_FILE);
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_MENU);
       TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "文件");
+      TEXT_SetText(hItem, "菜单");
 
       new_config_file_md5 = new_config_file_md5_get();
 
@@ -317,7 +322,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
         }
         case UI_KEY(RIGHT, ONCLICK):
         {
-          btn = ID_TEXT_FILE;
+          btn = ID_TEXT_MENU;
           GUI_EndDialog(pMsg->hWin, 0);
           break;
         }
@@ -358,9 +363,9 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       {
         ui_config_update_open();
       }
-      else if(btn == ID_TEXT_FILE)
+      else if(btn == ID_TEXT_MENU)
       {
-        ui_file_open();
+        ui_menu_open(menu_close_cb, 0);
       }
 
       break;

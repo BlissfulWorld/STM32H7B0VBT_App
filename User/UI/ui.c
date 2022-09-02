@@ -89,6 +89,20 @@ void skin_init(void)
 
     HEADER_SetSkinFlexProps(&prog, 0);
   }
+
+  {
+    LISTVIEW_SetDefaultBkColor(LISTVIEW_CI_UNSEL, GUI_MAKE_COLOR(0x00000000));
+    LISTVIEW_SetDefaultBkColor(LISTVIEW_CI_SEL, GUI_MAKE_COLOR(0x00FF0000));
+    LISTVIEW_SetDefaultBkColor(LISTVIEW_CI_DISABLED, GUI_MAKE_COLOR(0x00000000));
+    LISTVIEW_SetDefaultBkColor(LISTVIEW_CI_SELFOCUS, GUI_MAKE_COLOR(0x00FF0000));
+
+    LISTVIEW_SetDefaultTextColor(LISTVIEW_CI_UNSEL, GUI_MAKE_COLOR(0x00FFFFFF));
+    LISTVIEW_SetDefaultTextColor(LISTVIEW_CI_SEL, GUI_MAKE_COLOR(0x00FFFFFF));
+    LISTVIEW_SetDefaultTextColor(LISTVIEW_CI_SELFOCUS, GUI_MAKE_COLOR(0x00FFFFFF));
+    LISTVIEW_SetDefaultTextColor(LISTVIEW_CI_DISABLED, GUI_MAKE_COLOR(0x00FFFFFF));
+
+    LISTVIEW_SetDefaultGridColor(GUI_MAKE_COLOR(0xabc88b));
+  }
 }
 
 /**
@@ -128,50 +142,6 @@ void ui_battery_level_icon_updata(WM_HWIN image, uint8_t show_charge_lvl)
 
   if(icon)
     IMAGE_SetDTA(image, icon->data, icon->size);
-}
-
-/**
-  * @brief 显示logo
-  * @retval 空
-  */
-void ui_show_logo(void)
-{
-  FRESULT res;
-  FIL fp;
-  UINT br;
-  uint8_t* src_p;
-
-  res = f_open(&fp, "0:/logo/logo.bmp", FA_READ);
-  if(res != FR_OK)
-  {
-    goto __logo_show_exit;
-  }
-
-  res = 1;
-
-  src_p = pvPortMalloc(f_size(&fp) + 2);
-  if(src_p == 0)
-  {
-    goto __logo_show_exit_close;
-  }
-
-  res = f_read(&fp, src_p + 2, f_size(&fp), &br);
-  if((res != FR_OK) || (br != f_size(&fp)))
-  {
-    goto __logo_show_exit_free;
-  }
-
-  GUI_BMP_Draw(src_p + 2, 0, 0);
-
-__logo_show_exit_free:
-  vPortFree(src_p);
-
-__logo_show_exit_close:
-  f_close(&fp);
-
-__logo_show_exit:
-
-  return;
 }
 
 /**
@@ -335,12 +305,12 @@ static void ui_screenshot_task(void* arg)
 
   handle = (GUI_MEMDEV_Handle)arg;
 
-  if(make_file_num("1:/", &num))
+  if(make_file_num("2:/", &num))
   {
     goto __exit;
   }
 
-  snprintf(path, sizeof(path), "1:/%u.bmp", num);
+  snprintf(path, sizeof(path), "2:/%u.bmp", num);
 
   fp = (FIL*)ff_malloc(sizeof(FIL));
   if(fp == 0)

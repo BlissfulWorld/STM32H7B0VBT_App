@@ -29,8 +29,10 @@
                 "${workspaceFolder}/Middlewares/Third_Party/FatFs/src/option",
                 "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source",
                 "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang",
-                "${workspaceFolder}/Middlewares/ST/STM32_USB_Device_Library/Core/Src",
-                "${workspaceFolder}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Src",
+                "${workspaceFolder}/Middlewares/ST/STM32_USB_Host_Library/Core/Inc",
+                "${workspaceFolder}/Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc",
+                "${workspaceFolder}/USB_HOST/App",
+                "${workspaceFolder}/USB_HOST/Target",
                 "C:/Keil_v5/ARM/PACK/MDK-Packs/cJSON/1.0.0/",
                 "C:/Keil_v5/ARM/PACK/MDK-Packs/cJSON/1.0.0/**"
             ],

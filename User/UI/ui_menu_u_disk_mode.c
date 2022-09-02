@@ -45,6 +45,9 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 
 extern USBD_HandleTypeDef hUsbDeviceHS;
 
+static WM_HWIN back;
+static long timer;
+
 static void _cbDialog(WM_MESSAGE* pMsg) {
   WM_HWIN                hItem;
   int                    NCode;
@@ -65,7 +68,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "文件");
+      TEXT_SetText(hItem, "U盘模式");
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -103,12 +106,20 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, "");
 
+      timer = WM_CreateTimer(pMsg->hWin, 0, 1000, 0);
+
       WM_SetFocus(pMsg->hWin);
+      break;
+    }
+    case WM_TIMER:
+    {
+      pwdn_watchdog_reload();
+      WM_RestartTimer(timer, 1000);
       break;
     }
     case WM_KEY:
     {
-      pwdn_watchdog_reload();
+
       switch(((WM_KEY_INFO*)(pMsg->Data.p))->Key)
       {
         case UI_KEY(LEFT, LONGPRESS):
@@ -127,10 +138,12 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     }
     case WM_DELETE:
     {
+      WM_DeleteTimer(timer);
       USBD_Stop(&hUsbDeviceHS);
       mount(1);
 
-      ui_home_open();
+      WM_SetFocus(back);
+      WM_ShowWindow(back);
 
       break;
     }
@@ -142,8 +155,9 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
   }
 }
 
-void ui_file_open(void)
+void ui_menu_u_disk_mode_open(WM_HWIN _back_)
 {
+  back = _back_;
   umount(1);
   if(hUsbDeviceHS.pDesc == 0)
     MX_USB_DEVICE_Init();

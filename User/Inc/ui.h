@@ -7,6 +7,13 @@
 #include "resource.h"
 #include "test.h"
 
+typedef enum ui_key_num_e //: uint8_t
+{
+  UI_KEY_1, UI_KEY_2, UI_KEY_3, UI_KEY_4, UI_KEY_5, UI_KEY_6, UI_KEY_7, UI_KEY_8, UI_KEY_9, UI_KEY_10,
+}ui_key_num_et;
+
+typedef void (*ui_close_cb_func_t)(void *);
+
 #define BACKGROUND_COLOR (0x696969)//深灰
 //#define MENU_ITEM_SELECTED_COLOR (0xFF8C00)//深橙色
 
@@ -17,10 +24,6 @@
 #define UI_KEY_EVT_DBLCLICK     (0xA0)//160
 #define UI_KEY_EVT_REPET        (0xB0)//176
 
-typedef enum ui_key_num_e //: uint8_t
-{
-  UI_KEY_1, UI_KEY_2, UI_KEY_3, UI_KEY_4, UI_KEY_5, UI_KEY_6, UI_KEY_7, UI_KEY_8, UI_KEY_9, UI_KEY_10,
-}ui_key_num_et;
 
 #define UI_KEY_UP     UI_KEY_1
 #define UI_KEY_OK     UI_KEY_10
@@ -34,6 +37,10 @@ typedef enum ui_key_num_e //: uint8_t
 
 #define UI_MSG_TEST         (GUI_ID_USER + 0x60)
 
+#define UI_USBH_APP_DISCONNECT   (GUI_ID_USER + 0x70)
+#define UI_USBH_APP_START        (GUI_ID_USER + 0x71)
+#define UI_USBH_APP_READY        (GUI_ID_USER + 0x72)
+
 int ui_init(void);
 void ui_start(void);
 void ui_show_logo(void);
@@ -43,7 +50,6 @@ void ui_battery_level_icon_updata(WM_HWIN image, uint8_t show_charge_lvl);
 
 extern void ui_launch_open(void);
 extern void ui_home_open(void);
-extern void ui_file_open(void);
 extern void ui_config_open(void);
 extern void ui_config_update_open(void);
 extern void ui_nonsupport_open(void);
@@ -56,10 +62,12 @@ extern void ui_test_2_open(test_2_st* _test_, const char* _title_);
 extern void ui_test_3_open(test_3_st* _test_, const char* _title_);
 
 
-extern void ui_menu_open(WM_HWIN _back_);
+extern void ui_menu_open(ui_close_cb_func_t close_cb,void *user);
 extern void ui_menu_brightness_open(WM_HWIN _back_);
 extern void ui_menu_volume_open(WM_HWIN _back_);
 extern void ui_menu_standby_open(WM_HWIN _back_);
+extern void ui_menu_u_disk_mode_open(WM_HWIN _back_);
+extern void ui_menu_clone_app(WM_HWIN _back_);
 extern void ui_menu_about_open(WM_HWIN _back_);
 
 #endif

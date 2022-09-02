@@ -8,7 +8,7 @@
 #include "json_obj.h"
 #include "stdio.h"
 
-const char config_file_update_path[] = "1:/config.json";
+const char config_file_update_path[] = "2:/config.json";
 
 /**
  * @brief 从小板中加载配置文件

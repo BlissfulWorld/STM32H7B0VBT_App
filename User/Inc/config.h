@@ -5,7 +5,7 @@
 #define DEVICE_NAME "XP模组测试机"
 
 // 软件版本
-#define SOFTWARE_VERSION "0.4.1 Cap"
+#define SOFTWARE_VERSION "0.4.5"
 
 // <<< Use Configuration Wizard in Context Menu >>>
 
@@ -27,11 +27,11 @@
 
 //<s> Wav File Of Board loaded
 // 发现小板被扣上时播放的声音文件
-#define WAV_FILE_BOARD_LOADED "0:/audio/load.wav"
+#define WAV_FILE_BOARD_LOADED "1:/audio/load.wav"
 
 //<s> Wav File Of Warning
 // 警报声音文件
-#define WAV_FILE_WARNING "0:/audio/warning.wav"
+#define WAV_FILE_WARNING "1:/audio/warning.wav"
 
 // <<< end of configuration section >>>
 

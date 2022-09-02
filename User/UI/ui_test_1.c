@@ -106,6 +106,12 @@ static void play_warning(void)
   wav_play(audio_file_warning);
 }
 
+static void menu_close_cb(void* p)
+{
+  WM_HWIN win = (WM_HWIN)p;
+  WM_SetFocus(win);
+}
+
 static void vi_updata(WM_HWIN listview)
 {
   char str[32];
@@ -518,7 +524,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
         }
         case UI_KEY(OK, ONCLICK):
         {
-          ui_menu_open(pMsg->hWin);
+          ui_menu_open(menu_close_cb, (void*)pMsg->hWin);
           break;
         }
       }
@@ -762,18 +768,6 @@ void ui_test_1_open(test_1_st* _test_, const char* _title_)
     test = _test_;
     title = _title_;
     stage = 0xff;
-
-    LISTVIEW_SetDefaultBkColor(LISTVIEW_CI_UNSEL, GUI_MAKE_COLOR(0x00000000));
-    LISTVIEW_SetDefaultBkColor(LISTVIEW_CI_SEL, GUI_MAKE_COLOR(0x00FF0000));
-    LISTVIEW_SetDefaultBkColor(LISTVIEW_CI_DISABLED, GUI_MAKE_COLOR(0x00000000));
-    LISTVIEW_SetDefaultBkColor(LISTVIEW_CI_SELFOCUS, GUI_MAKE_COLOR(0x00FF0000));
-
-    LISTVIEW_SetDefaultTextColor(LISTVIEW_CI_UNSEL, GUI_MAKE_COLOR(0x00FFFFFF));
-    LISTVIEW_SetDefaultTextColor(LISTVIEW_CI_SEL, GUI_MAKE_COLOR(0x00FFFFFF));
-    LISTVIEW_SetDefaultTextColor(LISTVIEW_CI_SELFOCUS, GUI_MAKE_COLOR(0x00FFFFFF));
-    LISTVIEW_SetDefaultTextColor(LISTVIEW_CI_DISABLED, GUI_MAKE_COLOR(0x00FFFFFF));
-
-    LISTVIEW_SetDefaultGridColor(GUI_MAKE_COLOR(0xabc88b));
 
     GUI_CreateDialogBox(_aDialogCreate, GUI_COUNTOF(_aDialogCreate), _cbDialog, WM_HBKWIN, 0, 0);
   }
