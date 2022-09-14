@@ -12,6 +12,8 @@ typedef struct resource_s
 extern const char* audio_file_board_loaded;
 extern const char* audio_file_warning;
 
+void resource_update(void);
+
 resource_st* resource_icon_load(const char* name);
 resource_st* resource_logo_load(void);
 

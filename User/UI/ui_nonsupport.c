@@ -13,7 +13,6 @@
 #include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
-#define PROG_FONT_DEF (GUI_FONT_20_ASCII)
 
 #define ID_WINDOW_0         (GUI_ID_USER + 0x00)
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
@@ -61,7 +60,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "错误");
+      TEXT_SetText(hItem, ui_str.ui_nonsupport.title);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -76,7 +75,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFF));
       TEXT_SetWrapMode(hItem, GUI_WRAPMODE_CHAR);
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "不支持");
+      TEXT_SetText(hItem, ui_str.ui_nonsupport.info);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BACK);
       TEXT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_TOP);

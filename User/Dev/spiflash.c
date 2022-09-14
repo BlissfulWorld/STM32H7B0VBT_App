@@ -103,6 +103,8 @@ int spiflash_read(uint32_t address, void* pdata, uint32_t size)
     HAL_SPI_Receive(&hspi3, (uint8_t*)pdata + i, len, len * 10);
 
     SPIFLASH_CS_SET();
+
+    IWDG1->KR = IWDG_KEY_RELOAD;
   }
 
   return 0;
@@ -248,6 +250,8 @@ int spiflash_write(uint32_t address, const void* pdata, uint32_t size, uint32_t 
     }
 
     p += len;
+
+    IWDG1->KR = IWDG_KEY_RELOAD;
   }
 
   return err;
@@ -302,6 +306,8 @@ int spiflash_erase_sector(uint32_t address, uint32_t timout)
         }
       }
     }
+
+    IWDG1->KR = IWDG_KEY_RELOAD;
   }
   else
   {

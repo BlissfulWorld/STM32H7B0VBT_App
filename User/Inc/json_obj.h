@@ -15,5 +15,8 @@ extern const char json_obj_v_min[];
 extern const char json_obj_vdd[];
 extern const char json_obj_color_in[];
 extern const char json_obj_color_out[];
+extern const char json_obj_os[];
+extern const char json_obj_max[];
+extern const char json_obj_min[];
 
 #endif

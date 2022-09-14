@@ -261,7 +261,7 @@ int analog_speaker_play(uint32_t rate_hz, analog_spk_bits_et bits, uint8_t is_vo
 
   err = 0;
 
-  vTaskNotifyGiveFromISR((TaskHandle_t)speakerHandle, NULL);
+  xTaskNotifyGive((TaskHandle_t)speakerHandle);
 
 __kernel_unlock:
   osKernelUnlock();

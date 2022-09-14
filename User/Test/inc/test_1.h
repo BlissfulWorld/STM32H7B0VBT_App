@@ -8,36 +8,41 @@ typedef struct test_1_config_s
   common_config_info_st info;
   power_test_st power[8];
   muc_vdd_io_power_test_st mvi;
+  os_test_st ost[50];
+  uint8_t os_test_num;
 }test_1_config_st;
 
 typedef struct test_1_s
 {
   test_1_config_st* config;
-  uint8_t   (*stage_get)                 (void);
-  void      (*init)                      (void);
-  void      (*start)                     (void);
-  uint8_t   (*prox_get)                  (void);
-  uint8_t   (*prox_is_rdy)               (void);
-  uint8_t   (*als_get)                   (void);
-  uint8_t   (*als_is_rdy)                (void);
-  uint8_t   (*mic_get)                   (void);
-  int       (*mic_record_start)          (void);
-  int       (*mic_record_stop)           (void);
-  int       (*mic_record_play)           (void);
-  uint8_t   (*mic_record_get_progress)   (void);
-  double    (*ma_get)                    (uint8_t idx);
-  double    (*mv_get)                    (uint8_t idx);
-  uint8_t   (*ma_is_update)              (uint8_t idx);
-  uint8_t   (*codec_aout_to_hac_test_res)(void);
-  int       (*spkramp_play)              (void);
-  uint8_t   (*spkramp_test_res)          (void);
-  uint8_t   (*yogi_is_rdy)               (void);
-  uint8_t   (*hall_get)                  (void);
+  uint8_t       (*stage_get)                 (void);
+  void          (*init)                      (void);
+  void          (*start)                     (void);
+  const float*  (*os_test_data_get)          (uint8_t *len);
+  uint8_t       (*os_test_result_get)        (void);
+  uint8_t       (*prox_get)                  (void);
+  uint8_t       (*prox_is_rdy)               (void);
+  uint8_t       (*als_get)                   (void);
+  uint8_t       (*als_is_rdy)                (void);
+  uint8_t       (*mic_get)                   (void);
+  int           (*mic_record_start)          (void);
+  int           (*mic_record_stop)           (void);
+  int           (*mic_record_play)           (void);
+  uint8_t       (*mic_record_get_progress)   (void);
+  double        (*ma_get)                    (uint8_t idx);
+  double        (*mv_get)                    (uint8_t idx);
+  uint8_t       (*ma_is_update)              (uint8_t idx);
+  uint8_t       (*codec_aout_to_hac_test_res)(void);
+  int           (*spkramp_play)              (void);
+  uint8_t       (*spkramp_test_res)          (void);
+  uint8_t       (*yogi_is_rdy)               (void);
+  uint8_t       (*hall_get)                  (void);
 }test_1_st;
 
 typedef struct test_1_interface_s
 {
   const uint8_t* gnd_pin_list;
+  const uint8_t* func_pin_list;
 
   uint8_t codec_aout_to_hac_conn_p_pin;
   uint8_t codec_aout_to_hac_conn_n_pin;
@@ -61,8 +66,20 @@ extern const test_module_id_ut ipxr_id;
 int ipx_test_start(test_module_st* module, const char* title);
 int ipxs_test_start(test_module_st* module, const char* title);
 #define ipxsmax_test_start ipxs_test_start
-#define ipxr_test_start    ipx_test_start
+int ipxr_test_start(test_module_st* module, const char* title);
 
-int test_1_start(test_module_st* module, const test_1_interface_st* intf, const char* title);
+#define ipx_test_stop test_1_stop
+#define ipxs_test_stop test_1_stop
+#define ipxsmax_test_stop test_1_stop
+#define ipxr_test_stop test_1_stop
+
+#define ipx_test_is_running test_1_is_running
+#define ipxs_test_is_running test_1_is_running
+#define ipxsmax_test_is_running test_1_is_running
+#define ipxr_test_is_running test_1_is_running
+
+int test_1_start(test_module_st* module, const test_1_interface_st* intf, const test_1_config_st* default_config, const char* title);
+void test_1_stop(void);
+int test_1_is_running(void);
 
 #endif

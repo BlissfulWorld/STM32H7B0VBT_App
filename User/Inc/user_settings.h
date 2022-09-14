@@ -33,7 +33,15 @@ typedef struct user_settings_item_s
       //音量
       USI(volume, 1);
 
+      //待机多少分钟后关机
       USI(standbytime, 4);
+      
+      //开短路测试使能
+      USI(ostest, 1);
+
+      USI(ostest_mk_conf_err_type, 1);
+
+      USI(ostest_mk_conf_err_pct, 2);
     };
     uint8_t data[8 * 1024];
   };

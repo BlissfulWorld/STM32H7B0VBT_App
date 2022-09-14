@@ -24,7 +24,7 @@ typedef struct key_queue_s
   {
     key_num_et num;
     key_event_et evt;
-  }state[5];
+  }state[3];
 
   uint8_t in, out;
 }key_queue_st;

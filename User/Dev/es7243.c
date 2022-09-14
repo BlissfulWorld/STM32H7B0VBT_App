@@ -15,7 +15,7 @@ static const uint8_t reg_list_init[];
 static const uint8_t reg_list_start[];
 static const uint8_t reg_list_stop[];
 
-ALIGN_32BYTES(static es7243_data_st es7243_data_pbuffer[DATA_BUFFER_MAX] __attribute__((section(".AHB_SRAM2"))));
+ALIGN_32BYTES(static es7243_data_st es7243_data_pbuffer[DATA_BUFFER_MAX] __attribute__((section(".AHB_SRAM1"))));
 static void (*cb)(es7243_data_st* pdata, uint32_t len);
 
 static int es7243_reg_list_exec(const uint8_t* list)
@@ -140,7 +140,7 @@ int es7243_start(uint32_t rate, void (*data_isr_cb)(es7243_data_st* pdata, uint3
   for(uint32_t i = 0;i < 20;i++)
   {
     osDelay(5);
-    HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_6 | GPIO_PIN_7);
+    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6 | GPIO_PIN_7);
   }
   GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;

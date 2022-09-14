@@ -2,10 +2,10 @@
 #define _CONFIG_H
 
 // 设备名称
-#define DEVICE_NAME "XP模组测试机"
+#define DEVICE_NAME "XP Test"
 
 // 软件版本
-#define SOFTWARE_VERSION "0.4.5"
+#define SOFTWARE_VERSION "0.5.0"
 
 // <<< Use Configuration Wizard in Context Menu >>>
 

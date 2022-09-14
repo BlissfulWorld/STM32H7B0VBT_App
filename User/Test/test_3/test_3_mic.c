@@ -36,6 +36,19 @@ int test_3_mic_init(void)
   return 0;
 }
 
+int test_3_mic_deinit(void)
+{
+  if(mic_record)
+  {
+    vPortFree(mic_record);
+    mic_record = 0;
+  }
+
+  digital_mic_stop();
+
+  return 0;
+}
+
 uint8_t test_3_mic_get_percentage(void)
 {
   uint16_t value;

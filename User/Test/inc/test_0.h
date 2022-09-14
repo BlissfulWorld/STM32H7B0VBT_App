@@ -8,26 +8,30 @@ typedef struct test_0_config_s
   common_config_info_st info;
   power_test_st power[8];
   muc_vdd_io_power_test_st mvi;
+  os_test_st ost[50];
+  uint8_t os_test_num;
 }test_0_config_st;
 
 typedef struct test_0_s
 {
   test_0_config_st* config;
   uint8_t(*stage_get)              (void);
-  void      (*init)                   (void);
-  void      (*start)                  (void);
+  void          (*init)                   (void);
+  void          (*start)                  (void);
+  const float* (*os_test_data_get)       (uint8_t* len);
+  uint8_t(*os_test_result_get)     (void);
   uint8_t(*prox_get)               (void);
   uint8_t(*prox_is_rdy)            (void);
   uint8_t(*als_get)                (void);
   uint8_t(*als_is_rdy)             (void);
   uint8_t(*mic_get)                (void);
-  int       (*mic_record_start)       (void);
-  int       (*mic_record_stop)        (void);
-  int       (*mic_record_play)        (void);
+  int           (*mic_record_start)       (void);
+  int           (*mic_record_stop)        (void);
+  int           (*mic_record_play)        (void);
   uint8_t(*mic_record_get_progress)(void);
   uint8_t(*cam_is_rdy)             (void);
-  double    (*ma_get)                 (uint8_t idx);
-  double    (*mv_get)                 (uint8_t idx);
+  double        (*ma_get)                 (uint8_t idx);
+  double        (*mv_get)                 (uint8_t idx);
   uint8_t(*ma_is_update)           (uint8_t idx);
   uint8_t(*spk_pn_get)             (void);
 }test_0_st;
@@ -35,6 +39,7 @@ typedef struct test_0_s
 typedef struct test_0_interface_s
 {
   const uint8_t* gnd_pin_list;
+  const uint8_t* func_pin_list;
 
   uint8_t spk_out_p_pin;
   uint8_t spk_out_n_pin;
@@ -66,6 +71,20 @@ int ip7_test_start(test_module_st* module, const char* title);
 int ip7plus_test_start(test_module_st* module, const char* title);
 int ip8plus_test_start(test_module_st* module, const char* title);
 
-int test_0_start(test_module_st* module, const test_0_interface_st* intf, const char* title);
+#define ip7_test_stop test_0_stop
+#define ip7plus_test_stop test_0_stop
+#define ip8plus_test_stop test_0_stop
+
+#define ip7_test_is_running test_0_is_running
+#define ip7plus_test_is_running test_0_is_running
+#define ip8plus_test_is_running test_0_is_running
+
+int ip7_test_start(test_module_st* module, const char* title);
+int ip7plus_test_start(test_module_st* module, const char* title);
+int ip8plus_test_start(test_module_st* module, const char* title);
+
+int test_0_start(test_module_st* module, const test_0_interface_st* intf, const test_0_config_st* default_config, const char* title);
+void test_0_stop(void);
+int test_0_is_running(void);
 
 #endif

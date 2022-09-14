@@ -16,49 +16,58 @@
 #include "wav.h"
 #include "tim.h"
 
-const test_2_config_st test_2_config_default =
-{
-#define VI_CONST_INIT(idx,enable) \
-  /*.power[idx-1].json_obj = (const char *[]){json_obj_test,json_obj_power,json_obj_##idx,0},*/\
-  .power[idx-1].i_max = 5000,\
-  .power[idx-1].i_min = 0,\
-  .power[idx-1].v_max = 5000,\
-  .power[idx-1].v_min = 0,\
-  .power[idx-1].color_in = 0xFFFFFF,\
-  .power[idx-1].color_out = 0xFF0000,\
-  .power[idx-1].en = enable
-
-
-  VI_CONST_INIT(1,0),
-  VI_CONST_INIT(2,1),
-  VI_CONST_INIT(3,1),
-  VI_CONST_INIT(4,1),
-  VI_CONST_INIT(5,1),
-  VI_CONST_INIT(6,1),
-  VI_CONST_INIT(7,0),
-  VI_CONST_INIT(8,0),
-  //VI_CONST_INIT(9,0),
-  //VI_CONST_INIT(10,0),
-  //VI_CONST_INIT(11,0),
-  //VI_CONST_INIT(12,0),
-
-  .mvi.i_max = 5000,
-  .mvi.i_min = 0,
-  .mvi.v_max = 5000,
-  .mvi.v_min = 0,
-  .mvi.color_in = 0xFFFFFF,
-  .mvi.color_out = 0xFF0000,
-};
-
-static test_2_st test_2;
-
 extern void test_2_als_init(void);
 extern void test_2_prox_init(void);
 extern int test_2_mic_init(void);
+extern int test_2_mic_deinit(void);
 extern void test_2_spkramp_init(void);
 extern void test_2_als_set_intf(const test_2_interface_st* i);
 extern void test_2_prox_set_intf(const test_2_interface_st* i);
 extern void test_2_spkramp_set_intf(const test_2_interface_st* i);
+
+extern uint8_t test_2_prox_detect(void);
+extern void test_2_prox_update_data(void);
+extern uint8_t test_2_prox_get_percentage(void);
+extern uint8_t test_2_prox_is_rdy(void);
+
+extern uint8_t test_2_als_detect(void);
+extern void test_2_als_update_data(void);
+extern uint8_t test_2_als_get_percentage(void);
+extern uint8_t test_2_als_is_rdy(void);
+
+extern uint8_t test_2_mic_get_percentage(void);
+extern void test_2_mic_update_data(void);
+extern int test_2_mic_record_start(void);
+extern int test_2_mic_record_stop(void);
+extern int test_2_mic_record_play(void);
+extern uint8_t test_2_mic_record_get_progress(void);
+
+extern void test_2_spkramp_test_poll(void);
+extern void test_2_spkramp_test_poll_end(void);
+extern int test_2_spkramp_play(void);
+extern uint8_t test_2_spkramp_res_get(void);
+
+static struct
+{
+  uint8_t stage;
+  test_2_st _2;
+  float os_test_data[50];
+  uint8_t os_test_data_len;
+  uint8_t os_test_result;
+
+  uint8_t codec_aout_to_hac_test_res;
+  uint8_t yogi_rdy;
+
+  const test_2_interface_st* intf;
+}*test;
+
+static const osThreadAttr_t test_tid_attr = {
+  .name = "test 2",
+  .stack_size = 1024 * 8,
+  .priority = (osPriority_t)osPriorityNormal,
+};
+
+static int is_test = 0;
 
 void test_2_init(const test_2_interface_st* intf)
 {
@@ -128,15 +137,15 @@ void test_2_init(const test_2_interface_st* intf)
   test_2_spkramp_set_intf(intf);
 
   power_en = 0;
-  for(uint32_t i = 0;i < sizeof(test_2.config->power) / sizeof(power_test_st);i++)
+  for(uint32_t i = 0;i < sizeof(test->_2.config->power) / sizeof(power_test_st);i++)
   {
-    if(test_2.config->power[i].en)
+    if(test->_2.config->power[i].en)
       power_en |= (1U << i);
   }
 
-  for(uint32_t i = 8;(i < sizeof(test_2.config->power) / sizeof(power_test_st)) && (i < 12);i++)
+  for(uint32_t i = 8;(i < sizeof(test->_2.config->power) / sizeof(power_test_st)) && (i < 12);i++)
   {
-    if(test_2.config->power[i].en)
+    if(test->_2.config->power[i].en)
       power_en |= (1U << ((12 - 1 - i) + 8));
   }
 
@@ -151,42 +160,27 @@ void test_2_init(const test_2_interface_st* intf)
   test_2_spkramp_init();
 }
 
-static int start = 0;
-static uint8_t stage;
+static void test_2_deinit(const test_2_interface_st* intf)
+{
+  GPIO_InitTypeDef gpio_init;
 
-static osThreadId_t test_2_tid;
-static const osThreadAttr_t test_2_tid_attr = {
-  .name = "test 2",
-  .stack_size = 1024 * 8,
-  .priority = (osPriority_t)osPriorityNormal,
-};
+  test_2_mic_deinit();
 
-extern uint8_t test_2_prox_detect(void);
-extern void test_2_prox_update_data(void);
-extern uint8_t test_2_prox_get_percentage(void);
-extern uint8_t test_2_prox_is_rdy(void);
+  pca9535_set_output(1, 0);
 
-extern uint8_t test_2_als_detect(void);
-extern void test_2_als_update_data(void);
-extern uint8_t test_2_als_get_percentage(void);
-extern uint8_t test_2_als_is_rdy(void);
+  //Init All IO
+  gpio_init.Mode = GPIO_MODE_INPUT;
+  for(uint32_t i = 0;i < sizeof(test_pin) / sizeof(hw_pin_st);i++)
+  {
+    if(test_pin[i].gpio)
+    {
+      gpio_init.Pin = test_pin[i].pin;
+      HAL_GPIO_Init(test_pin[i].gpio, &gpio_init);
+    }
+  }
+}
 
-extern uint8_t test_2_mic_get_percentage(void);
-extern void test_2_mic_update_data(void);
-extern int test_2_mic_record_start(void);
-extern int test_2_mic_record_stop(void);
-extern int test_2_mic_record_play(void);
-extern uint8_t test_2_mic_record_get_progress(void);
-
-extern void test_2_spkramp_test_poll(void);
-extern void test_2_spkramp_test_poll_end(void);
-extern int test_2_spkramp_play(void);
-extern uint8_t test_2_spkramp_res_get(void);
-
-static uint8_t codec_aout_to_hac_test_res;
-static uint8_t yogi_rdy;
-
-static uint8_t test_2_yogi_detect(const test_2_interface_st* intf)
+static uint8_t yogi_detect(const test_2_interface_st* intf)
 {
   uint8_t addr[1] = { 0 };
   uint8_t data[2];
@@ -248,26 +242,27 @@ static uint8_t codec_aout_to_hac_test(const test_2_interface_st* intf)
   return cnt == 2 ? 1 : 0;
 }
 
-static void test_2_task(void* p)
+static void test_task(void* p)
 {
   int i = 0;
   uint32_t tick;
-  const test_2_interface_st* intf = p;
+  const test_2_interface_st* intf = test->intf;
   uint32_t err_flg;
   uint32_t err_flg_new;
+  uint8_t ostest;
 
-  test_2_init(intf);
-  while(test_2_tid)
+  while(is_test)
   {
-    stage = TEST_STAGE_WAIT;
+    test_2_init(intf);
+    test->stage = TEST_STAGE_WAIT;
 
     i = 0;
-    while(test_2_tid)
+    while(is_test)
     {
-      codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
-      yogi_rdy = test_2_yogi_detect(intf);
+      test->codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+      test->yogi_rdy = yogi_detect(intf);
       test_2_spkramp_test_poll();
-      if((test_2_prox_detect() == 0) || (test_2_als_detect() == 0) || codec_aout_to_hac_test_res || test_2_spkramp_res_get() || yogi_rdy)
+      if((test_2_prox_detect() == 0) || (test_2_als_detect() == 0) || test->codec_aout_to_hac_test_res || test_2_spkramp_res_get() || test->yogi_rdy)
       {
         i++;
         if(i > 5) break;
@@ -281,24 +276,58 @@ static void test_2_task(void* p)
       osDelay(50);
     };
 
-    stage = TEST_STAGE_OS;
+    if(!is_test)
+    {
+      test_2_deinit(intf);
+      break;
+    }
 
-    osDelay(1000);
+    test->stage = TEST_STAGE_OS;
+    osDelay(400);
 
+    ostest = 0;
+    US_GET(ostest, &ostest);
+    test->os_test_data_len = 0;
+    test->os_test_result = 0;
+    if(ostest)
+    {
+      test_2_deinit(intf);
+
+      test_current_stop();
+      pca9535_set_output(1, 0);
+      for(test->os_test_data_len = 0;intf->func_pin_list[test->os_test_data_len];test->os_test_data_len++);
+      os_test_get_volt(intf->gnd_pin_list, intf->func_pin_list, test->os_test_data);
+
+      test->os_test_result = 0;
+      for(uint8_t i = 0;i < test->_2.config->os_test_num;i++)
+      {
+        if(test->_2.config->ost[i].i_max < test->os_test_data[i] || test->_2.config->ost[i].i_min > test->os_test_data[i])
+        {
+          test->os_test_result++;
+        }
+      }
+
+      osDelay(100);
+      test_current_start();
+
+      if(test->os_test_result) wav_play(audio_file_warning);
+
+      test_2_init(intf);
+    }
 
     err_flg = 0;
     err_flg_new = 0x0000003F;
     i = 0;
     test_2_spkramp_test_poll();
-    codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
-    yogi_rdy = test_2_yogi_detect(intf);
+    test->codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+    test->yogi_rdy = yogi_detect(intf);
     test_2_mic_update_data();
     test_2_als_update_data();
     test_2_prox_update_data();
     test_2_spkramp_play();
-    stage = TEST_STAGE_FUNC;
+    test->stage = TEST_STAGE_FUNC;
     tick = HAL_GetTick();
-    while(test_2_tid)
+    while(is_test)
     {
       test_2_mic_update_data();
       test_2_als_update_data();
@@ -311,8 +340,8 @@ static void test_2_task(void* p)
 
         test_2_prox_update_data();
         test_2_spkramp_test_poll();
-        codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
-        yogi_rdy = test_2_yogi_detect(intf);
+        test->codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
+        test->yogi_rdy = yogi_detect(intf);
 
         if(test_2_prox_is_rdy() != 0)
         {
@@ -338,12 +367,12 @@ static void test_2_task(void* p)
           flag |= (1U << 3);
         }
 
-        if(codec_aout_to_hac_test_res != 0)
+        if(test->codec_aout_to_hac_test_res != 0)
         {
           flag |= (1U << 4);
         }
 
-        if(yogi_rdy != 0)
+        if(test->yogi_rdy != 0)
         {
           flag |= (1U << 5);
         }
@@ -389,52 +418,66 @@ static void test_2_task(void* p)
     }
 
     test_2_spkramp_test_poll_end();
+    test_2_deinit(intf);
   }
 
-  start--;
+  osKernelLock();
+  vPortFree(test);
+  test = 0;
+  osKernelUnlock();
+
   osThreadExit();
 }
 
 void test_2_stop(void)
 {
-  if(start == 0) return;
-
-  test_2_tid = 0;
+  is_test = 0;
 }
 
-static uint8_t test_2_stage_get(void)
+int test_2_is_running(void)
 {
-  return stage;
+  return test ? 1 : 0;
 }
 
-static uint32_t test_2_os_result_get(void)
+static uint8_t stage_get(void)
 {
-  return 0;
+  return test->stage;
 }
 
-static uint8_t test_2_prox_get(void)
+static const float* os_test_data_get(uint8_t* len)
+{
+  *len = test->os_test_data_len;
+  return test->os_test_data;
+}
+
+static uint8_t os_test_result_get(void)
+{
+  return test->os_test_result;
+}
+
+static uint8_t prox_get(void)
 {
   return test_2_prox_get_percentage();
 }
 
-static uint8_t _test_2_prox_is_rdy(void)
+static uint8_t prox_is_rdy(void)
 {
   return test_2_prox_is_rdy();
 }
 
-static uint8_t test_2_als_get(void)
+static uint8_t als_get(void)
 {
   return test_2_als_get_percentage();
 }
 
-static uint8_t _test_2_als_is_rdy(void)
+static uint8_t als_is_rdy(void)
 {
   return test_2_als_is_rdy();
 }
 
 static uint8_t codec_aout_to_hac_test_res_get(void)
 {
-  return codec_aout_to_hac_test_res;
+  return test->codec_aout_to_hac_test_res;
 }
 
 static int spkramp_play(void)
@@ -449,10 +492,10 @@ static uint8_t spkramp_test_res_get(void)
 
 static uint8_t yogi_is_rdy(void)
 {
-  return yogi_rdy;
+  return test->yogi_rdy;
 }
 
-static test_2_config_st* config_parse(const config_file_st* config_file)
+static test_2_config_st* config_parse(const config_file_st* config_file, const test_2_config_st* config_default)
 {
   test_2_config_st* config;
   cJSON* json;
@@ -464,7 +507,7 @@ static test_2_config_st* config_parse(const config_file_st* config_file)
     goto __exit;
   }
 
-  memcpy(config, &test_2_config_default, sizeof(test_2_config_st));
+  memcpy(config, config_default, sizeof(test_2_config_st));
 
   if(config_file == 0)
   {
@@ -609,6 +652,8 @@ static test_2_config_st* config_parse(const config_file_st* config_file)
         }
       }
     }
+
+    ostest_json_config_phase(j_test, config->ost, config->os_test_num);
   }
 
   cJSON_Delete(json);
@@ -617,49 +662,81 @@ __exit:
   return config;
 }
 
-int test_2_start(test_module_st* module, const test_2_interface_st* intf, const char* title)
+int test_2_start(test_module_st* module, const test_2_interface_st* intf, const test_2_config_st* config_default, const char* title)
 {
   int err;
   test_2_config_st* config;
 
-  err = 0;
+  osKernelLock();
 
-  config = config_parse(module->config_file);
+  if(test)
+  {
+    err = 1;
+    goto __unlock;
+  }
+
+  test = pvPortMalloc(sizeof(*test));
+  if(test == 0)
+  {
+    err = -1;
+    goto __unlock;
+  }
+
+  config = config_parse(module->config_file, config_default);
   if(config == 0)
   {
-    return -1;
+    err = -2;
+    goto __free_test;
   }
 
-  test_2.config = config;
-  test_2.stage_get = test_2_stage_get;
-  test_2.prox_get = test_2_prox_get;
-  test_2.prox_is_rdy = test_2_prox_is_rdy;
-  test_2.als_get = test_2_als_get;
-  test_2.als_is_rdy = test_2_als_is_rdy;
-  test_2.mic_get = test_2_mic_get_percentage;
-  test_2.mic_record_play = test_2_mic_record_play;
-  test_2.mic_record_start = test_2_mic_record_start;
-  test_2.mic_record_get_progress = test_2_mic_record_get_progress;
-  test_2.mic_record_stop = test_2_mic_record_stop;
-  test_2.ma_get = test_ma_get;
-  test_2.mv_get = test_mv_get;
-  test_2.ma_is_update = test_ma_is_update;
-  test_2.codec_aout_to_hac_test_res = codec_aout_to_hac_test_res_get;
-  test_2.spkramp_play = spkramp_play;
-  test_2.spkramp_test_res = spkramp_test_res_get;
-  test_2.yogi_is_rdy = yogi_is_rdy;
-
-  ui_test_2_open(&test_2, title);
-
-  if(start == 0)
+  if(osThreadNew(test_task, 0, &test_tid_attr) == 0)
   {
-    start = 1;
-    test_2_tid = osThreadNew(test_2_task, (void*)intf, &test_2_tid_attr);
-    if(test_2_tid == NULL)
-    {
-      start = 0;
-    }
+    err = -3;
+    goto __free_config;
   }
 
-  return 0;
+  memset(test, 0, sizeof(*test));
+
+  test->intf = intf;
+
+  test->_2.config = config;
+  test->_2.stage_get = stage_get;
+  test->_2.os_test_result_get = os_test_result_get;
+  test->_2.os_test_data_get = os_test_data_get;
+  test->_2.prox_get = prox_get;
+  test->_2.prox_is_rdy = prox_is_rdy;
+  test->_2.als_get = als_get;
+  test->_2.als_is_rdy = als_is_rdy;
+  test->_2.mic_get = test_2_mic_get_percentage;
+  test->_2.mic_record_play = test_2_mic_record_play;
+  test->_2.mic_record_start = test_2_mic_record_start;
+  test->_2.mic_record_get_progress = test_2_mic_record_get_progress;
+  test->_2.mic_record_stop = test_2_mic_record_stop;
+  test->_2.ma_get = test_ma_get;
+  test->_2.mv_get = test_mv_get;
+  test->_2.ma_is_update = test_ma_is_update;
+  test->_2.codec_aout_to_hac_test_res = codec_aout_to_hac_test_res_get;
+  test->_2.spkramp_play = spkramp_play;
+  test->_2.spkramp_test_res = spkramp_test_res_get;
+  test->_2.yogi_is_rdy = yogi_is_rdy;
+
+  err = 0;
+  is_test = 1;
+
+  goto __unlock;
+
+__free_config:
+  vPortFree(config);
+
+__free_test:
+  vPortFree(test);
+  test = 0;
+
+__unlock:
+  osKernelUnlock();
+
+  if(err == 0)
+    ui_test_2_open(&test->_2, title);
+
+  return err;
 }

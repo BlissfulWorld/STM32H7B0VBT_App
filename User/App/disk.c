@@ -75,6 +75,108 @@ FRESULT disk_get_size(const char* disk, uint32_t* total, uint32_t* free)
   return res;
 }
 
+/**
+ * @brief 判断目录是否存在
+ *
+ * @param dir_path 目录路径
+ * @return int 1：存在 0：不存在
+ */
+int disk_dir_is_exist(const char* dir_path)
+{
+  DIR dir;
+
+  if(f_opendir(&dir, dir_path) == FR_OK)
+  {
+    f_closedir(&dir);
+    return 1;
+  }
+
+  return 0;
+}
+
+/**
+ * @brief 删除目录
+ *
+ * @param dir_path 目录路径
+ * @return FRESULT 错误码
+ */
+FRESULT disk_dir_delete(const char* dir_path)
+{
+  FRESULT res;
+  DIR* dir;
+  FILINFO* fno;
+  char* path;
+
+  if(dir_path == 0)
+  {
+    res = FR_INVALID_PARAMETER;
+    goto __exit;
+  }
+
+  dir = ff_malloc(sizeof(DIR));
+  if(dir == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __exit;
+  }
+
+  fno = ff_malloc(sizeof(FILINFO));
+  if(fno == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __free_dir;
+  }
+
+  path = ff_malloc(512);
+  if(path == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __free_fno;
+  }
+
+  memset(dir, 0, sizeof(DIR));
+  memset(fno, 0, sizeof(FILINFO));
+
+  res = f_opendir(dir, dir_path);
+  if(res == FR_OK)
+  {
+    while(1)
+    {
+      res = f_readdir(dir, fno);
+      if(res != FR_OK || fno->fname[0] == 0)
+        break;
+
+      snprintf(path, 512, "%s/%s", dir_path, fno->fname);
+      if((fno->fattrib & AM_DIR) == 0)
+      {
+        res = f_unlink(path);
+      }
+      else
+      {
+        res = disk_dir_delete(path);
+      }
+
+      if(res != FR_OK)
+        break;
+    }
+
+    f_closedir(dir);
+    f_unlink(dir_path);
+  }
+
+__free_path:
+  ff_free(path);
+
+__free_fno:
+  ff_free(fno);
+
+__free_dir:
+  ff_free(dir);
+
+__exit:
+  return res;
+}
+
 FRESULT disk_copy_file(const char* file_dst, const char* file_src, file_copy_stat_cb_func_t stat_cb, void* user)
 {
   FRESULT res;
@@ -166,6 +268,252 @@ __free_fil_src:
   ff_free(fil_src);
 
 __exit:
+  return res;
+}
+
+FRESULT disk_dir_calc_size(const char* dir_path, uint32_t* size)
+{
+  FRESULT res;
+  FIL* fil;
+  DIR* dir;
+  FILINFO* fno;
+  char* path;
+
+  fil = 0;
+
+  dir = ff_malloc(sizeof(DIR));
+  if(dir == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __exit;
+  }
+
+  fno = ff_malloc(sizeof(FILINFO));
+  if(fno == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __free_dir;
+  }
+
+  path = ff_malloc(512);
+  if(path == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __free_fno;
+  }
+
+  memset(dir, 0, sizeof(DIR));
+  memset(fno, 0, sizeof(FILINFO));
+
+  res = f_opendir(dir, dir_path);
+  if(res == FR_OK)
+  {
+    while(1)
+    {
+      res = f_readdir(dir, fno);
+      if(res != FR_OK || fno->fname[0] == 0)
+        break;
+
+      if((fno->fattrib & AM_DIR) == 0)
+      {
+        if(fil == 0)
+        {
+          fil = ff_malloc(sizeof(FIL));
+          if(fil == 0)
+          {
+            res = FR_NOT_ENOUGH_CORE;
+            break;
+          }
+        }
+        snprintf(path, 512, "%s/%s", dir_path, fno->fname);
+
+        res = f_open(fil, path, FA_READ);
+        if(res != FR_OK)
+          break;
+
+        *size += f_size(fil);
+
+        f_close(fil);
+      }
+      else
+      {
+        snprintf(path, 512, "%s/%s", dir_path, fno->fname);
+        disk_dir_calc_size(path, size);
+      }
+    }
+    f_closedir(dir);
+  }
+
+  if(fil) ff_free(fil);
+
+__free_path:
+  ff_free(path);
+
+__free_fno:
+  ff_free(fno);
+
+__free_dir:
+  ff_free(dir);
+
+__exit:
+  return res;
+}
+
+static FRESULT _disk_copy_dir(const char* dir_dst, const char* dir_src, uint32_t stat, dir_copy_event_cb_func_t event_cb, file_copy_stat_cb_func_t stat_cb, void* user)
+{
+  FRESULT res;
+  DIR* dir;
+  FILINFO* fno;
+  char* path_dst, * path_src;
+
+  if(dir_src == 0 || dir_dst == 0)
+  {
+    res = FR_INVALID_PARAMETER;
+    goto __exit;
+  }
+
+  dir = ff_malloc(sizeof(DIR));
+  if(dir == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __exit;
+  }
+
+  fno = ff_malloc(sizeof(FILINFO));
+  if(fno == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __free_dir;
+  }
+
+  path_src = ff_malloc(512);
+  if(path_src == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __free_fno;
+  }
+
+  path_dst = ff_malloc(512);
+  if(path_dst == 0)
+  {
+    res = FR_NOT_ENOUGH_CORE;
+    goto __free_path_src;
+  }
+
+  memset(dir, 0, sizeof(DIR));
+  memset(fno, 0, sizeof(FILINFO));
+
+  res = f_opendir(dir, dir_src);
+  if(res == FR_OK)
+  {
+    while(1)
+    {
+      res = f_readdir(dir, fno);
+      if(res != FR_OK || fno->fname[0] == 0)
+        break;
+
+      if((fno->fattrib & AM_DIR) == 0)
+      {
+        snprintf(path_src, 512, "%s/%s", dir_src, fno->fname);
+        snprintf(path_dst, 512, "%s/%s", dir_dst, fno->fname);
+
+        if(event_cb)
+        {
+          if(event_cb(path_dst, path_src, DIR_CPY_EVT_FILE_CPY_STA, user))
+          {
+            break;
+          }
+        }
+        int cp_err = disk_copy_file(path_dst, path_src, stat_cb, user);
+        if(event_cb)
+        {
+          if(event_cb(path_dst, path_src, cp_err == 0 ? DIR_CPY_EVT_FILE_CPY_END : DIR_CPY_EVT_FILE_CPY_ERR, user) != 0)
+            break;
+        }
+      }
+      else
+      {
+        snprintf(path_dst, 512, "%s/%s", dir_dst, fno->fname);
+        snprintf(path_src, 512, "%s/%s", dir_src, fno->fname);
+        if(event_cb)
+        {
+          if(event_cb(path_dst, path_src, DIR_CPY_EVT_DIR_CPY_STA, user))
+          {
+            break;
+          }
+        }
+        f_mkdir(path_dst);
+        if(_disk_copy_dir(path_dst, path_src, stat, event_cb, stat_cb, user) == FR_OK)
+        {
+          if(event_cb)
+          {
+            if(event_cb(path_dst, path_src, DIR_CPY_EVT_DIR_CPY_END, user))
+            {
+              break;
+            }
+          }
+        }
+        else
+        {
+          if(event_cb)
+          {
+            if(event_cb(path_dst, path_src, DIR_CPY_EVT_DIR_CPY_ERR, user))
+            {
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    f_closedir(dir);
+  }
+
+__free_path_dst:
+  ff_free(path_dst);
+
+__free_path_src:
+  ff_free(path_src);
+
+__free_fno:
+  ff_free(fno);
+
+__free_dir:
+  ff_free(dir);
+
+__exit:
+  return res;
+}
+
+FRESULT disk_copy_dir(const char* dir_dst, const char* dir_src, dir_copy_event_cb_func_t event_cb, file_copy_stat_cb_func_t stat_cb, void* user)
+{
+  FRESULT res;
+  if(event_cb)
+  {
+    if(event_cb(dir_dst, dir_src, DIR_CPY_EVT_DIR_CPY_STA, user))
+    {
+      return FR_OK;
+    }
+  }
+
+  f_mkdir(dir_dst);
+
+  res = _disk_copy_dir(dir_dst, dir_src, 0, event_cb, stat_cb, user);
+  if(res == FR_OK)
+  {
+    if(event_cb)
+    {
+      event_cb(dir_dst, dir_src, DIR_CPY_EVT_DIR_CPY_END, user);
+    }
+  }
+  else
+  {
+    if(event_cb)
+    {
+      event_cb(dir_dst, dir_src, DIR_CPY_EVT_DIR_CPY_ERR, user);
+    }
+  }
+
   return res;
 }
 

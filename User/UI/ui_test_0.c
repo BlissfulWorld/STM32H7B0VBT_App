@@ -11,7 +11,7 @@
 #include "analog_speaker.h"
 
 #define FONT_DEF      (font_ext)
-#define PROG_FONT_DEF (GUI_FONT_20_ASCII)
+#define PROG_FONT_DEF (GUI_DEFAULT_FONT)
 
 #define ID_WINDOW_0         (GUI_ID_USER + 0x00)
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
@@ -79,13 +79,13 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { PROGBAR_CreateIndirect, 0, ID_PROGBAR_MIC_VAL,    TEXT_WIDTH, ITEM3_OFFSET, 220 - TEXT_WIDTH,  PROG_HEIGHT, 0,  0x0, 0},
 
   { TEXT_CreateIndirect,    0, ID_TEXT_OS,               0, ITEM4_OFFSET, TEXT_WIDTH,  TEXT_HEIGHT,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_OS_RES,      TEXT_WIDTH, ITEM4_OFFSET, (220 - TEXT_WIDTH) / 2,  TEXT_HEIGHT, 0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_OS_RES,      TEXT_WIDTH, ITEM4_OFFSET, 220 - TEXT_WIDTH,  TEXT_HEIGHT, 0,  0x0, 0},
 
   { TEXT_CreateIndirect,    0, ID_TEXT_CAM,              0, ITEM5_OFFSET, TEXT_WIDTH,  TEXT_HEIGHT,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_CAM_RES,     TEXT_WIDTH, ITEM5_OFFSET, (220 - TEXT_WIDTH) / 2,  TEXT_HEIGHT,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_CAM_RES,     TEXT_WIDTH, ITEM5_OFFSET, 220 - TEXT_WIDTH,  TEXT_HEIGHT,   0,  0x0, 0},
 
-  { TEXT_CreateIndirect,    0, ID_TEXT_SPK_P,       TEXT_WIDTH + (220 - TEXT_WIDTH) / 2, ITEM4_OFFSET, (220 - TEXT_WIDTH) / 2,  TEXT_HEIGHT,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_SPK_N,       TEXT_WIDTH + (220 - TEXT_WIDTH) / 2, ITEM5_OFFSET, (220 - TEXT_WIDTH) / 2,  TEXT_HEIGHT,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_SPK_P,       (20 + TEXT_WIDTH) / 3, ITEM6_OFFSET, (220 - TEXT_WIDTH) / 2,  TEXT_HEIGHT,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_SPK_N,       (20 + TEXT_WIDTH) / 3 * 2 + (220 - TEXT_WIDTH) / 2, ITEM6_OFFSET, (220 - TEXT_WIDTH) / 2,  TEXT_HEIGHT,   0,  0x0, 0},
 
   { LISTVIEW_CreateIndirect,0, ID_LISTVIEW_CURRENT,      0, ITEM7_OFFSET, 240,  88, 0, 0x00, 0},
 
@@ -107,8 +107,7 @@ static void play_warning(void)
 
 static void menu_close_cb(void* p)
 {
-  WM_HWIN win = (WM_HWIN)p;
-  WM_SetFocus(win);
+  test_start(module);
 }
 
 static void vi_updata(WM_HWIN listview)
@@ -212,8 +211,6 @@ static void update_func_test_result(WM_HWIN win)
     hItem = WM_GetDialogItem(win, ID_PROGBAR_PROX_VAL);
     PROGBAR_SetValue(hItem, 0);
     PROGBAR_SetText(hItem, "X");
-    hItem = WM_GetDialogItem(win, ID_TEXT_PROX);
-    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
   }
   else
   {
@@ -221,8 +218,6 @@ static void update_func_test_result(WM_HWIN win)
     hItem = WM_GetDialogItem(win, ID_PROGBAR_PROX_VAL);
     PROGBAR_SetText(hItem, 0);
     PROGBAR_SetValue(hItem, prox);
-    hItem = WM_GetDialogItem(win, ID_TEXT_PROX);
-    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
   }
 
   if(test->als_is_rdy() == 0)
@@ -230,8 +225,6 @@ static void update_func_test_result(WM_HWIN win)
     hItem = WM_GetDialogItem(win, ID_PROGBAR_ALS_VAL);
     PROGBAR_SetValue(hItem, 0);
     PROGBAR_SetText(hItem, "X");
-    hItem = WM_GetDialogItem(win, ID_TEXT_ALS);
-    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
   }
   else
   {
@@ -239,8 +232,6 @@ static void update_func_test_result(WM_HWIN win)
     hItem = WM_GetDialogItem(win, ID_PROGBAR_ALS_VAL);
     PROGBAR_SetText(hItem, 0);
     PROGBAR_SetValue(hItem, als);
-    hItem = WM_GetDialogItem(win, ID_TEXT_ALS);
-    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
   }
 
   hItem = WM_GetDialogItem(win, ID_PROGBAR_MIC_VAL);
@@ -258,16 +249,14 @@ static void update_func_test_result(WM_HWIN win)
 
   uint8_t cam_rdy = test->cam_is_rdy();
   hItem = WM_GetDialogItem(win, ID_TEXT_CAM_RES);
-  TEXT_SetText(hItem, cam_rdy ? " 有" : " 无");
+  TEXT_SetText(hItem, cam_rdy ? ui_str.ui_test_0.camera_found : ui_str.ui_test_0.camera_no_found);
   if(cam_rdy == 0)
   {
-    hItem = WM_GetDialogItem(win, ID_TEXT_CAM);
     TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
   }
   else
   {
-    hItem = WM_GetDialogItem(win, ID_TEXT_CAM);
-    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
+    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF00FF00));
   }
 
   uint8_t spk_pn = test->spk_pn_get();
@@ -317,14 +306,14 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFF));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "未检测到模组");
+      TEXT_SetText(hItem, ui_str.ui_test_0.info_no_found_module);
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_PROX);
       TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "接近");
+      TEXT_SetText(hItem, ui_str.ui_test_0.prox);
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_PROX_VAL);
@@ -337,7 +326,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "环境光");
+      TEXT_SetText(hItem, ui_str.ui_test_0.als);
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_ALS_VAL);
@@ -350,7 +339,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "麦克风");
+      TEXT_SetText(hItem, ui_str.ui_test_0.mic);
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_MIC_VAL);
@@ -364,7 +353,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "开短路：");
+      TEXT_SetText(hItem, ui_str.ui_test_0.ostest);
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OS_RES);
@@ -378,7 +367,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "摄像头：");
+      TEXT_SetText(hItem, ui_str.ui_test_0.camera);
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM_RES);
@@ -393,7 +382,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFFFF));
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xFF0000));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "喇叭-P");
+      TEXT_SetText(hItem, ui_str.ui_test_0.spk_p);
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_N);
@@ -401,7 +390,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFFFF));
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xFF0000));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "喇叭-N");
+      TEXT_SetText(hItem, ui_str.ui_test_0.spk_n);
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_LISTVIEW_CURRENT);
@@ -445,14 +434,14 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "菜单");
+      TEXT_SetText(hItem, ui_str.ui_test_0.btn_menu);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_MIC);
       TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "录/播");
+      TEXT_SetText(hItem, ui_str.ui_test_0.btn_record_play);
 
 
       htimer = WM_CreateTimer(pMsg->hWin, 0, 100, 0);
@@ -465,11 +454,19 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       pwdn_watchdog_reload();
       switch(((WM_KEY_INFO*)(pMsg->Data.p))->Key)
       {
-        /*case UI_KEY(UP, ONCLICK):
+        case UI_KEY(UP, ONCLICK):
         {
+          if(stage == TEST_STAGE_FUNC)
+          {
+            const float* data;
+            uint8_t len;
+            data = test->os_test_data_get(&len);
+            if(len)
+              ui_os_test_result_open(title, pMsg->hWin, test->config->ost, data, len);
+          }
           break;
         }
-        case UI_KEY(DOWN, ONCLICK):
+        /*case UI_KEY(DOWN, ONCLICK):
         {
           break;
         }
@@ -509,7 +506,8 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
         }
         case UI_KEY(OK, ONCLICK):
         {
-          ui_menu_open(menu_close_cb, (void*)pMsg->hWin);
+          if(!analog_speaker_is_busy())
+            GUI_EndDialog(pMsg->hWin, 0);
           break;
         }
       }
@@ -592,7 +590,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
             WM_HideWindow(hItem);
 
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_WAIT);
-            TEXT_SetText(hItem, "未检测到模组");
+            TEXT_SetText(hItem, ui_str.ui_test_0.info_no_found_module);
             WM_ShowWindow(hItem);
             break;
           }
@@ -635,7 +633,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
             WM_HideWindow(hItem);
 
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_WAIT);
-            TEXT_SetText(hItem, "开短路测试...");
+            TEXT_SetText(hItem, ui_str.ui_test_0.info_doing_ostest);
             WM_ShowWindow(hItem);
             break;
           }
@@ -668,20 +666,28 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
             WM_ShowWindow(hItem);
 
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OS_RES);
-            /*if(test_0_os_result_get() == 0)
+            uint8_t len;
+            test->os_test_data_get(&len);
+            if(len)
             {
-              TEXT_SetTextColor(hItem,GUI_MAKE_COLOR(0x00FF00));
-              TEXT_SetText(hItem," 通过");
+              if(test->os_test_result_get() == 0)
+              {
+                TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x00FF00));
+                sprintf(str_buf, " %s %s", ui_str.ui_test_0.ostest_result_normal, ui_str.ui_test_0.key_up_check);
+                TEXT_SetText(hItem, str_buf);
+              }
+              else
+              {
+                TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000));
+                sprintf(str_buf, " %u %s", test->os_test_result_get(), ui_str.ui_test_0.key_up_check);
+                TEXT_SetText(hItem, str_buf);
+              }
             }
             else
             {
-              char str_buf[128];
-              TEXT_SetTextColor(hItem,GUI_MAKE_COLOR(0xFF0000));
-              sprintf(str_buf," %u个异常",test_0_os_result_get());
-              TEXT_SetText(hItem,str_buf);
-            }*/
-            TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x333333));
-            TEXT_SetText(hItem, " 未测试");
+              TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x333333));
+              TEXT_SetText(hItem, ui_str.ui_test_0.no_ostest);
+            }
             WM_ShowWindow(hItem);
 
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM);
@@ -709,6 +715,8 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     }
     case WM_DELETE:
     {
+      test_stop(module);
+      ui_menu_open(menu_close_cb, 0);
       break;
     }
     default:

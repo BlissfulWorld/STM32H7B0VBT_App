@@ -13,7 +13,6 @@
 #include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
-#define PROG_FONT_DEF (GUI_FONT_20_ASCII)
 
 #define ID_WINDOW_0         (GUI_ID_USER + 0x00)
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
@@ -63,7 +62,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "关于");
+      TEXT_SetText(hItem, ui_str.ui_m_about.title);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -80,9 +79,9 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetFont(hItem, FONT_DEF);
       char str[128];
       snprintf(str, sizeof(str), "%s\n\n"
-        "软件版本：%s\n"
-        "底层版本：%s\n"
-        , DEVICE_NAME, sw_info.version, sw_info.bootloader_version);
+        "%s : %s\n"
+        "%s : %s\n"
+        , DEVICE_NAME, ui_str.ui_m_about.app_version, sw_info.version, ui_str.ui_m_about.bootloader_version, sw_info.bootloader_version);
       TEXT_SetText(hItem, str);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BACK);
@@ -90,7 +89,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "返回");
+      TEXT_SetText(hItem, ui_str.ui_m_about.btn_back);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OK);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);

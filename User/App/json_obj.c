@@ -26,3 +26,6 @@ const char json_obj_v_min[] = "v_min";
 const char json_obj_vdd[] = "vdd";
 const char json_obj_color_in[] = "color_in";
 const char json_obj_color_out[] = "Color_out";
+const char json_obj_os[] = "os";
+const char json_obj_max[] = "max";
+const char json_obj_min[] = "min";

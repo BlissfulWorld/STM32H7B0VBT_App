@@ -41,7 +41,7 @@ int font_load(void)
   }
   else
   {
-    font_ext = GUI_FONT_8X16;
+    font_ext = GUI_DEFAULT_FONT;
   }
 
   return 0;

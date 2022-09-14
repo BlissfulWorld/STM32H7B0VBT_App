@@ -1,7 +1,15 @@
 {
   "files.associations": {
     "stdio.h": "c",
-    "fatfs.h": "c"
+    "fatfs.h": "c",
+    "user_settings.h": "c",
+    "test_0.h": "c",
+    "json_obj.h": "c",
+    "os_test.h": "c",
+    "multilanguage.h": "c",
+    "ui.h": "c",
+    "typeinfo": "c",
+    "system_error": "c"
   },
   "files.exclude": {
     "**/.git": true,

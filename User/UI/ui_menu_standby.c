@@ -14,7 +14,6 @@
 #include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
-#define PROG_FONT_DEF (GUI_FONT_20_ASCII)
 
 #define ID_WINDOW_0         (GUI_ID_USER + 0x00)
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
@@ -80,7 +79,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "待机多少分钟关机");
+      TEXT_SetText(hItem, ui_str.ui_m_standby.title);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -95,7 +94,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFF));
       TEXT_SetWrapMode(hItem, GUI_WRAPMODE_CHAR);
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "60\n▲\n\n\n\n\n▼\n1");
+      TEXT_SetText(hItem, "60\n--\n\n\n\n\n--\n1");
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_STANDBY);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -112,7 +111,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "返回");
+      TEXT_SetText(hItem, ui_str.ui_m_standby.btn_back);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OK);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
@@ -126,7 +125,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "保存");
+      TEXT_SetText(hItem, ui_str.ui_m_standby.btn_save);
 
       uint32_t standby_saved;
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SAVE);

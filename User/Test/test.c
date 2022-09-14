@@ -9,6 +9,8 @@ typedef struct test_s
 {
   const test_module_id_ut* id;
   int (*start)(test_module_st* module, const char* title);
+  void (*stop)(void);
+  int (*is_running)(void);
   const char* title;
 }test_st;
 
@@ -16,20 +18,20 @@ test_module_st* module;
 
 static const test_st test_list[] =
 {
-  {&ip7_id,           ip7_test_start,         "XP 7"},
-  {&ip7plus_id,       ip7plus_test_start,     "XP 7 PLUS"},
-  {&ip8plus_id,       ip8plus_test_start,     "XP 8 PLUS"},
-  {&ipx_id,           ipx_test_start,         "XP X"},
-  {&ipxs_id,          ipxs_test_start,        "XP XS"},
-  {&ipxsmax_id,       ipxsmax_test_start,     "XP XS MAX"},
-  {&ipxr_id,          ipxr_test_start,        "XP XR"},
-  {&ip11_id,          ip11_test_start,        "XP 11"},
-  {&ip11pro_id,       ip11pro_test_start,     "XP 11 PRO"},
-  {&ip11promax_id,    ip11promax_test_start,  "XP 11 PRO MAX"},
-  {&ip12mini_id,      ip12mini_test_start,    "XP 12 MINI"},
-  {&ip12_id,          ip12_test_start,        "XP 12"},
-  {&ip12pro_id,       ip12pro_test_start,     "XP 12 PRO"},
-  {&ip12promax_id,    ip12promax_test_start,  "XP 12 PRO MAX"},
+  {&ip7_id,           ip7_test_start,        ip7_test_stop,        ip7_test_is_running,        "XP 7"},
+  {&ip7plus_id,       ip7plus_test_start,    ip7plus_test_stop,    ip7plus_test_is_running,    "XP 7 PLUS"},
+  {&ip8plus_id,       ip8plus_test_start,    ip8plus_test_stop,    ip8plus_test_is_running,    "XP 8 PLUS"},
+  {&ipx_id,           ipx_test_start,        ipx_test_stop,        ipx_test_is_running,        "XP X"},
+  {&ipxs_id,          ipxs_test_start,       ipxs_test_stop,       ipxs_test_is_running,       "XP XS"},
+  {&ipxsmax_id,       ipxsmax_test_start,    ipxsmax_test_stop,    ipxsmax_test_is_running,    "XP XS MAX"},
+  {&ipxr_id,          ipxr_test_start,       ipxr_test_stop,       ipxr_test_is_running,       "XP XR"},
+  {&ip11_id,          ip11_test_start,       ip11_test_stop,       ip11_test_is_running,       "XP 11"},
+  {&ip11pro_id,       ip11pro_test_start,    ip11pro_test_stop,    ip11pro_test_is_running,    "XP 11 PRO"},
+  {&ip11promax_id,    ip11promax_test_start, ip11promax_test_stop, ip11promax_test_is_running, "XP 11 PRO MAX"},
+  {&ip12mini_id,      ip12mini_test_start,   ip12mini_test_stop,   ip12mini_test_is_running,   "XP 12 MINI"},
+  {&ip12_id,          ip12_test_start,       ip12_test_stop,       ip12_test_is_running,       "XP 12"},
+  {&ip12pro_id,       ip12pro_test_start,    ip12pro_test_stop,    ip12pro_test_is_running,    "XP 12 PRO"},
+  {&ip12promax_id,    ip12promax_test_start, ip12promax_test_stop, ip12promax_test_is_running, "XP 12 PRO MAX"},
 
 
   {0},//结尾
@@ -41,7 +43,7 @@ const hw_pin_st test_pin[51] =
   {0,0},
   {GPIOA,GPIO_PIN_6}, //1
   {GPIOA,GPIO_PIN_7}, //2
-  {0,0},              //3
+  {GPIOC,GPIO_PIN_3}, //3
   {GPIOB,GPIO_PIN_0}, //4
   {GPIOC,GPIO_PIN_4}, //5
   {GPIOC,GPIO_PIN_5}, //6
@@ -131,8 +133,10 @@ static const osThreadAttr_t test_current_tid_attr = {
   .priority = (osPriority_t)osPriorityNormal,
 };
 static ina219_handle_t gs_handle[2];
-float test_ma[MA_MUN], test_mv[MA_MUN];
-int test_ma_flag[MA_MUN];
+static float test_ma[MA_MUN], test_mv[MA_MUN];
+static int test_ma_flag[MA_MUN];
+static uint8_t test_current_task_running;
+static uint8_t test_current_task_stop;
 
 static void test_current(void* arg)
 {
@@ -159,7 +163,9 @@ static void test_current(void* arg)
   pca9535_set_output(0, ~(1U << i));
   osDelay(10);
 
-  while(1)
+  test_current_task_running = 1;
+  test_current_task_stop = 0;
+  while(test_current_task_stop == 0)
   {
     if(ina219_basic_read(&gs_handle[0], &mv, &ma, &mw))
     {
@@ -203,12 +209,21 @@ static void test_current(void* arg)
     //ina219_basic_init(&gs_handle[0],INA219_ADDRESS_0,0.1);
     osDelay(96);
   }
+  ina219_basic_deinit(&gs_handle[0]);
+  ina219_basic_deinit(&gs_handle[1]);
+  test_current_task_running = 0;
   osThreadExit();
 }
 
 void test_current_start(void)
 {
   osThreadNew(test_current, NULL, &test_current_tid_attr);
+}
+
+void test_current_stop(void)
+{
+  test_current_task_stop = 1;
+  while(test_current_task_running) osDelay(100);
 }
 
 double test_ma_get(uint8_t idx)
@@ -246,6 +261,22 @@ int test_start(test_module_st* module)
     {
       test_current_start();
       test_list[i].start(module, test_list[i].title);
+      return 0;
+    }
+  }
+
+  return -1;
+}
+
+int test_stop(test_module_st* module)
+{
+  for(uint32_t i = 0;test_list[i].id;i++)
+  {
+    if(module->id.code == test_list[i].id->code)
+    {
+      test_list[i].stop();
+      while(test_list[i].is_running()) osDelay(50);
+      test_current_stop();
       return 0;
     }
   }

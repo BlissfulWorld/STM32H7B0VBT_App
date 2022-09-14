@@ -15,49 +15,51 @@
 #include "ui.h"
 #include "wav.h"
 
-const test_0_config_st test_0_config_default =
-{
-#define VI_CONST_INIT(idx,enable) \
-  /*.power[idx-1].json_obj = (const char *[]){json_obj_test,json_obj_power,json_obj_##idx,0},*/\
-  .power[idx-1].i_max = 5000,\
-  .power[idx-1].i_min = 0,\
-  .power[idx-1].v_max = 5000,\
-  .power[idx-1].v_min = 0,\
-  .power[idx-1].color_in = 0xFFFFFF,\
-  .power[idx-1].color_out = 0xFF0000,\
-  .power[idx-1].en = enable
-
-
-  VI_CONST_INIT(1,1),
-  VI_CONST_INIT(2,1),
-  VI_CONST_INIT(3,1),
-  VI_CONST_INIT(4,1),
-  VI_CONST_INIT(5,1),
-  VI_CONST_INIT(6,1),
-  VI_CONST_INIT(7,0),
-  VI_CONST_INIT(8,0),
-  //VI_CONST_INIT(9,0),
-  //VI_CONST_INIT(10,0),
-  //VI_CONST_INIT(11,0),
-  //VI_CONST_INIT(12,0),
-
-  .mvi.i_max = 5000,
-  .mvi.i_min = 0,
-  .mvi.v_max = 5000,
-  .mvi.v_min = 0,
-  .mvi.color_in = 0xFFFFFF,
-  .mvi.color_out = 0xFF0000,
-};
-
-static test_0_st test_0;
-
 extern void test_0_als_init(void);
 extern void test_0_prox_init(void);
 extern int test_0_mic_init(void);
+extern int test_0_mic_deinit(void);
 extern void test_0_als_set_intf(const test_0_interface_st* i);
 extern void test_0_prox_set_intf(const test_0_interface_st* i);
 
-void test_0_init(const test_0_interface_st* intf)
+extern uint8_t test_0_prox_detect(void);
+extern void test_0_prox_update_data(void);
+extern uint8_t test_0_prox_get_percentage(void);
+extern uint8_t test_0_prox_is_rdy(void);
+
+extern uint8_t test_0_als_detect(void);
+extern void test_0_als_update_data(void);
+extern uint8_t test_0_als_get_percentage(void);
+extern uint8_t test_0_als_is_rdy(void);
+
+extern uint8_t test_0_mic_get_percentage(void);
+extern void test_0_mic_update_data(void);
+extern int test_0_mic_record_start(void);
+extern int test_0_mic_record_stop(void);
+extern int test_0_mic_record_play(void);
+extern uint8_t test_0_mic_record_get_progress(void);
+
+static struct
+{
+  uint8_t stage;
+  test_0_st _0;
+  float os_test_data[50];
+  uint8_t os_test_data_len;
+  uint8_t os_test_result;
+  uint8_t spk_pn, cam_rdy;
+
+  const test_0_interface_st* intf;
+}*test;
+
+static const osThreadAttr_t test_tid_attr = {
+  .name = "test 0",
+  .stack_size = 1024 * 8,
+  .priority = (osPriority_t)osPriorityNormal,
+};
+
+static int is_test;
+
+static void test_0_init(const test_0_interface_st* intf)
 {
   uint16_t power_en;
   GPIO_InitTypeDef gpio_init;
@@ -99,7 +101,7 @@ void test_0_init(const test_0_interface_st* intf)
   gpio_init.Pin = GPIO_PIN_15;
   HAL_GPIO_Init(GPIOD, &gpio_init);
 
-  //adc1
+  //MIC
   gpio_init.Pin = GPIO_PIN_6 | GPIO_PIN_7;
   gpio_init.Mode = GPIO_MODE_ANALOG;
   gpio_init.Pull = GPIO_NOPULL;
@@ -126,15 +128,15 @@ void test_0_init(const test_0_interface_st* intf)
   intf->cam_i2c_init();
 
   power_en = 0;
-  for(uint32_t i = 0;i < sizeof(test_0.config->power) / sizeof(power_test_st);i++)
+  for(uint32_t i = 0;i < sizeof(test->_0.config->power) / sizeof(power_test_st);i++)
   {
-    if(test_0.config->power[i].en)
+    if(test->_0.config->power[i].en)
       power_en |= (1U << i);
   }
 
-  for(uint32_t i = 8;(i < sizeof(test_0.config->power) / sizeof(power_test_st)) && (i < 12);i++)
+  for(uint32_t i = 8;(i < sizeof(test->_0.config->power) / sizeof(power_test_st)) && (i < 12);i++)
   {
-    if(test_0.config->power[i].en)
+    if(test->_0.config->power[i].en)
       power_en |= (1U << ((12 - 1 - i) + 8));
   }
 
@@ -149,32 +151,25 @@ void test_0_init(const test_0_interface_st* intf)
   test_0_mic_init();
 }
 
-static int start = 0;
-static uint8_t stage;
+static void test_0_deinit(const test_0_interface_st* intf)
+{
+  GPIO_InitTypeDef gpio_init;
 
-static osThreadId_t test_0_tid;
-static const osThreadAttr_t test_0_tid_attr = {
-  .name = "test 0",
-  .stack_size = 1024 * 8,
-  .priority = (osPriority_t)osPriorityNormal,
-};
+  test_0_mic_deinit();
 
-extern uint8_t test_0_prox_detect(void);
-extern void test_0_prox_update_data(void);
-extern uint8_t test_0_prox_get_percentage(void);
-extern uint8_t test_0_prox_is_rdy(void);
+  pca9535_set_output(1, 0);
 
-extern uint8_t test_0_als_detect(void);
-extern void test_0_als_update_data(void);
-extern uint8_t test_0_als_get_percentage(void);
-extern uint8_t test_0_als_is_rdy(void);
-
-extern uint8_t test_0_mic_get_percentage(void);
-extern void test_0_mic_update_data(void);
-extern int test_0_mic_record_start(void);
-extern int test_0_mic_record_stop(void);
-extern int test_0_mic_record_play(void);
-extern uint8_t test_0_mic_record_get_progress(void);
+  //Init All IO
+  gpio_init.Mode = GPIO_MODE_INPUT;
+  for(uint32_t i = 0;i < sizeof(test_pin) / sizeof(hw_pin_st);i++)
+  {
+    if(test_pin[i].gpio)
+    {
+      gpio_init.Pin = test_pin[i].pin;
+      HAL_GPIO_Init(test_pin[i].gpio, &gpio_init);
+    }
+  }
+}
 
 static uint8_t test_0_cam_detect(void)
 {
@@ -187,8 +182,6 @@ static uint8_t test_0_cam_detect(void)
     return 1;
   return 0;
 }
-
-static uint8_t spk_pn, cam_rdy;
 
 static uint8_t spk_pn_detect(const test_0_interface_st* intf)
 {
@@ -262,24 +255,25 @@ static uint8_t spk_pn_detect(const test_0_interface_st* intf)
   return (p == 2 ? (1) : 0) | (n == 2 ? (2) : 0);
 }
 
-static void test_0_task(void* p)
+static void test_task(void* p)
 {
   int i = 0;
   uint32_t tick;
-  const test_0_interface_st* intf = p;
+  const test_0_interface_st* intf = test->intf;
   uint32_t err_flg;
   uint32_t err_flg_new;
+  uint8_t ostest;
 
-  test_0_init(intf);
-  while(test_0_tid)
+  while(is_test)
   {
-    stage = TEST_STAGE_WAIT;
+    test_0_init(intf);
+    test->stage = TEST_STAGE_WAIT;
 
     i = 0;
-    while(test_0_tid)
+    while(is_test)
     {
-      cam_rdy = test_0_cam_detect();
-      if((test_0_prox_detect() == 0) || (test_0_als_detect() == 0) || cam_rdy)
+      test->cam_rdy = test_0_cam_detect();
+      if((test_0_prox_detect() == 0) || (test_0_als_detect() == 0) || test->cam_rdy)
       {
         i++;
         if(i > 5) break;
@@ -294,22 +288,54 @@ static void test_0_task(void* p)
       osDelay(50);
     };
 
-    stage = TEST_STAGE_OS;
+    if(!is_test)
+    {
+      test_0_deinit(intf);
+      break;
+    }
 
-    osDelay(1000);
+    test->stage = TEST_STAGE_OS;
+    osDelay(400);
 
+    ostest = 0;
+    US_GET(ostest, &ostest);
+    test->os_test_data_len = 0;
+    test->os_test_result = 0;
+    if(ostest)
+    {
+      test_0_deinit(intf);
+
+      test_current_stop();
+      for(;intf->func_pin_list[test->os_test_data_len];test->os_test_data_len++);
+      os_test_get_volt(intf->gnd_pin_list, intf->func_pin_list, test->os_test_data);
+
+      for(uint8_t i = 0;i < test->_0.config->os_test_num;i++)
+      {
+        if(test->_0.config->ost[i].i_max < test->os_test_data[i] || test->_0.config->ost[i].i_min > test->os_test_data[i])
+        {
+          test->os_test_result++;
+        }
+      }
+
+      osDelay(100);
+      test_current_start();
+
+      if(test->os_test_result) wav_play(audio_file_warning);
+
+      test_0_init(intf);
+    }
 
     err_flg = 0;
     err_flg_new = 0x0000001F;
     i = 0;
-    spk_pn = spk_pn_detect(intf);
-    cam_rdy = test_0_cam_detect();
+    test->spk_pn = spk_pn_detect(intf);
+    test->cam_rdy = test_0_cam_detect();
     test_0_mic_update_data();
     test_0_als_update_data();
     test_0_prox_update_data();
-    stage = TEST_STAGE_FUNC;
+    test->stage = TEST_STAGE_FUNC;
     tick = HAL_GetTick();
-    while(test_0_tid)
+    while(is_test)
     {
       test_0_mic_update_data();
       test_0_als_update_data();
@@ -319,19 +345,19 @@ static void test_0_task(void* p)
         tick += 50;
         uint32_t flag = 0;
 
-        cam_rdy = test_0_cam_detect();
-        if(cam_rdy != 0)
+        test->cam_rdy = test_0_cam_detect();
+        if(test->cam_rdy != 0)
         {
           flag |= (1U << 0);
         }
 
-        spk_pn = spk_pn_detect(intf);
-        if((spk_pn & 1) != 0)
+        test->spk_pn = spk_pn_detect(intf);
+        if((test->spk_pn & 1) != 0)
         {
           flag |= (1U << 1);
         }
 
-        if((spk_pn & 2) != 0)
+        if((test->spk_pn & 2) != 0)
         {
           flag |= (1U << 2);
         }
@@ -389,27 +415,42 @@ static void test_0_task(void* p)
 
       osDelay(10);
     }
+
+    test_0_deinit(intf);
   }
 
-  start--;
+  osKernelLock();
+  vPortFree(test);
+  test = 0;
+  osKernelUnlock();
+
   osThreadExit();
 }
 
 void test_0_stop(void)
 {
-  if(start == 0) return;
+  is_test = 0;
+}
 
-  test_0_tid = 0;
+int test_0_is_running(void)
+{
+  return test ? 1 : 0;
 }
 
 static uint8_t test_0_stage_get(void)
 {
-  return stage;
+  return test->stage;
 }
 
-static uint32_t test_0_os_result_get(void)
+static const float* os_test_data_get(uint8_t* len)
 {
-  return 0;
+  *len = test->os_test_data_len;
+  return test->os_test_data;
+}
+
+static uint8_t os_test_result_get(void)
+{
+  return test->os_test_result;
 }
 
 static uint8_t test_0_prox_get(void)
@@ -434,15 +475,15 @@ static uint8_t _test_0_als_is_rdy(void)
 
 static uint8_t test_0_spk_pn_get(void)
 {
-  return spk_pn;
+  return test->spk_pn;
 }
 
 static uint8_t test_0_cam_is_rdy(void)
 {
-  return cam_rdy;
+  return test->cam_rdy;
 }
 
-static test_0_config_st* config_parse(const config_file_st* config_file)
+static test_0_config_st* config_parse(const config_file_st* config_file, const test_0_config_st* config_default)
 {
   test_0_config_st* config;
   cJSON* json;
@@ -454,7 +495,7 @@ static test_0_config_st* config_parse(const config_file_st* config_file)
     goto __exit;
   }
 
-  memcpy(config, &test_0_config_default, sizeof(test_0_config_st));
+  memcpy(config, config_default, sizeof(test_0_config_st));
 
   if(config_file == 0)
   {
@@ -599,6 +640,8 @@ static test_0_config_st* config_parse(const config_file_st* config_file)
         }
       }
     }
+
+    ostest_json_config_phase(j_test, config->ost, config->os_test_num);
   }
 
   cJSON_Delete(json);
@@ -607,47 +650,79 @@ __exit:
   return config;
 }
 
-int test_0_start(test_module_st* module, const test_0_interface_st* intf, const char* title)
+int test_0_start(test_module_st* module, const test_0_interface_st* intf, const test_0_config_st* config_default, const char* title)
 {
   int err;
   test_0_config_st* config;
 
-  err = 0;
+  osKernelLock();
 
-  config = config_parse(module->config_file);
+  if(test)
+  {
+    err = 1;
+    goto __unlock;
+  }
+
+  test = pvPortMalloc(sizeof(*test));
+  if(test == 0)
+  {
+    err = -1;
+    goto __unlock;
+  }
+
+  config = config_parse(module->config_file, config_default);
   if(config == 0)
   {
-    return -1;
+    err = -2;
+    goto __free_test;
   }
 
-  test_0.config = config;
-  test_0.stage_get = test_0_stage_get;
-  test_0.prox_get = test_0_prox_get;
-  test_0.prox_is_rdy = test_0_prox_is_rdy;
-  test_0.als_get = test_0_als_get;
-  test_0.als_is_rdy = test_0_als_is_rdy;
-  test_0.mic_get = test_0_mic_get_percentage;
-  test_0.mic_record_play = test_0_mic_record_play;
-  test_0.mic_record_start = test_0_mic_record_start;
-  test_0.mic_record_get_progress = test_0_mic_record_get_progress;
-  test_0.mic_record_stop = test_0_mic_record_stop;
-  test_0.cam_is_rdy = test_0_cam_is_rdy;
-  test_0.ma_get = test_ma_get;
-  test_0.mv_get = test_mv_get;
-  test_0.ma_is_update = test_ma_is_update;
-  test_0.spk_pn_get = test_0_spk_pn_get;
-
-  ui_test_0_open(&test_0, title);
-
-  if(start == 0)
+  if(osThreadNew(test_task, 0, &test_tid_attr) == 0)
   {
-    start = 1;
-    test_0_tid = osThreadNew(test_0_task, (void*)intf, &test_0_tid_attr);
-    if(test_0_tid == NULL)
-    {
-      start = 0;
-    }
+    err = -3;
+    goto __free_config;
   }
 
-  return 0;
+  memset(test, 0, sizeof(*test));
+
+  test->intf = intf;
+
+  test->_0.config = config;
+  test->_0.stage_get = test_0_stage_get;
+  test->_0.os_test_result_get = os_test_result_get;
+  test->_0.os_test_data_get = os_test_data_get;
+  test->_0.prox_get = test_0_prox_get;
+  test->_0.prox_is_rdy = test_0_prox_is_rdy;
+  test->_0.als_get = test_0_als_get;
+  test->_0.als_is_rdy = test_0_als_is_rdy;
+  test->_0.mic_get = test_0_mic_get_percentage;
+  test->_0.mic_record_play = test_0_mic_record_play;
+  test->_0.mic_record_start = test_0_mic_record_start;
+  test->_0.mic_record_get_progress = test_0_mic_record_get_progress;
+  test->_0.mic_record_stop = test_0_mic_record_stop;
+  test->_0.cam_is_rdy = test_0_cam_is_rdy;
+  test->_0.ma_get = test_ma_get;
+  test->_0.mv_get = test_mv_get;
+  test->_0.ma_is_update = test_ma_is_update;
+  test->_0.spk_pn_get = test_0_spk_pn_get;
+
+  err = 0;
+  is_test = 1;
+
+  goto __unlock;
+
+__free_config:
+  vPortFree(config);
+
+__free_test:
+  vPortFree(test);
+  test = 0;
+
+__unlock:
+  osKernelUnlock();
+
+  if(err == 0)
+    ui_test_0_open(&test->_0, title);
+
+  return err;
 }

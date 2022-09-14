@@ -17,7 +17,6 @@
 #include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
-#define PROG_FONT_DEF (GUI_FONT_20_ASCII)
 
 #define ID_WINDOW_0         (GUI_ID_USER + 0x00)
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
@@ -71,7 +70,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "更新配置文件");
+      TEXT_SetText(hItem, ui_str.ui_config_update.title);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -84,8 +83,8 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       LISTVIEW_SetFont(hItem, FONT_DEF);
       HEADER_SetFont(LISTVIEW_GetHeader(hItem), FONT_DEF);
       LISTVIEW_AddColumn(hItem, 50, "", GUI_TA_HCENTER | GUI_TA_VCENTER);
-      LISTVIEW_AddColumn(hItem, 95, "当前配置", GUI_TA_HCENTER | GUI_TA_VCENTER);
-      LISTVIEW_AddColumn(hItem, 95, "新配置", GUI_TA_HCENTER | GUI_TA_VCENTER);
+      LISTVIEW_AddColumn(hItem, 95, ui_str.ui_config_update.now_config, GUI_TA_HCENTER | GUI_TA_VCENTER);
+      LISTVIEW_AddColumn(hItem, 95, ui_str.ui_config_update.new_config, GUI_TA_HCENTER | GUI_TA_VCENTER);
       LISTVIEW_SetHeaderHeight(hItem, 20);
       LISTVIEW_SetWrapMode(hItem, GUI_WRAPMODE_WORD);
       LISTVIEW_SetGridVis(hItem, 1);
@@ -100,13 +99,13 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       common_config_info_phase(config_file_new, &config_info_new);
 
       LISTVIEW_AddRow(hItem, 0);
-      LISTVIEW_SetItemText(hItem, 0, 0, "名称");
+      LISTVIEW_SetItemText(hItem, 0, 0, ui_str.ui_config_update.name);
       LISTVIEW_SetItemTextColor(hItem, 0, 0, LISTVIEW_CI_UNSEL, 0x0000FF);
       LISTVIEW_SetItemText(hItem, 1, 0, config_info_old.name);
       LISTVIEW_SetItemText(hItem, 2, 0, config_info_new.name);
 
       LISTVIEW_AddRow(hItem, 0);
-      LISTVIEW_SetItemText(hItem, 0, 1, "版本");
+      LISTVIEW_SetItemText(hItem, 0, 1, ui_str.ui_config_update.version);
       LISTVIEW_SetItemTextColor(hItem, 0, 1, LISTVIEW_CI_UNSEL, 0x0000FF);
       snprintf(str, sizeof(str), "%d", config_info_old.version);
       LISTVIEW_SetItemText(hItem, 1, 1, str);
@@ -114,7 +113,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       LISTVIEW_SetItemText(hItem, 2, 1, str);
 
       LISTVIEW_AddRow(hItem, 0);
-      LISTVIEW_SetItemText(hItem, 0, 2, "描述");
+      LISTVIEW_SetItemText(hItem, 0, 2, ui_str.ui_config_update.description);
       LISTVIEW_SetItemTextColor(hItem, 0, 2, LISTVIEW_CI_UNSEL, 0x0000FF);
       LISTVIEW_SetItemText(hItem, 1, 2, config_info_old.desc);
       LISTVIEW_SetItemText(hItem, 2, 2, config_info_new.desc);
@@ -135,14 +134,14 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "返回");
+      TEXT_SetText(hItem, ui_str.ui_config_update.btn_back);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_UPDATE);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "更新");
+      TEXT_SetText(hItem, ui_str.ui_config_update.btn_update);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_NONE);
       TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_TOP);
@@ -166,7 +165,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
             status = 1;
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_NOTICE);
             TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0000FF));
-            TEXT_SetText(hItem, "更新中。。。");
+            TEXT_SetText(hItem, ui_str.ui_config_update.updating);
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BACK);
             TEXT_SetText(hItem, "");
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_UPDATE);
@@ -178,19 +177,19 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
             if(err == 0)
             {
               TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x00FF00));
-              TEXT_SetText(hItem, "更新完成");
+              TEXT_SetText(hItem, ui_str.ui_config_update.update_finished);
             }
             else
             {
               TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000));
-              snprintf(str, sizeof(str), "更新失败%d", err);
+              snprintf(str, sizeof(str), "%s %d", ui_str.ui_config_update.update_failed, err);
               TEXT_SetText(hItem, str);
             }
 
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BACK);
-            TEXT_SetText(hItem, "返回");
+            TEXT_SetText(hItem, ui_str.ui_config_update.btn_back);
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_UPDATE);
-            TEXT_SetText(hItem, "更新");
+            TEXT_SetText(hItem, ui_str.ui_config_update.btn_update);
             status = 0;
           }
 

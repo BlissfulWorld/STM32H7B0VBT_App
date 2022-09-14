@@ -15,7 +15,6 @@
 #include "user_settings.h"
 
 #define FONT_DEF      (font_ext)
-#define PROG_FONT_DEF (GUI_FONT_20_ASCII)
 
 #define TIMEOUT_MS (10000)
 
@@ -57,7 +56,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFF));
       TEXT_SetWrapMode(hItem, GUI_WRAPMODE_CHAR);
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "充电中...");
+      TEXT_SetText(hItem, ui_str.ui_charge.charging);
 
       timer = WM_CreateTimer(pMsg->hWin, 0, TIMEOUT_MS, 0);
 
@@ -106,11 +105,11 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_INFO);
       if(battery_get_status() != BAT_STA_FULL)
       {
-        TEXT_SetText(hItem, "充电中...");
+        TEXT_SetText(hItem, ui_str.ui_charge.charging);
       }
       else
       {
-        TEXT_SetText(hItem, "已充满");
+        TEXT_SetText(hItem, ui_str.ui_charge.full);
       }
       break;
     }

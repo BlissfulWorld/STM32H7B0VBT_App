@@ -208,6 +208,8 @@ static int w25qxx_read(void* pdata, uint32_t address, uint32_t size)
 
     if(HAL_OSPI_Receive(&hospi1, (uint8_t*)pdata + i, HAL_OSPI_TIMEOUT_DEFAULT_VALUE * (size / W25QXX_SECTOR_SIZE + 1)) != HAL_OK)
       return -3;
+
+    IWDG1->KR = IWDG_KEY_RELOAD;
   }
 
   return 0;
@@ -253,12 +255,12 @@ static int w25qxx_write(void* pdata, uint32_t address, uint32_t size)
       return -4;
 
     p += len;
+
+    IWDG1->KR = IWDG_KEY_RELOAD;
   }
 
   return 0;
 }
-
-
 
 /**
   * @brief 扇区擦除 每扇区4KByte

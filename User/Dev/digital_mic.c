@@ -9,6 +9,7 @@ static const osThreadAttr_t t_attr = {
   .priority = (osPriority_t)osPriorityAboveNormal,
 };
 
+
 static void (*cb)(void);
 static uint16_t* out_buffer = 0;
 static uint32_t count;
@@ -17,6 +18,7 @@ static es7243_data_st* pdata;
 static uint32_t data_len;
 
 static osThreadId_t tid;
+static int is_run;
 
 static void data_cb(es7243_data_st* _pdata, uint32_t _len)
 {
@@ -32,31 +34,39 @@ static void data_cb(es7243_data_st* _pdata, uint32_t _len)
  */
 static void digital_mic_task(void* arg)
 {
-  while(1)
+  //开始ES7243音频数据录制
+  if(es7243_start((uint32_t)arg, data_cb) == 0)
   {
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    if(out_buffer == 0)
-      continue;
-
-    uint32_t length = count;
-    if(length > data_len)
-      length = data_len;
-
-    SCB_InvalidateDCache_by_Addr(pdata, (length * sizeof(es7243_data_st) + 32) & (~0x0000001FU));
-    for(uint32_t i = 0;i < length;i++)
+    while(is_run)
     {
-      uint16_t val = (uint16_t)pdata[i].r;
-      out_buffer[i] = val + 0x8000;
-    }
+      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+      if(out_buffer == 0)
+        continue;
 
-    out_buffer += length;
-    count -= length;
-    if(count == 0)
-    {
-      out_buffer = 0;
-      if(cb) cb();
+      uint32_t length = count;
+      if(length > data_len)
+        length = data_len;
+
+      SCB_InvalidateDCache_by_Addr(pdata, (length * sizeof(es7243_data_st) + 32) & (~0x0000001FU));
+      for(uint32_t i = 0;i < length;i++)
+      {
+        uint16_t val = (uint16_t)pdata[i].r;
+        out_buffer[i] = val + 0x8000;
+      }
+
+      out_buffer += length;
+      count -= length;
+      if(count == 0)
+      {
+        out_buffer = 0;
+        if(cb) cb();
+      }
     }
+    es7243_stop();
   }
+
+  tid = 0;
+  osThreadExit();
 }
 
 /**
@@ -80,28 +90,14 @@ int digital_mic_start(uint32_t rate)
   }
 
   //创建线程处理麦克风数据
-  tid = osThreadNew(digital_mic_task, 0, &t_attr);
+  tid = osThreadNew(digital_mic_task, (void*)rate, &t_attr);
   if(tid == 0)
   {
     err = -2;
     goto __exit;
   }
 
-  osKernelUnlock();
-
-  //开始ES7243音频数据录制
-  if(es7243_start(rate, data_cb))
-  {
-    err = -3;
-    goto __thread_terminate;
-  }
-
-  return err;
-
-__thread_terminate:
-  osKernelLock();
-  osThreadTerminate(tid);
-  tid = 0;
+  is_run = 1;
 
 __exit:
   osKernelUnlock();
@@ -115,21 +111,8 @@ __exit:
  */
 int digital_mic_stop(void)
 {
-  osKernelLock();
-  if(tid == 0)
-  {
-    osKernelUnlock();
-    return 1;
-  }
-
-  es7243_stop();
-
-  osThreadTerminate(tid);
-
-  out_buffer = 0;
-  tid = 0;
-  osKernelUnlock();
-
+  is_run = 0;
+  while(tid) osDelay(10);
   return 0;
 }
 

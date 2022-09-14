@@ -12,11 +12,10 @@
 typedef struct menu_item_s
 {
   void (*ui_open)(WM_HWIN back);
-  const char* name;
+  const char** name;
 }menu_item_st;
 
 #define FONT_DEF      (font_ext)
-#define PROG_FONT_DEF (GUI_FONT_20_ASCII)
 
 #define ID_WINDOW_0         (GUI_ID_USER + 0x00)
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
@@ -49,13 +48,36 @@ static int select = 0;
 
 const menu_item_st menu_item[] =
 {
-  {ui_menu_brightness_open,"亮度"},
-  {ui_menu_volume_open,"系统音量"},
-  {ui_menu_standby_open,"待机"},
-  {ui_menu_u_disk_mode_open,"U盘模式"},
-  {ui_menu_clone_app,"克隆"},
-  {ui_menu_about_open,"关于"}
+  {ui_menu_brightness_open,&ui_str.ui_menu.brightness},
+  {ui_menu_volume_open,&ui_str.ui_menu.volume},
+  {ui_menu_standby_open,&ui_str.ui_menu.standby},
+  {ui_menu_u_disk_mode_open,&ui_str.ui_menu.u_disk_mode},
+  {ui_menu_os_test_open,&ui_str.ui_menu.os_test},
+  {ui_menu_clone_app,&ui_str.ui_menu.clone_app},
+  {ui_menu_language_open,&ui_str.ui_menu.language},
+  {ui_menu_about_open,&ui_str.ui_menu.about}
 };
+
+static void update_text(WM_HWIN win)
+{
+  WM_HWIN hItem;
+
+  hItem = WM_GetDialogItem(win, ID_TEXT_TITLE);
+  TEXT_SetText(hItem, ui_str.ui_menu.title);
+
+  hItem = WM_GetDialogItem(win, ID_LISTVIEW_MENU);
+  for(uint32_t i = 0;i < sizeof(menu_item) / sizeof(menu_item_st);i++)
+  {
+    LISTVIEW_SetItemText(hItem, 0, i, *menu_item[i].name);
+    LISTVIEW_SetItemText(hItem, 1, i, ">>");
+  }
+
+  hItem = WM_GetDialogItem(win, ID_TEXT_BACK);
+  TEXT_SetText(hItem, ui_str.ui_menu.btn_back);
+
+  hItem = WM_GetDialogItem(win, ID_TEXT_OK);
+  TEXT_SetText(hItem, ui_str.ui_menu.btn_confirm);
+}
 
 static void _cbDialog(WM_MESSAGE* pMsg) {
   WM_HWIN                hItem;
@@ -77,7 +99,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "菜单");
+      TEXT_SetText(hItem, ui_str.ui_menu.title);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -97,7 +119,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       for(uint32_t i = 0;i < sizeof(menu_item) / sizeof(menu_item_st);i++)
       {
         LISTVIEW_AddRow(hItem, 0);
-        LISTVIEW_SetItemText(hItem, 0, i, menu_item[i].name);
+        LISTVIEW_SetItemText(hItem, 0, i, *menu_item[i].name);
         LISTVIEW_SetItemText(hItem, 1, i, ">>");
       }
 
@@ -110,14 +132,14 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "返回");
+      TEXT_SetText(hItem, ui_str.ui_menu.btn_back);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OK);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "确定");
+      TEXT_SetText(hItem, ui_str.ui_menu.btn_confirm);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_NONE);
       TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_TOP);
@@ -127,6 +149,12 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetText(hItem, "");
 
       WM_SetFocus(pMsg->hWin);
+      break;
+    }
+    case UI_MSG_ML:
+    {
+      if(WM_IsVisible(pMsg->hWin))
+        update_text(pMsg->hWin);
       break;
     }
     case WM_KEY:

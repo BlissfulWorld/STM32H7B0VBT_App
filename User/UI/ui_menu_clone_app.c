@@ -12,7 +12,6 @@
 #include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
-#define PROG_FONT_DEF (GUI_FONT_20_ASCII)
 
 #define ID_WINDOW_0         (GUI_ID_USER + 0x00)
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
@@ -154,7 +153,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "克隆");
+      TEXT_SetText(hItem, ui_str.ui_m_clone.title);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -172,11 +171,11 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       char version[17];
       if(app_version_get(version, sizeof(version)) == 0)
       {
-        snprintf(str, sizeof(str), "软件版本：V%s", version);
+        snprintf(str, sizeof(str), "%s : V%s", ui_str.ui_m_clone.software_version, version);
       }
       else
       {
-        snprintf(str, sizeof(str), "软件版本：无");
+        snprintf(str, sizeof(str), "%s : xx", ui_str.ui_m_clone.software_version);
       }
       TEXT_SetText(hItem, str);
 
@@ -194,7 +193,8 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
 
       MULTIEDIT_ShowCursor(hItem, 0);
 
-      MULTIEDIT_SetText(hItem, "设备未连接。\n");
+      snprintf(str, sizeof(str), "%s\n", ui_str.ui_m_clone.device_disconnect);
+      MULTIEDIT_SetText(hItem, str);
       WM_EnableMemdev(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BACK);
@@ -202,7 +202,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "返回");
+      TEXT_SetText(hItem, ui_str.ui_m_clone.btn_back);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OK);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -234,7 +234,10 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     case UI_USBH_APP_DISCONNECT:
     {
       hItem = WM_GetDialogItem(pMsg->hWin, ID_MULTIEDIT_INFO);
-      MULTIEDIT_AddText(hItem, "设备未连接。\n");
+
+      snprintf(str, sizeof(str), "%s\n", ui_str.ui_m_clone.device_disconnect);
+      MULTIEDIT_AddText(hItem, str);
+
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OK);
       TEXT_SetText(hItem, "");
 
@@ -246,7 +249,9 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     case UI_USBH_APP_START:
     {
       hItem = WM_GetDialogItem(pMsg->hWin, ID_MULTIEDIT_INFO);
-      MULTIEDIT_AddText(hItem, "连接中。\n");
+
+      snprintf(str, sizeof(str), "%s\n", ui_str.ui_m_clone.connecting);
+      MULTIEDIT_AddText(hItem, str);
 
       stage = STAGE_CONNECTING;
       break;
@@ -260,17 +265,17 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       {
         MULTIEDIT_SetText(hItem, "");
 
-        snprintf(str, sizeof(str), "已连接。\n");
+        snprintf(str, sizeof(str), "%s\n", ui_str.ui_m_clone.connected);
         MULTIEDIT_AddText(hItem, str);
 
         hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OK);
-        TEXT_SetText(hItem, "开始克隆");
+        TEXT_SetText(hItem, ui_str.ui_m_clone.btn_start);
 
         stage = STAGE_READY;
       }
       else
       {
-        snprintf(str, sizeof(str), "错误(%d)。\n", res);
+        snprintf(str, sizeof(str), "%s (%d)\n", ui_str.ui_m_clone.error, res);
         MULTIEDIT_AddText(hItem, str);
 
         stage = STAGE_IDLE;
@@ -291,16 +296,19 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
             WM_HideWindow(hItem);
             hItem = WM_GetDialogItem(pMsg->hWin, ID_MULTIEDIT_INFO);
             stage = STAGE_UPDATE;
-            MULTIEDIT_AddText(hItem, "开始克隆。\n");
+
+            snprintf(str, sizeof(str), "%s\n", ui_str.ui_m_clone.start_clone);
+            MULTIEDIT_AddText(hItem, str);
             GUI_Exec();
             int err = export_app(pMsg->hWin);
             if(err == 0)
             {
-              MULTIEDIT_AddText(hItem, "克隆完成。\n");
+              snprintf(str, sizeof(str), "%s\n", ui_str.ui_m_clone.clone_finished);
+              MULTIEDIT_AddText(hItem, str);
             }
             else
             {
-              snprintf(str, sizeof(str), "克隆错误(%d,%u)。\n", err, f_resut);
+              snprintf(str, sizeof(str), "%s (%d,%u)\n", ui_str.ui_m_clone.clone_failed, err, f_resut);
               MULTIEDIT_AddText(hItem, str);
             }
             GUI_Exec();

@@ -4,7 +4,7 @@
 #include "battery.h"
 #include "key.h"
 #include "ip5306.h"
-#include "ff.h"
+#include "fatfs.h"
 #include "iwdg.h"
 #include "stdio.h"
 #include "string.h"
@@ -305,12 +305,12 @@ static void ui_screenshot_task(void* arg)
 
   handle = (GUI_MEMDEV_Handle)arg;
 
-  if(make_file_num("2:/", &num))
+  if(make_file_num(USERPath2, &num))
   {
     goto __exit;
   }
 
-  snprintf(path, sizeof(path), "2:/%u.bmp", num);
+  snprintf(path, sizeof(path), "%s%u.bmp", USERPath2, num);
 
   fp = (FIL*)ff_malloc(sizeof(FIL));
   if(fp == 0)
@@ -409,6 +409,22 @@ int ui_init(void)
   GUI_UC_SetEncodeUTF8();
 
   GUI_SetTextMode(GUI_TM_TRANS);
+  
+  ml_set(0);
+
+  if(font_ext != GUI_DEFAULT_FONT)
+  {
+    uint32_t len = US_LEN(language) + sizeof(USERPath) + 9;
+    char *path = pvPortMalloc(len);
+    if(path)
+    {
+      if(US_GET(language,snprintf(path,len,"%slanguage/",USERPath)+path) == 0)
+        ml_set(path);
+      else
+        ml_set(0);
+      vPortFree(path);
+    }
+  }
 
   GUI_SetFont(font_ext);
 

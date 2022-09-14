@@ -29,11 +29,24 @@ int test_0_mic_init(void)
     }
   }
 
+  if(digital_mic_start(SAMPLE_RATE_HZ))
+    return -1;
+
   stage = 0;
   record_count = 0;
 
-  if(digital_mic_start(SAMPLE_RATE_HZ))
-    return -1;
+  return 0;
+}
+
+int test_0_mic_deinit(void)
+{
+  if(mic_record)
+  {
+    vPortFree(mic_record);
+    mic_record = 0;
+  }
+
+  digital_mic_stop();
 
   return 0;
 }

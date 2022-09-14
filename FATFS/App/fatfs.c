@@ -15,7 +15,7 @@
   *
   ******************************************************************************
   */
-  /* USER CODE END Header */
+/* USER CODE END Header */
 #include "fatfs.h"
 
 uint8_t retUSBH;    /* Return value for USBH */

@@ -77,7 +77,7 @@ Purpose     : Configures emWins abilities, fonts etc.
 *
 *       Default font
 */
-#define GUI_DEFAULT_FONT          &GUI_Font6x8
+#define GUI_DEFAULT_FONT          GUI_FONT_20_ASCII
 
 /*********************************************************************
 *

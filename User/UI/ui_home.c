@@ -20,7 +20,6 @@
 #include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
-#define PROG_FONT_DEF (GUI_FONT_20_ASCII)
 
 #define ID_WINDOW_0         (GUI_ID_USER + 0x00)
 #define ID_BUTTON_0         (GUI_ID_USER + 0x01)
@@ -138,7 +137,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "配置");
+      TEXT_SetText(hItem, ui_str.ui_home.title);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
@@ -153,7 +152,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0000FF));
       TEXT_SetWrapMode(hItem, GUI_WRAPMODE_CHAR);
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "名称");
+      TEXT_SetText(hItem, ui_str.ui_home.name);
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_T_VERSION);
@@ -162,7 +161,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0000FF));
       TEXT_SetWrapMode(hItem, GUI_WRAPMODE_CHAR);
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "版本");
+      TEXT_SetText(hItem, ui_str.ui_home.version);
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_T_DESC);
@@ -171,7 +170,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0000FF));
       TEXT_SetWrapMode(hItem, GUI_WRAPMODE_CHAR);
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "描述");
+      TEXT_SetText(hItem, ui_str.ui_home.description);
       WM_HideWindow(hItem);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_NAME);
@@ -229,7 +228,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "菜单");
+      TEXT_SetText(hItem, ui_str.ui_home.btn_menu);
 
       new_config_file_md5 = new_config_file_md5_get();
 
@@ -285,11 +284,11 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
         if(new_config_file_md5 && ((_module_->config_file == 0) || memcmp(_module_->config_file->md5, new_config_file_md5, 16)))
         {
           hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_UPDATE);
-          TEXT_SetText(hItem, "更新");
+          TEXT_SetText(hItem, ui_str.ui_home.btn_update);
         }
 
         hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OK);
-        TEXT_SetText(hItem, "开始");
+        TEXT_SetText(hItem, ui_str.ui_home.btn_start);
 
         wav_play(audio_file_board_loaded);
 
@@ -299,7 +298,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       {
         WM_RestartTimer(timer, 300);
         hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_INFO);
-        snprintf(str, sizeof(str), "等待测试板\n%s", (osKernelGetTickCount() / 500) & 1 ? "---" : "+++");
+        snprintf(str, sizeof(str), "%s\n%s", ui_str.ui_home.waiting, (osKernelGetTickCount() / 500) & 1 ? "---" : "+++");
         TEXT_SetText(hItem, str);
 
         board_power_off();
