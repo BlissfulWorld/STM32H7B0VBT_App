@@ -1,4 +1,5 @@
 #include "config_file.h"
+#include "config.h"
 #include "cmsis_os.h"
 #include "spiflash.h"
 #include "hash.h"
@@ -8,7 +9,7 @@
 #include "json_obj.h"
 #include "stdio.h"
 
-const char config_file_update_path[] = "2:/config.json";
+const char config_file_update_path[] = CONFIG_FILE_UPDATE_PATH;
 
 /**
  * @brief 从小板中加载配置文件

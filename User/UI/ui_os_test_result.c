@@ -52,6 +52,11 @@ static const os_test_st* os_test;
 static uint8_t len;
 static const char* name;
 
+/**
+ * @brief 导出开短路数据到用户存储区
+ *
+ * @return int 错误码
+ */
 static int export_data(void)
 {
   int err;
@@ -75,7 +80,8 @@ static int export_data(void)
     goto __free_str_buf;
   }
 
-  snprintf(str_buf, 128, "%sOS_TEST_RESULT_%s.txt", USERPath2, name);
+  //生成完整文件路径
+  snprintf(str_buf, 128, "%sOS_TEST_RESULT_%s.txt", DISK_USER_PATH, name);
   for(int i = 0;str_buf[i];i++)
   {
     if(str_buf[i] == ' ') str_buf[i] = '_';
@@ -87,6 +93,7 @@ static int export_data(void)
     goto __free_fil;
   }
 
+  //写入每个引脚开短路信息到文件中
   for(uint8_t i = 0;i < len;i++)
   {
     if(f_write(fil,
@@ -117,6 +124,11 @@ __exit:
   return err;
 }
 
+/**
+ * @brief 生成配置并写入小板中
+ *
+ * @return int 错误码
+ */
 static int make_config_to_board(void)
 {
   int err;
@@ -248,11 +260,10 @@ __exit:
   return err;
 }
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
-  WM_HWIN                hItem;
-  int                    NCode;
-  int                    Id;
-  char                   str_buf[128];
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
+  WM_HWIN hItem;
+  char    str_buf[128];
 
   switch(pMsg->MsgId)
   {

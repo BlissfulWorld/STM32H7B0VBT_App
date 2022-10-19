@@ -70,7 +70,7 @@ static int app_version_get(char* buffer, uint32_t size)
 
   err = 0;
 
-  snprintf(path, sizeof(path), "%sapp/XPTest.app", USERPath);
+  snprintf(path, sizeof(path), "%sapp/XPTest.app", DISK_SYS_PATH);
   res = f_open(&fil_src, path, FA_READ);
   if(res != FR_OK)
   {
@@ -105,11 +105,15 @@ __exit:
 
 static void file_copy_stat_cb(uint32_t total, uint32_t count, void* user)
 {
-  IWDG1->KR = IWDG_KEY_RELOAD;
   pwdn_watchdog_reload();
 }
 
-static int export_app(WM_HWIN hwin)
+/**
+ * @brief 导出APP到外部存储
+ *
+ * @return int 错误码
+ */
+static int export_app(void)
 {
   int err;
   FRESULT res;
@@ -120,9 +124,9 @@ static int export_app(WM_HWIN hwin)
 
   err = 0;
 
-  snprintf(path_src, sizeof(path_src), "%sapp/XPTest.app", USERPath);
+  snprintf(path_src, sizeof(path_src), "%sapp/XPTest.app", DISK_SYS_PATH);
 
-  snprintf(path_dst, sizeof(path_dst), "%sXPTest.app", USBHPath);
+  snprintf(path_dst, sizeof(path_dst), "%sXPTest.app", DISK_EXT_PATH);
 
   if(disk_copy_file(path_dst, path_src, file_copy_stat_cb, 0) != FR_OK)
     err = -1;
@@ -132,11 +136,10 @@ __exit:
   return err;
 }
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
-  WM_HWIN                hItem;
-  int                    NCode;
-  int                    Id;
-  char str[128];
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
+  WM_HWIN hItem;
+  char    str[128];
 
   switch(pMsg->MsgId)
   {
@@ -224,6 +227,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
 
       WM_SetFocus(pMsg->hWin);
 
+      //打开USB主机模式
       MX_USB_HOST_Init();
     }
     case WM_TIMER:
@@ -241,7 +245,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OK);
       TEXT_SetText(hItem, "");
 
-      f_mount(0, USBHPath, 1);
+      f_mount(0, DISK_EXT_PATH, 1);
 
       stage = STAGE_IDLE;
       break;
@@ -260,7 +264,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     {
       hItem = WM_GetDialogItem(pMsg->hWin, ID_MULTIEDIT_INFO);
 
-      FRESULT res = f_mount(&USBHFatFS, USBHPath, 1);
+      FRESULT res = f_mount(&DISK_EXT_FS, DISK_EXT_PATH, 1);
       if(res == FR_OK)
       {
         MULTIEDIT_SetText(hItem, "");
@@ -300,7 +304,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
             snprintf(str, sizeof(str), "%s\n", ui_str.ui_m_clone.start_clone);
             MULTIEDIT_AddText(hItem, str);
             GUI_Exec();
-            int err = export_app(pMsg->hWin);
+            int err = export_app();
             if(err == 0)
             {
               snprintf(str, sizeof(str), "%s\n", ui_str.ui_m_clone.clone_finished);

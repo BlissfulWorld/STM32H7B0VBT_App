@@ -49,11 +49,10 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 
 static uint32_t status;
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
-  WM_HWIN                hItem;
-  int                    NCode;
-  int                    Id;
-  char str[1024];
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
+  WM_HWIN hItem;
+  char    str[1024];
 
   switch(pMsg->MsgId)
   {

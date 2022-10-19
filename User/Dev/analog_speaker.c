@@ -17,6 +17,7 @@ static void* user_p;
 static float multiplier = 1;
 static int8_t db;
 static uint8_t volume_adjust;
+static uint8_t stop;
 
 static uint32_t get_data(void* buffer, uint32_t size)
 {
@@ -113,11 +114,11 @@ void speaker_task(void* argument)
 {
   uint32_t size, count;
   uint32_t half_size;
-  void* buffer, * p;
+  void* pbuffer, * p;
 
   //得到缓存指针
-  ALIGN_32BYTES(static uint16_t pbuffer[DAC_DMA_LEN_MAX] __attribute__((section(".AHB_SRAM1"))));
-  buffer = pbuffer;
+  ALIGN_32BYTES(static uint16_t buffer[DAC_DMA_LEN_MAX] __attribute__((section(".AHB_SRAM1"))));
+  pbuffer = buffer;
 
   while(1)
   {
@@ -137,7 +138,7 @@ void speaker_task(void* argument)
     }
 
     //首次完整填充音频数据
-    count = get_data(buffer, size);
+    count = get_data(pbuffer, size);
     if(count == 0)
       goto __exit;
 
@@ -158,7 +159,7 @@ void speaker_task(void* argument)
     {
       vPortEnterCritical();
       //开始转换
-      HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t*)buffer, DAC_DMA_LEN_MAX, align);
+      HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t*)pbuffer, DAC_DMA_LEN_MAX, align);
       vPortExitCritical();
 
       uint32_t delay_tick = pdMS_TO_TICKS(((double)half_size / (double)rate) * 1000.0);
@@ -174,15 +175,15 @@ void speaker_task(void* argument)
 
     p = 0;
 
-    while(1)
+    while(stop == 0)
     {
       if(count == 0)
         break;
 
-      if(p != buffer)
-        p = buffer;
+      if(p != pbuffer)
+        p = pbuffer;
       else
-        p = (uint8_t*)buffer + half_size;
+        p = (uint8_t*)pbuffer + half_size;
 
       count = get_data(p, half_size);
 
@@ -217,7 +218,8 @@ void speaker_task(void* argument)
  * @param user 用户指针
  * @return int 错误码
  */
-int analog_speaker_play(uint32_t rate_hz, analog_spk_bits_et bits, uint8_t is_volume_adjust, analog_speaker_get_data_func_t data_get, analog_speaker_play_finished_cb_func_t finished_cb, void* user)
+int analog_speaker_play(uint32_t rate_hz, analog_spk_bits_et bits, uint8_t is_volume_adjust,
+  analog_speaker_get_data_func_t data_get, analog_speaker_play_finished_cb_func_t finished_cb, void* user)
 {
   int err;
 
@@ -260,13 +262,22 @@ int analog_speaker_play(uint32_t rate_hz, analog_spk_bits_et bits, uint8_t is_vo
   HAL_DMA_Init(hdac1.DMA_Handle1);
 
   err = 0;
-
+  stop = 0;
   xTaskNotifyGive((TaskHandle_t)speakerHandle);
 
 __kernel_unlock:
   osKernelUnlock();
 __exit:
   return err;
+}
+
+/**
+ * @brief 停止播放
+ *
+ */
+void analog_speaker_stop(void)
+{
+  stop = 1;
 }
 
 /**

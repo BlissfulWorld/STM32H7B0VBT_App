@@ -14,9 +14,9 @@ FRESULT mount(uint8_t disk)
   if(disk > 1) return FR_INVALID_PARAMETER;
 
   if(disk == 0)
-    res = f_mount(&USERFatFS, USERPath, 1);
+    res = f_mount(&DISK_SYS_FS, DISK_SYS_PATH, 1);
   else
-    res = f_mount(&USERFatFS2, USERPath2, 1);
+    res = f_mount(&DISK_USER_FS, DISK_USER_PATH, 1);
 
   return res;
 }
@@ -29,9 +29,9 @@ FRESULT umount(uint8_t disk)
   if(disk > 1) return FR_INVALID_PARAMETER;
 
   if(disk == 0)
-    return f_mount(0, USERPath, 1);
+    return f_mount(0, DISK_SYS_PATH, 1);
   else
-    return f_mount(0, USERPath2, 1);
+    return f_mount(0, DISK_USER_PATH, 1);
 }
 
 /**
@@ -47,9 +47,9 @@ FRESULT format(uint8_t disk)
   work = ff_malloc(_MAX_SS);
 
   if(disk == 0)
-    res = f_mkfs(USERPath, FM_ANY, 0, work, _MAX_SS);
+    res = f_mkfs(DISK_SYS_PATH, FM_ANY, 0, work, _MAX_SS);
   else
-    res = f_mkfs(USERPath2, FM_ANY, 0, work, _MAX_SS);
+    res = f_mkfs(DISK_USER_PATH, FM_ANY, 0, work, _MAX_SS);
 
   ff_free(work);
   return res;
@@ -177,6 +177,15 @@ __exit:
   return res;
 }
 
+/**
+ * @brief 复制文件，如果目标文件存在将覆盖
+ *
+ * @param file_dst 目标文件路径，例如 0:/dst.txt
+ * @param file_src 源文件路径，例如 0:/src.txt
+ * @param stat_cb 统计数据回调函数指针
+ * @param user 用户指针
+ * @return FRESULT 错误码
+ */
 FRESULT disk_copy_file(const char* file_dst, const char* file_src, file_copy_stat_cb_func_t stat_cb, void* user)
 {
   FRESULT res;
@@ -271,6 +280,13 @@ __exit:
   return res;
 }
 
+/**
+ * @brief 计算目录的大小
+ *
+ * @param dir_path 路径
+ * @param size 大小指针
+ * @return FRESULT 错误码
+ */
 FRESULT disk_dir_calc_size(const char* dir_path, uint32_t* size)
 {
   FRESULT res;
@@ -359,7 +375,17 @@ __exit:
   return res;
 }
 
-static FRESULT _disk_copy_dir(const char* dir_dst, const char* dir_src, uint32_t stat, dir_copy_event_cb_func_t event_cb, file_copy_stat_cb_func_t stat_cb, void* user)
+/**
+ * @brief 复制目录，将覆盖所有相同名称的目录或文件
+ *
+ * @param dir_dst 目标目录，例如 0:/dst
+ * @param dir_src 源目录，例如 0:/src
+ * @param event_cb 事件回调函数指针
+ * @param stat_cb 统计数据回调函数指针
+ * @param user 用户指针
+ * @return FRESULT 错误码
+ */
+static FRESULT _disk_copy_dir(const char* dir_dst, const char* dir_src, dir_copy_event_cb_func_t event_cb, file_copy_stat_cb_func_t stat_cb, void* user)
 {
   FRESULT res;
   DIR* dir;
@@ -443,7 +469,7 @@ static FRESULT _disk_copy_dir(const char* dir_dst, const char* dir_src, uint32_t
           }
         }
         f_mkdir(path_dst);
-        if(_disk_copy_dir(path_dst, path_src, stat, event_cb, stat_cb, user) == FR_OK)
+        if(_disk_copy_dir(path_dst, path_src, event_cb, stat_cb, user) == FR_OK)
         {
           if(event_cb)
           {
@@ -485,6 +511,16 @@ __exit:
   return res;
 }
 
+/**
+ * @brief 复制目录，将覆盖所有相同名称的目录或文件
+ *
+ * @param dir_dst 目标目录，例如 0:/dst
+ * @param dir_src 源目录，例如 0:/src
+ * @param event_cb 事件回调函数指针
+ * @param stat_cb 统计数据回调函数指针
+ * @param user 用户指针
+ * @return FRESULT 错误码
+ */
 FRESULT disk_copy_dir(const char* dir_dst, const char* dir_src, dir_copy_event_cb_func_t event_cb, file_copy_stat_cb_func_t stat_cb, void* user)
 {
   FRESULT res;
@@ -498,7 +534,7 @@ FRESULT disk_copy_dir(const char* dir_dst, const char* dir_src, dir_copy_event_c
 
   f_mkdir(dir_dst);
 
-  res = _disk_copy_dir(dir_dst, dir_src, 0, event_cb, stat_cb, user);
+  res = _disk_copy_dir(dir_dst, dir_src, event_cb, stat_cb, user);
   if(res == FR_OK)
   {
     if(event_cb)

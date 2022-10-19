@@ -45,6 +45,13 @@ static struct ui_menu_os_test_var_s
   char str_buf[2][64];
 }*var;
 
+/**
+ * @brief 扫描语言文件，并添加到LISTVIEW，LISTVIEW须有3列
+ *
+ * @param hlv LISTVIEW句柄
+ * @param root 目录
+ * @return FRESULT 错误码
+ */
 static FRESULT listview_scan_files(WM_HWIN hlv, const char* root)
 {
   FRESULT res;
@@ -101,7 +108,8 @@ static FRESULT listview_scan_files(WM_HWIN hlv, const char* root)
   return res;
 }
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
   WM_HWIN hItem;
 
   switch(pMsg->MsgId)
@@ -137,7 +145,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
       LISTVIEW_SetColumnWidth(hItem, LISTVIEW_ALL_ITEMS, 40);
       LISTVIEW_SetHeaderHeight(hItem, 0);
       char dir[128];
-      snprintf(dir, sizeof(dir), "%slanguage", USERPath);
+      snprintf(dir, sizeof(dir), "%slanguage", DISK_SYS_PATH);
       listview_scan_files(hItem, dir);
 
       WM_EnableMemdev(hItem);
@@ -227,7 +235,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     {
       WM_SetFocus(var->back);
       WM_ShowWindow(var->back);
-      WM_SendMessageNoPara(var->back,UI_MSG_ML);
+      WM_SendMessageNoPara(var->back, UI_MSG_ML);
       vPortFree(var);
       break;
     }

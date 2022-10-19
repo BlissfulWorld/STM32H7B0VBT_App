@@ -56,7 +56,7 @@ extern void ui_config_open(void);
 extern void ui_config_update_open(void);
 extern void ui_nonsupport_open(void);
 extern void ui_charge_open(void);
-
+extern void ui_overcurrent_protection_open(ui_close_cb_func_t cb, void* user);
 
 extern void ui_test_0_open(test_0_st* _test_, const char* _title_);
 extern void ui_test_1_open(test_1_st* _test_, const char* _title_);

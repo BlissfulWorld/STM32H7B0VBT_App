@@ -46,10 +46,9 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 
 static WM_HWIN back;
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
-  WM_HWIN                hItem;
-  int                    NCode;
-  int                    Id;
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
+  WM_HWIN hItem;
 
   switch(pMsg->MsgId)
   {
@@ -176,6 +175,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
         }
       }
 
+      //如果与已存储的值不同则提示需要保存
       uint8_t brightness_saved;
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SAVE);
       if((US_GET(backlight, &brightness_saved) == 0) && (brightness == brightness_saved))

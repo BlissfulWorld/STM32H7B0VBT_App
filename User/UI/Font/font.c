@@ -1,6 +1,6 @@
 #include "font.h"
 #include "ui.h"
-#include "ff.h"
+#include "fatfs.h"
 #include "stdio.h"
 #include "string.h"
 
@@ -34,7 +34,11 @@ static int xbf_get_data(U32 off, U16 num_byte, void* arg, void* pbuffer)
  */
 int font_load(void)
 {
-  if(f_open(&font_fil, "1:/font/font.bin", FA_READ) == FR_OK)
+  char path[24];
+
+  snprintf(path, sizeof(path), "%sfont/font.bin", DISK_SYS_PATH);
+
+  if(f_open(&font_fil, path, FA_READ) == FR_OK)
   {
     GUI_XBF_CreateFont(&font, &xbf_data, GUI_XBF_TYPE_PROP, xbf_get_data, &font_fil);
     font_ext = &font;

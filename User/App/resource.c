@@ -33,7 +33,8 @@ void resource_update(void)
 
   dir_dst = dir_src + 128;
 
-  sprintf(dir_src, "%sresource", USERPath2);
+  //检查用户区存储是否存在resource目录
+  sprintf(dir_src, "%sresource", DISK_USER_PATH);
   if(disk_dir_is_exist(dir_src) == 0)
   {
     goto __free_dir_src;
@@ -44,12 +45,14 @@ void resource_update(void)
   dir_src_len++;
   dir_src[dir_src_len] = '\0';
 
+  //遍历每种资源并更新到系统存储区
   for(uint32_t i = 0;i < sizeof(resource_dir_list) / sizeof(const char*);i++)
   {
     strcpy(dir_src + dir_src_len, resource_dir_list[i]);
     if(disk_dir_is_exist(dir_src))
     {
-      sprintf(dir_dst, "%s%s", USERPath, resource_dir_list[i]);
+      //删除旧资源
+      sprintf(dir_dst, "%s%s", DISK_SYS_PATH, resource_dir_list[i]);
       disk_dir_delete(dir_dst);
 
       if(f_mkdir(dir_dst) != FR_OK)
@@ -57,6 +60,7 @@ void resource_update(void)
         break;
       }
 
+      //复制新资源
       if(disk_copy_dir(dir_dst, dir_src, 0, 0, 0) != FR_OK)
       {
         break;
@@ -64,6 +68,7 @@ void resource_update(void)
     }
   }
 
+  //删除用户存储区资源
   dir_src[dir_src_len - 1] = '\0';
   disk_dir_delete(dir_src);
 
@@ -160,7 +165,7 @@ resource_st* resource_icon_load(const char* name)
 {
   char path[128];
 
-  snprintf(path, sizeof(path), "%sicon/%s.dta", USERPath, name);
+  snprintf(path, sizeof(path), "%sicon/%s.dta", DISK_SYS_PATH, name);
 
   return resource_load(path);
 }
@@ -174,7 +179,7 @@ resource_st* resource_logo_load(void)
 {
   char path[128];
 
-  snprintf(path, sizeof(path), "%slogo/logo.bmp", USERPath);
+  snprintf(path, sizeof(path), "%slogo/logo.bmp", DISK_SYS_PATH);
 
   return resource_load(path);
 }

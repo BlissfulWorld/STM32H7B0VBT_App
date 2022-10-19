@@ -76,10 +76,9 @@ static void wm_cb(WM_MESSAGE* pMsg)
   }
 }
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
-  WM_HWIN                hItem;
-  int                    NCode;
-  int                    Id;
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
+  WM_HWIN hItem;
 
   switch(pMsg->MsgId)
   {
@@ -98,15 +97,18 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     }
     case WM_TIMER:
     {
+      //检查是否需要更新资源
       char path[64];
-      sprintf(path, "%sresource", USERPath2);
+      sprintf(path, "%sresource", DISK_USER_PATH);
       if(disk_dir_is_exist(path) == 1)
       {
+        //提示正在更新资源
         str = ui_str.ui_lanuch.update_resource;
-        WM_InvalidateRect(pMsg->hWin,&(GUI_RECT){.x0 = 0, .y0 = 320 - 28, .x1 = 240, .y1 = 320});
+        WM_InvalidateRect(pMsg->hWin, &(GUI_RECT){.x0 = 0, .y0 = 320 - 28, .x1 = 240, .y1 = 320});
         GUI_Exec();
         resource_update();
         osDelay(1000);
+        //复位
         while(1);
       }
       else

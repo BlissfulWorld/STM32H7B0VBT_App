@@ -129,7 +129,8 @@ static void edit_cb(void* p)
   WM_SetFocus(hwin);
 }
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
   WM_HWIN hItem;
 
   switch(pMsg->MsgId)

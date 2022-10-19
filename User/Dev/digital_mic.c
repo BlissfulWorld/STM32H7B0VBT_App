@@ -20,10 +20,18 @@ static uint32_t data_len;
 static osThreadId_t tid;
 static int is_run;
 
+/**
+ * @brief 麦克风数据接收回调函数
+ *
+ * @param _pdata 麦克风数据
+ * @param _len 数据长度
+ */
 static void data_cb(es7243_data_st* _pdata, uint32_t _len)
 {
   pdata = _pdata;
   data_len = _len;
+
+  //通知任务数据已就绪
   vTaskNotifyGiveFromISR((TaskHandle_t)tid, NULL);
 }
 
@@ -50,6 +58,7 @@ static void digital_mic_task(void* arg)
       SCB_InvalidateDCache_by_Addr(pdata, (length * sizeof(es7243_data_st) + 32) & (~0x0000001FU));
       for(uint32_t i = 0;i < length;i++)
       {
+        //提取右通道并转换后写入输出缓存
         uint16_t val = (uint16_t)pdata[i].r;
         out_buffer[i] = val + 0x8000;
       }

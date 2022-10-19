@@ -97,7 +97,6 @@ static void adc_convert_mic(mic_adc_value_st* adc, uint32_t len, uint8_t* out)
 static void analog_mic_task(void* arg)
 {
   uint32_t flags;
-  void (*__IO cb_tmp)(void);
 
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
 

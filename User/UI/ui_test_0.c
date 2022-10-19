@@ -99,6 +99,7 @@ static const char* title;
 static test_0_st* test;
 static uint8_t stage, mic_record;
 static uint8_t error_vi[9];
+static uint8_t vdd_is_exception;
 
 static void play_warning(void)
 {
@@ -114,6 +115,7 @@ static void vi_updata(WM_HWIN listview)
 {
   char str[32];
   test_0_config_st* config;
+  uint32_t column, row;
 
   config = test->config;
   for(int i = 0;i < 8;i++)
@@ -122,47 +124,40 @@ static void vi_updata(WM_HWIN listview)
 
     if(test->ma_is_update(i))
     {
-      if(i & 0x01)
+      column = i & 0x01 ? 3 : 1;
+      row = i / 2;
+
+      snprintf(str, sizeof(str), "%.2f", test->ma_get(i));
+      LISTVIEW_SetItemText(listview, column, row, str);
+
+      if(test->ma_get(i) > config->power[i].i_max || test->ma_get(i) < config->power[i].i_min)
       {
-        snprintf(str, sizeof(str), "%.0f", test->mv_get(i));
-        LISTVIEW_SetItemText(listview, 2, i / 2, str);
-
-        snprintf(str, sizeof(str), "%.2f", test->ma_get(i));
-        LISTVIEW_SetItemText(listview, 3, i / 2, str);
-
-        if(test->ma_get(i) > config->power[i].i_max || test->ma_get(i) < config->power[i].i_min)
-        {
-          LISTVIEW_SetItemTextColor(listview, 3, i / 2, LISTVIEW_CI_UNSEL, config->power[i].color_out);
-          LISTVIEW_SetItemTextColor(listview, 3, i / 2, LISTVIEW_CI_SEL, config->power[i].color_out);
-          error_vi[i] |= 1;
-        }
-        else
-        {
-          LISTVIEW_SetItemTextColor(listview, 3, i / 2, LISTVIEW_CI_UNSEL, config->power[i].color_in);
-          LISTVIEW_SetItemTextColor(listview, 3, i / 2, LISTVIEW_CI_SEL, config->power[i].color_in);
-          error_vi[i] = 0;
-        }
+        LISTVIEW_SetItemTextColor(listview, column, row, LISTVIEW_CI_UNSEL, config->power[i].color_out);
+        LISTVIEW_SetItemTextColor(listview, column, row, LISTVIEW_CI_SEL, config->power[i].color_out);
+        error_vi[i] |= 1;
       }
       else
       {
-        snprintf(str, sizeof(str), "%.0f", test->mv_get(i));
-        LISTVIEW_SetItemText(listview, 0, i / 2, str);
+        LISTVIEW_SetItemTextColor(listview, column, row, LISTVIEW_CI_UNSEL, config->power[i].color_in);
+        LISTVIEW_SetItemTextColor(listview, column, row, LISTVIEW_CI_SEL, config->power[i].color_in);
+        error_vi[i] = 0;
+      }
 
-        snprintf(str, sizeof(str), "%.2f", test->ma_get(i));
-        LISTVIEW_SetItemText(listview, 1, i / 2, str);
+      column--;
 
-        if(test->ma_get(i) > config->power[i].i_max || test->ma_get(i) < config->power[i].i_min)
-        {
-          LISTVIEW_SetItemTextColor(listview, 1, i / 2, LISTVIEW_CI_UNSEL, config->power[i].color_out);
-          LISTVIEW_SetItemTextColor(listview, 1, i / 2, LISTVIEW_CI_SEL, config->power[i].color_out);
-          error_vi[i] |= 1;
-        }
-        else
-        {
-          LISTVIEW_SetItemTextColor(listview, 1, i / 2, LISTVIEW_CI_UNSEL, config->power[i].color_in);
-          LISTVIEW_SetItemTextColor(listview, 1, i / 2, LISTVIEW_CI_SEL, config->power[i].color_in);
-          error_vi[i] = 0;
-        }
+      snprintf(str, sizeof(str), "%.0f", test->mv_get(i));
+      LISTVIEW_SetItemText(listview, column, row, str);
+
+      if((i < 4 && test->mv_get(i) <= 500) || (i >= 4 && test->mv_get(i) <= 1000))
+      {
+        vdd_is_exception = 1;
+        LISTVIEW_SetItemTextColor(listview, column, row, LISTVIEW_CI_UNSEL, config->power[i].color_out);
+        LISTVIEW_SetItemTextColor(listview, column, row, LISTVIEW_CI_SEL, config->power[i].color_out);
+      }
+      else
+      {
+        LISTVIEW_SetItemTextColor(listview, column, row, LISTVIEW_CI_UNSEL, config->power[i].color_in);
+        LISTVIEW_SetItemTextColor(listview, column, row, LISTVIEW_CI_SEL, config->power[i].color_in);
       }
 
       if((stage == TEST_STAGE_FUNC) && error_vi[i] == 1)
@@ -203,256 +198,299 @@ static void vi_updata(WM_HWIN listview)
 
 static void update_func_test_result(WM_HWIN win)
 {
-  WM_HWIN hItem;
+  WM_HWIN hitem;
   char str_buf[128];
 
   if(test->prox_is_rdy() == 0)
   {
-    hItem = WM_GetDialogItem(win, ID_PROGBAR_PROX_VAL);
-    PROGBAR_SetValue(hItem, 0);
-    PROGBAR_SetText(hItem, "X");
+    hitem = WM_GetDialogItem(win, ID_PROGBAR_PROX_VAL);
+    PROGBAR_SetValue(hitem, 0);
+    PROGBAR_SetText(hitem, "X");
   }
   else
   {
     uint8_t prox = test->prox_get();
-    hItem = WM_GetDialogItem(win, ID_PROGBAR_PROX_VAL);
-    PROGBAR_SetText(hItem, 0);
-    PROGBAR_SetValue(hItem, prox);
+    hitem = WM_GetDialogItem(win, ID_PROGBAR_PROX_VAL);
+    PROGBAR_SetText(hitem, 0);
+    PROGBAR_SetValue(hitem, prox);
   }
 
   if(test->als_is_rdy() == 0)
   {
-    hItem = WM_GetDialogItem(win, ID_PROGBAR_ALS_VAL);
-    PROGBAR_SetValue(hItem, 0);
-    PROGBAR_SetText(hItem, "X");
+    hitem = WM_GetDialogItem(win, ID_PROGBAR_ALS_VAL);
+    PROGBAR_SetValue(hitem, 0);
+    PROGBAR_SetText(hitem, "X");
   }
   else
   {
     uint8_t als = test->als_get();
-    hItem = WM_GetDialogItem(win, ID_PROGBAR_ALS_VAL);
-    PROGBAR_SetText(hItem, 0);
-    PROGBAR_SetValue(hItem, als);
+    hitem = WM_GetDialogItem(win, ID_PROGBAR_ALS_VAL);
+    PROGBAR_SetText(hitem, 0);
+    PROGBAR_SetValue(hitem, als);
   }
 
-  hItem = WM_GetDialogItem(win, ID_PROGBAR_MIC_VAL);
+  hitem = WM_GetDialogItem(win, ID_PROGBAR_MIC_VAL);
   if(mic_record == 0)
   {
-    PROGBAR_SetValue(hItem, test->mic_get());
+    PROGBAR_SetValue(hitem, test->mic_get());
   }
   else
   {
     uint8_t prog = test->mic_record_get_progress();
-    PROGBAR_SetValue(hItem, prog);
+    PROGBAR_SetValue(hitem, prog);
     snprintf(str_buf, sizeof(str_buf), "REC %u%%", prog);
-    PROGBAR_SetText(hItem, str_buf);
+    PROGBAR_SetText(hitem, str_buf);
   }
 
   uint8_t cam_rdy = test->cam_is_rdy();
-  hItem = WM_GetDialogItem(win, ID_TEXT_CAM_RES);
-  TEXT_SetText(hItem, cam_rdy ? ui_str.ui_test_0.camera_found : ui_str.ui_test_0.camera_no_found);
+  hitem = WM_GetDialogItem(win, ID_TEXT_CAM_RES);
+  TEXT_SetText(hitem, cam_rdy ? ui_str.ui_test_0.camera_found : ui_str.ui_test_0.camera_no_found);
   if(cam_rdy == 0)
   {
-    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFF0000));
+    TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFFFF0000));
   }
   else
   {
-    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF00FF00));
+    TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFF00FF00));
   }
 
   uint8_t spk_pn = test->spk_pn_get();
 
-  hItem = WM_GetDialogItem(win, ID_TEXT_SPK_P);
-  TEXT_SetBkColor(hItem, (spk_pn & 1) == 0 ? GUI_MAKE_COLOR(0xFF0000) : GUI_MAKE_COLOR(0x00A000));
+  hitem = WM_GetDialogItem(win, ID_TEXT_SPK_P);
+  TEXT_SetBkColor(hitem, (spk_pn & 1) == 0 ? GUI_MAKE_COLOR(0xFF0000) : GUI_MAKE_COLOR(0x00A000));
 
-  hItem = WM_GetDialogItem(win, ID_TEXT_SPK_N);
-  TEXT_SetBkColor(hItem, (spk_pn & 2) == 0 ? GUI_MAKE_COLOR(0xFF0000) : GUI_MAKE_COLOR(0x00A000));
+  hitem = WM_GetDialogItem(win, ID_TEXT_SPK_N);
+  TEXT_SetBkColor(hitem, (spk_pn & 2) == 0 ? GUI_MAKE_COLOR(0xFF0000) : GUI_MAKE_COLOR(0x00A000));
 }
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
-  WM_HWIN                hItem;
-  int                    NCode;
-  int                    Id;
-  char                   str_buf[128];
-  switch(pMsg->MsgId)
+static void wm_init_dialog(WM_HWIN hwin)
+{
+  WM_HWIN hitem;
+
+  WINDOW_SetBkColor(hwin, GUI_MAKE_COLOR(0));
+
+  hitem = WM_GetDialogItem(hwin, ID_IMAGE_LEVEL);
+  ui_battery_level_icon_updata(hitem, 0);
+
+  hitem = WM_GetDialogItem(hwin, ID_IMAGE_SPEAKER);
+  IMAGE_SetDTA(hitem, res_image_dta_speaker, sizeof(res_image_dta_speaker));
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_TITLE);
+  TEXT_SetTextAlign(hitem, GUI_TA_HCENTER | GUI_TA_BOTTOM);
+  TEXT_SetBkColor(hitem, GUI_MAKE_COLOR(0xabc88b));
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0x0));
+  TEXT_SetFont(hitem, FONT_DEF);
+  if(title)
+    TEXT_SetText(hitem, title);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_BOTTOM);
+  TEXT_SetTextAlign(hitem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+  TEXT_SetBkColor(hitem, GUI_MAKE_COLOR(0xabc88b));
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0x0));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, "");
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_WAIT);
+  TEXT_SetTextAlign(hitem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFFFFFF));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, ui_str.ui_test_0.info_no_found_module);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_PROX);
+  TEXT_SetTextAlign(hitem, GUI_TA_LEFT | GUI_TA_BOTTOM);
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFF0000FF));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, ui_str.ui_test_0.prox);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_PROGBAR_PROX_VAL);
+  PROGBAR_SetFont(hitem, PROG_FONT_DEF);
+  PROGBAR_SetMinMax(hitem, 0, 100);
+  PROGBAR_SetValue(hitem, 0);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_ALS);
+  TEXT_SetTextAlign(hitem, GUI_TA_LEFT | GUI_TA_BOTTOM);
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFF0000FF));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, ui_str.ui_test_0.als);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_PROGBAR_ALS_VAL);
+  PROGBAR_SetFont(hitem, PROG_FONT_DEF);
+  PROGBAR_SetMinMax(hitem, 0, 100);
+  PROGBAR_SetValue(hitem, 0);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_MIC);
+  TEXT_SetTextAlign(hitem, GUI_TA_LEFT | GUI_TA_BOTTOM);
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFF0000FF));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, ui_str.ui_test_0.mic);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_PROGBAR_MIC_VAL);
+  PROGBAR_SetFont(hitem, PROG_FONT_DEF);
+  PROGBAR_SetMinMax(hitem, 0, 100);
+  PROGBAR_SetValue(hitem, 0);
+
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_OS);
+  TEXT_SetTextAlign(hitem, GUI_TA_LEFT | GUI_TA_BOTTOM);
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFF0000FF));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, ui_str.ui_test_0.ostest);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_OS_RES);
+  TEXT_SetTextAlign(hitem, GUI_TA_LEFT | GUI_TA_BOTTOM);
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFFFFFFFF));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, "");
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_CAM);
+  TEXT_SetTextAlign(hitem, GUI_TA_LEFT | GUI_TA_BOTTOM);
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFF0000FF));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, ui_str.ui_test_0.camera);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_CAM_RES);
+  TEXT_SetTextAlign(hitem, GUI_TA_LEFT | GUI_TA_BOTTOM);
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFFFFFFFF));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, "");
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_SPK_P);
+  TEXT_SetTextAlign(hitem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFFFFFFFF));
+  TEXT_SetBkColor(hitem, GUI_MAKE_COLOR(0xFF0000));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, ui_str.ui_test_0.spk_p);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_SPK_N);
+  TEXT_SetTextAlign(hitem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFFFFFFFF));
+  TEXT_SetBkColor(hitem, GUI_MAKE_COLOR(0xFF0000));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, ui_str.ui_test_0.spk_n);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_LISTVIEW_CURRENT);
+  LISTVIEW_SetFont(hitem, GUI_FONT_13_ASCII);
+  HEADER_SetFont(LISTVIEW_GetHeader(hitem), GUI_FONT_13B_ASCII);
+  LISTVIEW_AddColumn(hitem, 60, "V (mV)", GUI_TA_HCENTER | GUI_TA_VCENTER);
+  LISTVIEW_AddColumn(hitem, 60, "I (mA)", GUI_TA_HCENTER | GUI_TA_VCENTER);
+  LISTVIEW_AddColumn(hitem, 60, "V (mV)", GUI_TA_HCENTER | GUI_TA_VCENTER);
+  LISTVIEW_AddColumn(hitem, 60, "I (mA)", GUI_TA_HCENTER | GUI_TA_VCENTER);
+  LISTVIEW_SetColumnWidth(hitem, LISTVIEW_ALL_ITEMS, 30);
+  LISTVIEW_SetHeaderHeight(hitem, 16);
+  LISTVIEW_SetGridVis(hitem, 1);
+
+  for(int i = 0;i < 4;i++)
+  {
+    LISTVIEW_AddRow(hitem, 0);
+    for(int j = 0;j < 4;j++)
+      LISTVIEW_SetItemText(hitem, j, i, "0");
+  }
+  LISTVIEW_AddRow(hitem, 0);
+  LISTVIEW_SetItemText(hitem, 0, 6, "0");
+  LISTVIEW_SetItemText(hitem, 1, 6, "0");
+
+  WM_EnableMemdev(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_BTN_NONE);
+  TEXT_SetTextAlign(hitem, GUI_TA_RIGHT | GUI_TA_TOP);
+  TEXT_SetBkColor(hitem, GUI_MAKE_COLOR(0xabc88b));
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0x0));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, "");
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_BTN_MENU);
+  TEXT_SetTextAlign(hitem, GUI_TA_HCENTER | GUI_TA_TOP);
+  TEXT_SetBkColor(hitem, GUI_MAKE_COLOR(0xabc88b));
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0x0));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, ui_str.ui_test_0.btn_menu);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_BTN_MIC);
+  TEXT_SetTextAlign(hitem, GUI_TA_LEFT | GUI_TA_TOP);
+  TEXT_SetBkColor(hitem, GUI_MAKE_COLOR(0xabc88b));
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0x0));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, ui_str.ui_test_0.btn_record_play);
+
+  htimer = WM_CreateTimer(hwin, 0, 100, 0);
+
+  WM_SetFocus(hwin);
+}
+
+static void hide_func_test_ui(WM_HWIN hwin)
+{
+  WM_HWIN hitem;
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_PROX);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_PROGBAR_PROX_VAL);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_ALS);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_PROGBAR_ALS_VAL);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_MIC);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_PROGBAR_MIC_VAL);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_OS);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_OS_RES);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_CAM);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_CAM_RES);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_SPK_P);
+  WM_HideWindow(hitem);
+
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_SPK_N);
+  WM_HideWindow(hitem);
+}
+
+static void _cbDialog(WM_MESSAGE* pmsg)
+{
+  WM_HWIN hwin;
+  WM_HWIN hitem;
+  char    str_buf[128];
+
+  hwin = pmsg->hWin;
+
+  switch(pmsg->MsgId)
   {
     case WM_INIT_DIALOG:
     {
-      hItem = pMsg->hWin;
-      WINDOW_SetBkColor(hItem, GUI_MAKE_COLOR(0));
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem, 0);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_SPEAKER);
-      IMAGE_SetDTA(hItem, res_image_dta_speaker, sizeof(res_image_dta_speaker));
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_TITLE);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_BOTTOM);
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
-      TEXT_SetFont(hItem, FONT_DEF);
-      if(title)
-        TEXT_SetText(hItem, title);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BOTTOM);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "");
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_WAIT);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFF));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_test_0.info_no_found_module);
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_PROX);
-      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_test_0.prox);
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_PROX_VAL);
-      PROGBAR_SetFont(hItem, PROG_FONT_DEF);
-      PROGBAR_SetMinMax(hItem, 0, 100);
-      PROGBAR_SetValue(hItem, 0);
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_ALS);
-      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_test_0.als);
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_ALS_VAL);
-      PROGBAR_SetFont(hItem, PROG_FONT_DEF);
-      PROGBAR_SetMinMax(hItem, 0, 100);
-      PROGBAR_SetValue(hItem, 0);
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_MIC);
-      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_test_0.mic);
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_MIC_VAL);
-      PROGBAR_SetFont(hItem, PROG_FONT_DEF);
-      PROGBAR_SetMinMax(hItem, 0, 100);
-      PROGBAR_SetValue(hItem, 0);
-
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OS);
-      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_test_0.ostest);
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OS_RES);
-      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFFFF));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "");
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM);
-      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000FF));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_test_0.camera);
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM_RES);
-      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_BOTTOM);
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFFFF));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "");
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_P);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFFFF));
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xFF0000));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_test_0.spk_p);
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_N);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFFFFFFFF));
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xFF0000));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_test_0.spk_n);
-      WM_HideWindow(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_LISTVIEW_CURRENT);
-      LISTVIEW_SetFont(hItem, GUI_FONT_13_ASCII);
-      HEADER_SetFont(LISTVIEW_GetHeader(hItem), GUI_FONT_13B_ASCII);
-      LISTVIEW_AddColumn(hItem, 60, "V (mV)", GUI_TA_HCENTER | GUI_TA_VCENTER);
-      LISTVIEW_AddColumn(hItem, 60, "I (mA)", GUI_TA_HCENTER | GUI_TA_VCENTER);
-      LISTVIEW_AddColumn(hItem, 60, "V (mV)", GUI_TA_HCENTER | GUI_TA_VCENTER);
-      LISTVIEW_AddColumn(hItem, 60, "I (mA)", GUI_TA_HCENTER | GUI_TA_VCENTER);
-      LISTVIEW_SetColumnWidth(hItem, LISTVIEW_ALL_ITEMS, 30);
-      LISTVIEW_SetHeaderHeight(hItem, 16);
-      LISTVIEW_SetGridVis(hItem, 1);
-
-      for(int i = 0;i < 4;i++)
-      {
-        LISTVIEW_AddRow(hItem, 0);
-
-        snprintf(str_buf, sizeof(str_buf), "%d", i);
-        LISTVIEW_SetItemText(hItem, 0, i, "0");
-        LISTVIEW_SetItemText(hItem, 1, i, "0");
-
-        snprintf(str_buf, sizeof(str_buf), "%d", i + 6);
-        LISTVIEW_SetItemText(hItem, 2, i, "0");
-        LISTVIEW_SetItemText(hItem, 3, i, "0");
-      }
-      LISTVIEW_AddRow(hItem, 0);
-      LISTVIEW_SetItemText(hItem, 0, 6, "0");
-      LISTVIEW_SetItemText(hItem, 1, 6, "0");
-
-      WM_EnableMemdev(hItem);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_NONE);
-      TEXT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_TOP);
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, "");
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_MENU);
-      TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_test_0.btn_menu);
-
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BTN_MIC);
-      TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_TOP);
-      TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
-      TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
-      TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_test_0.btn_record_play);
-
-
-      htimer = WM_CreateTimer(pMsg->hWin, 0, 100, 0);
-
-      WM_SetFocus(pMsg->hWin);
+      wm_init_dialog(hwin);
       break;
     }
     case WM_KEY:
     {
       pwdn_watchdog_reload();
-      switch(((WM_KEY_INFO*)(pMsg->Data.p))->Key)
+      switch(((WM_KEY_INFO*)(pmsg->Data.p))->Key)
       {
         case UI_KEY(UP, ONCLICK):
         {
@@ -462,7 +500,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
             uint8_t len;
             data = test->os_test_data_get(&len);
             if(len)
-              ui_os_test_result_open(title, pMsg->hWin, test->config->ost, data, len);
+              ui_os_test_result_open(title, hwin, test->config->ost, data, len);
           }
           break;
         }
@@ -496,8 +534,8 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
             if(mic_record)
             {
               test->mic_record_stop();
-              hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_MIC_VAL);
-              PROGBAR_SetText(hItem, 0);
+              hitem = WM_GetDialogItem(hwin, ID_PROGBAR_MIC_VAL);
+              PROGBAR_SetText(hitem, 0);
               mic_record = 0;
               test->mic_record_play();
             }
@@ -506,8 +544,8 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
         }
         case UI_KEY(OK, ONCLICK):
         {
-          if(!analog_speaker_is_busy())
-            GUI_EndDialog(pMsg->hWin, 0);
+          analog_speaker_stop();
+          GUI_EndDialog(hwin, 0);
           break;
         }
       }
@@ -517,19 +555,19 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     {
       WM_RestartTimer(htimer, 100);
 
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_SPEAKER);
+      hitem = WM_GetDialogItem(hwin, ID_IMAGE_SPEAKER);
       if(analog_speaker_is_busy())
       {
-        WM_ShowWindow(hItem);
+        WM_ShowWindow(hitem);
       }
       else
       {
-        WM_HideWindow(hItem);
+        WM_HideWindow(hitem);
       }
 
       if(stage == TEST_STAGE_FUNC)
       {
-        update_func_test_result(pMsg->hWin);
+        update_func_test_result(hwin);
       }
       else
       {
@@ -537,13 +575,26 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
         {
           mic_record = 0;
           test->mic_record_stop();
-          hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_MIC_VAL);
-          PROGBAR_SetText(hItem, 0);
+          hitem = WM_GetDialogItem(hwin, ID_PROGBAR_MIC_VAL);
+          PROGBAR_SetText(hitem, 0);
         }
       }
 
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_LISTVIEW_CURRENT);
-      vi_updata(hItem);
+      hitem = WM_GetDialogItem(hwin, ID_LISTVIEW_CURRENT);
+      vi_updata(hitem);
+
+      if(vdd_is_exception)
+      {
+        hide_func_test_ui(hwin);
+        hitem = WM_GetDialogItem(hwin, ID_TEXT_WAIT);
+        TEXT_SetText(hitem, ui_str.ui_test_0.info_device_exception);
+        WM_ShowWindow(hitem);
+        test_stop(module);
+        WM_DeleteTimer(htimer);
+        stage = TEST_STAGE_WAIT;
+        play_warning();
+        break;
+      }
 
       if(stage != test->stage_get())
       {
@@ -553,154 +604,86 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
         {
           case TEST_STAGE_WAIT:
           {
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_PROX);
-            WM_HideWindow(hItem);
+            hide_func_test_ui(hwin);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_PROX_VAL);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_ALS);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_ALS_VAL);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_MIC);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_MIC_VAL);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OS);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OS_RES);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM_RES);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_P);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_N);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_WAIT);
-            TEXT_SetText(hItem, ui_str.ui_test_0.info_no_found_module);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_WAIT);
+            TEXT_SetText(hitem, ui_str.ui_test_0.info_no_found_module);
+            WM_ShowWindow(hitem);
             break;
           }
           case TEST_STAGE_OS:
           {
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_PROX);
-            WM_HideWindow(hItem);
+            hide_func_test_ui(hwin);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_PROX_VAL);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_ALS);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_ALS_VAL);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_MIC);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_MIC_VAL);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OS);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OS_RES);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM_RES);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_P);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_N);
-            WM_HideWindow(hItem);
-
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_WAIT);
-            TEXT_SetText(hItem, ui_str.ui_test_0.info_doing_ostest);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_WAIT);
+            TEXT_SetText(hitem, ui_str.ui_test_0.info_doing_ostest);
+            WM_ShowWindow(hitem);
             break;
           }
           case TEST_STAGE_FUNC:
           {
-            update_func_test_result(pMsg->hWin);
+            update_func_test_result(hwin);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_WAIT);
-            WM_HideWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_WAIT);
+            WM_HideWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_PROX);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_PROX);
+            WM_ShowWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_PROX_VAL);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_PROGBAR_PROX_VAL);
+            WM_ShowWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_ALS);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_ALS);
+            WM_ShowWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_ALS_VAL);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_PROGBAR_ALS_VAL);
+            WM_ShowWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_MIC);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_MIC);
+            WM_ShowWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_PROGBAR_MIC_VAL);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_PROGBAR_MIC_VAL);
+            WM_ShowWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OS);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_OS);
+            WM_ShowWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OS_RES);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_OS_RES);
             uint8_t len;
             test->os_test_data_get(&len);
             if(len)
             {
               if(test->os_test_result_get() == 0)
               {
-                TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x00FF00));
+                TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0x00FF00));
                 sprintf(str_buf, " %s %s", ui_str.ui_test_0.ostest_result_normal, ui_str.ui_test_0.key_up_check);
-                TEXT_SetText(hItem, str_buf);
+                TEXT_SetText(hitem, str_buf);
               }
               else
               {
-                TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0xFF0000));
+                TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0xFF0000));
                 sprintf(str_buf, " %u %s", test->os_test_result_get(), ui_str.ui_test_0.key_up_check);
-                TEXT_SetText(hItem, str_buf);
+                TEXT_SetText(hitem, str_buf);
               }
             }
             else
             {
-              TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x333333));
-              TEXT_SetText(hItem, ui_str.ui_test_0.no_ostest);
+              TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0x333333));
+              TEXT_SetText(hitem, ui_str.ui_test_0.no_ostest);
             }
-            WM_ShowWindow(hItem);
+            WM_ShowWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_CAM);
+            WM_ShowWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_CAM_RES);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_CAM_RES);
+            WM_ShowWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_P);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_SPK_P);
+            WM_ShowWindow(hitem);
 
-            hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SPK_N);
-            WM_ShowWindow(hItem);
+            hitem = WM_GetDialogItem(hwin, ID_TEXT_SPK_N);
+            WM_ShowWindow(hitem);
             break;
           }
         }
@@ -709,19 +692,20 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     }
     case UI_MSG_BATTERY:
     {
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_LEVEL);
-      ui_battery_level_icon_updata(hItem, 0);
+      hitem = WM_GetDialogItem(hwin, ID_IMAGE_LEVEL);
+      ui_battery_level_icon_updata(hitem, 0);
       break;
     }
     case WM_DELETE:
     {
+      vdd_is_exception = 0;
       test_stop(module);
       ui_menu_open(menu_close_cb, 0);
       break;
     }
     default:
     {
-      WM_DefaultProc(pMsg);
+      WM_DefaultProc(pmsg);
       break;
     }
   }

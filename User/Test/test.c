@@ -163,7 +163,6 @@ static void test_current(void* arg)
   pca9535_set_output(0, ~(1U << i));
   osDelay(10);
 
-  test_current_task_running = 1;
   test_current_task_stop = 0;
   while(test_current_task_stop == 0)
   {
@@ -202,7 +201,7 @@ static void test_current(void* arg)
       i = 0;
     }
     //ina219_basic_deinit(&gs_handle[0]);
-    pca9535_set_output(0, 0xFFFF);
+    pca9535_set_output(0, 0xFFFF);                                                
     osDelay(4);
     pca9535_set_output(0, ~(1U << i));
     //osDelay(50);
@@ -210,14 +209,18 @@ static void test_current(void* arg)
     osDelay(96);
   }
   ina219_basic_deinit(&gs_handle[0]);
-  ina219_basic_deinit(&gs_handle[1]);
+  ina219_basic_deinit(&gs_handle[1]);   
   test_current_task_running = 0;
   osThreadExit();
 }
 
 void test_current_start(void)
 {
-  osThreadNew(test_current, NULL, &test_current_tid_attr);
+  osKernelLock();
+  if(!test_current_task_running)
+    if(osThreadNew(test_current, NULL, &test_current_tid_attr))
+      test_current_task_running = 1;
+  osKernelUnlock();
 }
 
 void test_current_stop(void)

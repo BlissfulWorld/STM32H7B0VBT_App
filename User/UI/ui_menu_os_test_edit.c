@@ -48,7 +48,8 @@ static struct ui_menu_os_test_var_s
   void (*string) (char*, uint32_t, uint32_t);
 }*var;
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
   WM_HWIN hItem;
 
   switch(pMsg->MsgId)

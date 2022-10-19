@@ -6,6 +6,14 @@
 
 void gpio_recover(void);
 
+/**
+ * @brief 开短路测试，获取结果
+ *
+ * @param gnd_list 地线引脚列表
+ * @param func_list 功能引脚列表
+ * @param result 结果
+ * @return int 错误码
+ */
 int os_test_get_volt(const uint8_t* gnd_list, const uint8_t* func_list, float* result)
 {
   int err = 0;
@@ -16,16 +24,20 @@ int os_test_get_volt(const uint8_t* gnd_list, const uint8_t* func_list, float* r
 
   GPIO_InitTypeDef GPIO_InitStruct = { 0 };
 
+  //提升任务级别，防止被打断
   osThreadGetPriority(osThreadGetId());
   osThreadSetPriority(osThreadGetId(), osPriorityRealtime7);
 
+  //等待I2C2空闲
   hw_i2c_fix(hw_i2c2, osWaitForever);
 
+  //初始化电压、电流信息采集
   while(ina219_basic_init(&handle, INA219_ADDRESS_4, 0.1))
   {
     osDelay(100);
   }
 
+  //设置引脚为模拟模式
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
 
@@ -57,6 +69,7 @@ int os_test_get_volt(const uint8_t* gnd_list, const uint8_t* func_list, float* r
     GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
+  //置低地引脚
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   for(const uint8_t* p = gnd_list;*p;p++)
@@ -69,13 +82,16 @@ int os_test_get_volt(const uint8_t* gnd_list, const uint8_t* func_list, float* r
 
   IWDG1->KR = IWDG_KEY_RELOAD;
 
+  //遍历功能引脚的电压电流信息
   for(const uint8_t* p = func_list;*p;p++)
   {
+    //置低放电
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pin = test_pin[*p].pin;
     HAL_GPIO_WritePin(test_pin[*p].gpio, test_pin[*p].pin, GPIO_PIN_RESET);
     HAL_GPIO_Init(test_pin[*p].gpio, &GPIO_InitStruct);
 
+    //置高，开始测量
     HAL_Delay(10);
     HAL_GPIO_WritePin(test_pin[*p].gpio, test_pin[*p].pin, GPIO_PIN_SET);
     HAL_Delay(50);
@@ -92,17 +108,24 @@ int os_test_get_volt(const uint8_t* gnd_list, const uint8_t* func_list, float* r
     IWDG1->KR = IWDG_KEY_RELOAD;
   }
 
+  //恢复引脚功能
   gpio_recover();
 
   //hw_i2c_fix(hw_i2c2, osWaitForever);
   ina219_basic_deinit(&handle);
 
   IWDG1->KR = IWDG_KEY_RELOAD;
+
+  //恢复任务优先级
   osThreadSetPriority(osThreadGetId(), priority);
 
   return err;
 }
 
+/**
+ * @brief 恢复引脚的功能
+ *
+ */
 void gpio_recover(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = { 0 };
@@ -313,6 +336,14 @@ void gpio_recover(void)
   HAL_GPIO_Init(SPKRAMP_PWM_GPIO_Port, &GPIO_InitStruct);
 }
 
+/**
+ * @brief 解析json文件中的开短路配置
+ *
+ * @param j_test json中ostest节点
+ * @param ost 配置
+ * @param num 配置中的引脚数目
+ * @return int 错误码
+ */
 int ostest_json_config_phase(cJSON* j_test, os_test_st* ost, uint8_t num)
 {
   if(j_test == 0 || ost == 0 | num == 0)

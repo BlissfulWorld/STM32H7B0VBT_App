@@ -27,8 +27,6 @@
 #include "analog_speaker.h"
 
 
-uint8_t ucHeap[configTOTAL_HEAP_SIZE] __attribute__((section(".AXI_SRAM2")));
-
 FILE __stdout;
 
 void _sys_exit(int x)

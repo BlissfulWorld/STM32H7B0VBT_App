@@ -79,7 +79,7 @@ void GUI_X_Config(void) {
   //
   // 32 bit aligned memory area
   //
-  static U32 aMemory[GUI_NUMBYTES / 4] __attribute__((section(".AXI_SRAM3")));
+  static U32 aMemory[GUI_NUMBYTES / 4];// __attribute__((section(".AXI_SRAM3")));
   //U32 *aMemory = pvPortMalloc(GUI_NUMBYTES);
   //
   // Assign memory to emWin

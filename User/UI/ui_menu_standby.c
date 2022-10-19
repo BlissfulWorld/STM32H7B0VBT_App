@@ -59,10 +59,9 @@ static void standby_set_minute(uint32_t standby)
   pwdn_watchdog_set_timeout(standby * 60 * 1000);
 }
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
-  WM_HWIN                hItem;
-  int                    NCode;
-  int                    Id;
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
+  WM_HWIN hItem;
 
   switch(pMsg->MsgId)
   {
@@ -194,6 +193,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
         }
       }
 
+      //如果与已存储的值不同则提示需要保存
       uint32_t standby_saved;
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_SAVE);
       if((US_GET(standbytime, &standby_saved) == 0) && (standby * 60 * 1000 == standby_saved))

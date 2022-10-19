@@ -46,6 +46,7 @@ static ui_close_cb_func_t close_cb;
 static void* user_p;
 static int select = 0;
 
+//菜单项数组
 const menu_item_st menu_item[] =
 {
   {ui_menu_brightness_open,&ui_str.ui_menu.brightness},
@@ -58,6 +59,11 @@ const menu_item_st menu_item[] =
   {ui_menu_about_open,&ui_str.ui_menu.about}
 };
 
+/**
+ * @brief 更新字符，用于语言切换后更新文本显示
+ *
+ * @param win 窗口句柄
+ */
 static void update_text(WM_HWIN win)
 {
   WM_HWIN hItem;
@@ -79,10 +85,9 @@ static void update_text(WM_HWIN win)
   TEXT_SetText(hItem, ui_str.ui_menu.btn_confirm);
 }
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
-  WM_HWIN                hItem;
-  int                    NCode;
-  int                    Id;
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
+  WM_HWIN hItem;
 
   switch(pMsg->MsgId)
   {
@@ -187,6 +192,7 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
           if(select >= 0)
           {
             WM_HideWindow(pMsg->hWin);
+            //打开菜单项
             menu_item[select].ui_open(pMsg->hWin);
           }
           break;

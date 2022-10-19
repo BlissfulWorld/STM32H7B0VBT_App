@@ -1,7 +1,7 @@
 #include "backlight.h"
 #include "tim.h"
 
-#define PWM_MAX (999)
+#define PWM_MAX (999 - 1)
 #define BACKLIGHT_LEVEL (10)
 
 //亮度级别

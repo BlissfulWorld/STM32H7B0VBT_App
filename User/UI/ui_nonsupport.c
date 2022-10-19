@@ -40,10 +40,9 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { TEXT_CreateIndirect,    0, ID_TEXT_NONE,           160, 320 - 28,  60,  28,   0,  0x0, 0},
 };
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
-  WM_HWIN                hItem;
-  int                    NCode;
-  int                    Id;
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
+  WM_HWIN hItem;
 
   switch(pMsg->MsgId)
   {

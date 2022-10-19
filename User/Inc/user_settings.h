@@ -20,31 +20,26 @@ struct item_##name##_s\
 //用户设置项
 typedef struct user_settings_item_s
 {
-  union
-  {
-    struct
-    {
-      //语言文件
-      USI(language, 128);
+  //语言文件
+  USI(language, 128);
 
-      //背光
-      USI(backlight, 1);
+  //背光
+  USI(backlight, 1);
 
-      //音量
-      USI(volume, 1);
+  //音量
+  USI(volume, 1);
 
-      //待机多少分钟后关机
-      USI(standbytime, 4);
-      
-      //开短路测试使能
-      USI(ostest, 1);
+  //待机多少分钟后关机
+  USI(standbytime, 4);
 
-      USI(ostest_mk_conf_err_type, 1);
+  //开短路测试使能
+  USI(ostest, 1);
 
-      USI(ostest_mk_conf_err_pct, 2);
-    };
-    uint8_t data[8 * 1024];
-  };
+  //开短路生成配置
+  //误差类型
+  USI(ostest_mk_conf_err_type, 1);
+  //误差百分比
+  USI(ostest_mk_conf_err_pct, 2);
 }user_settings_item_st;
 
 extern user_settings_item_st* user_settings_item;

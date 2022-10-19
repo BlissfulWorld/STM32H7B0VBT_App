@@ -47,10 +47,9 @@ extern USBD_HandleTypeDef hUsbDeviceHS;
 static WM_HWIN back;
 static long timer;
 
-static void _cbDialog(WM_MESSAGE* pMsg) {
-  WM_HWIN                hItem;
-  int                    NCode;
-  int                    Id;
+static void _cbDialog(WM_MESSAGE* pMsg)
+{
+  WM_HWIN hItem;
 
   switch(pMsg->MsgId)
   {
@@ -139,6 +138,8 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
     {
       WM_DeleteTimer(timer);
       USBD_Stop(&hUsbDeviceHS);
+
+      //卸载用户存储区
       mount(1);
 
       WM_SetFocus(back);
@@ -157,7 +158,10 @@ static void _cbDialog(WM_MESSAGE* pMsg) {
 void ui_menu_u_disk_mode_open(WM_HWIN _back_)
 {
   back = _back_;
+
+  //卸载用户存储区
   umount(1);
+
   if(hUsbDeviceHS.pDesc == 0)
     MX_USB_DEVICE_Init();
   else

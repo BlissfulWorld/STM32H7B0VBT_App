@@ -3,14 +3,6 @@
 
 #include "stdint.h"
 
-/*
-enum LANGUAGE_E
-{
-  EN = 0,
-  CN,
-};
-*/
-
 typedef enum ml_id_e //: uint16_t
 {
   ML_NAME = 0x0000,
@@ -150,6 +142,7 @@ typedef enum ml_id_e //: uint16_t
   ML_UI_TEST_0_OSTEST_RESULT_EXCEPTION = 0x831C,
   ML_UI_TEST_0_KEY_UP_CHECK = 0x831D,
   ML_UI_TEST_0_NO_OSTEST = 0x831E,
+  ML_UI_TEST_0_INFO_DEVICE_EXCEPTION = 0x831F,
 
   ML_UI_TEST_1_TITLE = 0x8400,
   ML_UI_TEST_1_BTN_SPEAKER_PLAY = 0x8401,
@@ -170,6 +163,7 @@ typedef enum ml_id_e //: uint16_t
   ML_UI_TEST_1_OSTEST_RESULT_EXCEPTION = 0x841C,
   ML_UI_TEST_1_KEY_UP_CHECK = 0x841D,
   ML_UI_TEST_1_NO_OSTEST = 0x841E,
+  ML_UI_TEST_1_INFO_DEVICE_EXCEPTION = 0x841F,
 
   ML_UI_TEST_2_TITLE = 0x8500,
   ML_UI_TEST_2_BTN_SPEAKER_PLAY = 0x8501,
@@ -189,6 +183,7 @@ typedef enum ml_id_e //: uint16_t
   ML_UI_TEST_2_OSTEST_RESULT_EXCEPTION = 0x851B,
   ML_UI_TEST_2_KEY_UP_CHECK = 0x851C,
   ML_UI_TEST_2_NO_OSTEST = 0x851D,
+  ML_UI_TEST_2_INFO_DEVICE_EXCEPTION = 0x851E,
 
   ML_UI_TEST_3_TITLE = 0x8600,
   ML_UI_TEST_3_BTN_SPEAKER_PLAY = 0x8601,
@@ -209,6 +204,8 @@ typedef enum ml_id_e //: uint16_t
   ML_UI_TEST_3_OSTEST_RESULT_EXCEPTION = 0x861C,
   ML_UI_TEST_3_KEY_UP_CHECK = 0x861D,
   ML_UI_TEST_3_NO_OSTEST = 0x861E,
+  ML_UI_TEST_3_INFO_DEVICE_EXCEPTION = 0x861F,
+
 }ml_id_et;
 
 struct ui_lanuch_s
@@ -398,6 +395,7 @@ struct ui_test_0_s
   const char* ostest_result_exception;
   const char* key_up_check;
   const char* no_ostest;
+  const char* info_device_exception;
 };
 
 struct ui_test_1_s
@@ -422,6 +420,7 @@ struct ui_test_1_s
   const char* ostest_result_exception;
   const char* key_up_check;
   const char* no_ostest;
+  const char* info_device_exception;
 };
 
 struct ui_test_2_s
@@ -445,6 +444,7 @@ struct ui_test_2_s
   const char* ostest_result_exception;
   const char* key_up_check;
   const char* no_ostest;
+  const char* info_device_exception;
 };
 
 struct ui_test_3_s
@@ -469,6 +469,7 @@ struct ui_test_3_s
   const char* ostest_result_exception;
   const char* key_up_check;
   const char* no_ostest;
+  const char* info_device_exception;
 };
 
 struct ui_str_s
@@ -504,6 +505,6 @@ struct ui_str_s
 extern struct ui_str_s ui_str;
 
 void ml_set(const char* path);
-uint32_t ml_get_name(const char* path, char* buf, uint32_t max_len);
+int ml_get_name(const char* path, char* buf, uint32_t max_len);
 
 #endif

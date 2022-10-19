@@ -109,6 +109,7 @@ void skin_init(void)
  * @brief 更新电池状态的图标显示
  *
  * @param image 图片控件句柄
+ * @param show_charge_lvl 充电状态是否显示电量
  */
 void ui_battery_level_icon_updata(WM_HWIN image, uint8_t show_charge_lvl)
 {
@@ -305,12 +306,12 @@ static void ui_screenshot_task(void* arg)
 
   handle = (GUI_MEMDEV_Handle)arg;
 
-  if(make_file_num(USERPath2, &num))
+  if(make_file_num(DISK_USER_PATH, &num))
   {
     goto __exit;
   }
 
-  snprintf(path, sizeof(path), "%s%u.bmp", USERPath2, num);
+  snprintf(path, sizeof(path), "%s%u.bmp", DISK_USER_PATH, num);
 
   fp = (FIL*)ff_malloc(sizeof(FIL));
   if(fp == 0)
@@ -409,16 +410,16 @@ int ui_init(void)
   GUI_UC_SetEncodeUTF8();
 
   GUI_SetTextMode(GUI_TM_TRANS);
-  
+
   ml_set(0);
 
   if(font_ext != GUI_DEFAULT_FONT)
   {
-    uint32_t len = US_LEN(language) + sizeof(USERPath) + 9;
-    char *path = pvPortMalloc(len);
+    uint32_t len = US_LEN(language) + sizeof(DISK_SYS_PATH) + 9;
+    char* path = pvPortMalloc(len);
     if(path)
     {
-      if(US_GET(language,snprintf(path,len,"%slanguage/",USERPath)+path) == 0)
+      if(US_GET(language, snprintf(path, len, "%slanguage/", DISK_SYS_PATH) + path) == 0)
         ml_set(path);
       else
         ml_set(0);

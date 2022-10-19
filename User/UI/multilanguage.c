@@ -160,6 +160,7 @@ const ml_str_id_st ml_str_id[] =
   {&ui_str.ui_test_0.ostest_result_exception,ML_UI_TEST_0_OSTEST_RESULT_EXCEPTION},
   {&ui_str.ui_test_0.key_up_check,ML_UI_TEST_0_KEY_UP_CHECK},
   {&ui_str.ui_test_0.no_ostest,ML_UI_TEST_0_NO_OSTEST},
+  {&ui_str.ui_test_0.info_device_exception,ML_UI_TEST_0_INFO_DEVICE_EXCEPTION},
 
   {&ui_str.ui_test_1.title,ML_UI_TEST_1_TITLE},
   {&ui_str.ui_test_1.btn_speaker_play,ML_UI_TEST_1_BTN_SPEAKER_PLAY},
@@ -180,6 +181,7 @@ const ml_str_id_st ml_str_id[] =
   {&ui_str.ui_test_1.ostest_result_exception,ML_UI_TEST_1_OSTEST_RESULT_EXCEPTION},
   {&ui_str.ui_test_1.key_up_check,ML_UI_TEST_1_KEY_UP_CHECK},
   {&ui_str.ui_test_1.no_ostest,ML_UI_TEST_1_NO_OSTEST},
+  {&ui_str.ui_test_1.info_device_exception,ML_UI_TEST_1_INFO_DEVICE_EXCEPTION},
 
   {&ui_str.ui_test_2.title,ML_UI_TEST_2_TITLE},
   {&ui_str.ui_test_2.btn_speaker_play,ML_UI_TEST_2_BTN_SPEAKER_PLAY},
@@ -199,6 +201,7 @@ const ml_str_id_st ml_str_id[] =
   {&ui_str.ui_test_2.ostest_result_exception,ML_UI_TEST_2_OSTEST_RESULT_EXCEPTION},
   {&ui_str.ui_test_2.key_up_check,ML_UI_TEST_2_KEY_UP_CHECK},
   {&ui_str.ui_test_2.no_ostest,ML_UI_TEST_2_NO_OSTEST},
+  {&ui_str.ui_test_2.info_device_exception,ML_UI_TEST_2_INFO_DEVICE_EXCEPTION},
 
   {&ui_str.ui_test_3.title,ML_UI_TEST_3_TITLE},
   {&ui_str.ui_test_3.btn_speaker_play,ML_UI_TEST_3_BTN_SPEAKER_PLAY},
@@ -219,6 +222,7 @@ const ml_str_id_st ml_str_id[] =
   {&ui_str.ui_test_3.ostest_result_exception,ML_UI_TEST_3_OSTEST_RESULT_EXCEPTION},
   {&ui_str.ui_test_3.key_up_check,ML_UI_TEST_3_KEY_UP_CHECK},
   {&ui_str.ui_test_3.no_ostest,ML_UI_TEST_3_NO_OSTEST},
+  {&ui_str.ui_test_3.info_device_exception,ML_UI_TEST_3_INFO_DEVICE_EXCEPTION},
 };
 
 static void language_cn_config(void)
@@ -350,6 +354,7 @@ static void language_cn_config(void)
   ui_str.ui_test_0.ostest_result_exception = "异常";
   ui_str.ui_test_0.key_up_check = "(上键查看)";
   ui_str.ui_test_0.no_ostest = "未测试";
+  ui_str.ui_test_0.info_device_exception = "设备异常";
 
   ui_str.ui_test_1.title = "";
   ui_str.ui_test_1.btn_speaker_play = "喇叭播放";
@@ -370,6 +375,7 @@ static void language_cn_config(void)
   ui_str.ui_test_1.ostest_result_exception = ui_str.ui_test_0.ostest_result_exception;
   ui_str.ui_test_1.key_up_check = ui_str.ui_test_0.key_up_check;
   ui_str.ui_test_1.no_ostest = ui_str.ui_test_0.no_ostest;
+  ui_str.ui_test_1.info_device_exception = ui_str.ui_test_0.info_device_exception;
 
   ui_str.ui_test_2.title = "";
   ui_str.ui_test_2.btn_speaker_play = ui_str.ui_test_1.btn_speaker_play;
@@ -389,6 +395,7 @@ static void language_cn_config(void)
   ui_str.ui_test_2.ostest_result_exception = ui_str.ui_test_1.ostest_result_exception;
   ui_str.ui_test_2.key_up_check = ui_str.ui_test_1.key_up_check;
   ui_str.ui_test_2.no_ostest = ui_str.ui_test_1.no_ostest;
+  ui_str.ui_test_2.info_device_exception = ui_str.ui_test_1.info_device_exception;
 
   ui_str.ui_test_3.title = "";
   ui_str.ui_test_3.btn_speaker_play = ui_str.ui_test_2.btn_speaker_play;
@@ -409,6 +416,7 @@ static void language_cn_config(void)
   ui_str.ui_test_3.ostest_result_exception = ui_str.ui_test_2.ostest_result_exception;
   ui_str.ui_test_3.key_up_check = ui_str.ui_test_2.key_up_check;
   ui_str.ui_test_3.no_ostest = ui_str.ui_test_2.no_ostest;
+  ui_str.ui_test_3.info_device_exception = ui_str.ui_test_2.info_device_exception;
 }
 
 static void language_en_config(void)
@@ -540,6 +548,7 @@ static void language_en_config(void)
   ui_str.ui_test_0.ostest_result_exception = "Exception";
   ui_str.ui_test_0.key_up_check = "(KEY-UP Check)";
   ui_str.ui_test_0.no_ostest = "No Test";
+  ui_str.ui_test_0.info_device_exception = "Device Exception";
 
   ui_str.ui_test_1.title = "";
   ui_str.ui_test_1.btn_speaker_play = "SPK-Play";
@@ -560,6 +569,7 @@ static void language_en_config(void)
   ui_str.ui_test_1.ostest_result_exception = ui_str.ui_test_0.ostest_result_exception;
   ui_str.ui_test_1.key_up_check = ui_str.ui_test_0.key_up_check;
   ui_str.ui_test_1.no_ostest = ui_str.ui_test_0.no_ostest;
+  ui_str.ui_test_1.info_device_exception = ui_str.ui_test_0.info_device_exception;
 
   ui_str.ui_test_2.title = "";
   ui_str.ui_test_2.btn_speaker_play = ui_str.ui_test_1.btn_speaker_play;
@@ -579,6 +589,7 @@ static void language_en_config(void)
   ui_str.ui_test_2.ostest_result_exception = ui_str.ui_test_1.ostest_result_exception;
   ui_str.ui_test_2.key_up_check = ui_str.ui_test_1.key_up_check;
   ui_str.ui_test_2.no_ostest = ui_str.ui_test_1.no_ostest;
+  ui_str.ui_test_2.info_device_exception = ui_str.ui_test_1.info_device_exception;
 
   ui_str.ui_test_3.title = "";
   ui_str.ui_test_3.btn_speaker_play = ui_str.ui_test_2.btn_speaker_play;
@@ -599,6 +610,7 @@ static void language_en_config(void)
   ui_str.ui_test_3.ostest_result_exception = ui_str.ui_test_2.ostest_result_exception;
   ui_str.ui_test_3.key_up_check = ui_str.ui_test_2.key_up_check;
   ui_str.ui_test_3.no_ostest = ui_str.ui_test_2.no_ostest;
+  ui_str.ui_test_3.info_device_exception = ui_str.ui_test_2.info_device_exception;
 }
 
 static const char* ml_get_str(const ml_str_file_st* ml_file, ml_id_et id)
@@ -636,13 +648,19 @@ static const char* ml_get_str(const ml_str_file_st* ml_file, ml_id_et id)
   return str;
 }
 
-static ml_str_file_st* ml_file = 0;
+/**
+ * @brief 使用语言文件
+ *
+ * @param path 文件完整路径
+ */
 void ml_set(const char* path)
 {
   FRESULT res;
   FIL fil;
   UINT br;
+  static ml_str_file_st* ml_file = 0;
 
+  //设置默认语言
   {
     const char** p = (const char**)&ui_str;
     for(uint32_t i = 0;i < sizeof(ui_str) / sizeof(p[0]);i++)
@@ -658,6 +676,7 @@ void ml_set(const char* path)
     ml_file = 0;
   }
 
+  //加载文件到内存
   if(path)
   {
     ML_DBG("- ML use %s.\n", path);
@@ -703,6 +722,7 @@ void ml_set(const char* path)
 
   if(ml_file)
   {
+    //解析文件
     ML_DBG("-- content:\n");
     for(uint32_t i = 0;i < sizeof(ml_str_id) / sizeof(ml_str_id_st);i++)
     {
@@ -716,7 +736,13 @@ void ml_set(const char* path)
   }
 }
 
-uint32_t ml_check(ml_str_file_st* file)
+/**
+ * @brief 检查语言文件
+ *
+ * @param file 文件
+ * @return int （0：正确）（1：错误）
+ */
+int ml_check(ml_str_file_st* file)
 {
   if(strcmp(file->head, ".ml") == 0)
     return 0;
@@ -724,17 +750,28 @@ uint32_t ml_check(ml_str_file_st* file)
     return 1;
 }
 
-uint32_t ml_get_name(const char* path, char* buf, uint32_t max_len)
+/**
+ * @brief 获取语言包文件的语言名称
+ *
+ * @param path 文件完整路径
+ * @param buf 填充语言名称的缓存
+ * @param max_len 缓存最大长度
+ * @return int 错误码
+ */
+int ml_get_name(const char* path, char* buf, uint32_t max_len)
 {
   FRESULT res;
   FIL* fil;
   UINT br;
   ml_str_file_st* pdata;
-  uint32_t ret = 1;
+  int err;
 
   fil = pvPortMalloc(sizeof(FIL));
   if(fil == 0)
-    return 1;
+  {
+    err = -1;
+    goto __exit;
+  }
 
   memset(fil, 0, sizeof(FIL));
 
@@ -750,14 +787,32 @@ uint32_t ml_get_name(const char* path, char* buf, uint32_t max_len)
         if(ml_check(pdata) == 0)
         {
           snprintf(buf, max_len, "%s", ml_get_str(pdata, ML_NAME));
-          ret = 0;
+          err = 0;
         }
+        else
+        {
+          err = -5;
+        }
+      }
+      else
+      {
+        err = -4;
       }
       vPortFree(pdata);
     }
+    else
+    {
+      err = -3;
+    }
     f_close(fil);
+  }
+  else
+  {
+    err = 2;
   }
 
   vPortFree(fil);
-  return ret;
+
+__exit:
+  return err;
 }
