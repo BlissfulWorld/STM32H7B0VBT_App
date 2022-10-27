@@ -94,7 +94,7 @@ int os_test_get_volt(const uint8_t* gnd_list, const uint8_t* func_list, float* r
     //置高，开始测量
     HAL_Delay(10);
     HAL_GPIO_WritePin(test_pin[*p].gpio, test_pin[*p].pin, GPIO_PIN_SET);
-    HAL_Delay(50);
+    HAL_Delay(90);
 
     ina219_basic_read(&handle, &mv, &ma, &mw);
 

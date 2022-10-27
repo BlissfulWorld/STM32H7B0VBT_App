@@ -95,10 +95,6 @@ void MX_USB_HOST_Init(void)
 static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
 {
   /* USER CODE BEGIN CALL_BACK_1 */
-  static WM_MESSAGE msg = {
-    .MsgId = 0
-  };
-
   switch(id)
   {
     case HOST_USER_SELECT_CONFIGURATION:
@@ -106,20 +102,17 @@ static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
 
     case HOST_USER_DISCONNECTION:
       Appli_state = APPLICATION_DISCONNECT;
-      msg.MsgId = UI_USBH_APP_DISCONNECT;
-      WM_BroadcastMessage(&msg);
+      ui_send_msg(UI_USBH_APP_DISCONNECT);
       break;
 
     case HOST_USER_CLASS_ACTIVE:
       Appli_state = APPLICATION_READY;
-      msg.MsgId = UI_USBH_APP_READY;
-      WM_BroadcastMessage(&msg);
+      ui_send_msg(UI_USBH_APP_READY);
       break;
 
     case HOST_USER_CONNECTION:
       Appli_state = APPLICATION_START;
-      msg.MsgId = UI_USBH_APP_START;
-      WM_BroadcastMessage(&msg);
+      ui_send_msg(UI_USBH_APP_START);
       break;
 
     default:

@@ -35,7 +35,7 @@ typedef struct user_settings_item_s
   //开短路测试使能
   USI(ostest, 1);
 
-  //开短路生成配置
+  //开短路学习并生成配置
   //误差类型
   USI(ostest_mk_conf_err_type, 1);
   //误差百分比

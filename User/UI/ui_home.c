@@ -300,8 +300,9 @@ static void _cbDialog(WM_MESSAGE* pMsg)
         snprintf(str, sizeof(str), "%s\n%s", ui_str.ui_home.waiting, (osKernelGetTickCount() / 500) & 1 ? "---" : "+++");
         TEXT_SetText(hItem, str);
 
-        board_power_off();
       }
+
+      board_power_off();
       break;
     }
     case WM_KEY:

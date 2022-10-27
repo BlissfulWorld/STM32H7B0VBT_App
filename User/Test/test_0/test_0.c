@@ -297,7 +297,7 @@ static void test_task(void* p)
     test->stage = TEST_STAGE_OS;
     osDelay(400);
 
-    ostest = 0;
+    ostest = 1;
     US_GET(ostest, &ostest);
     test->os_test_data_len = 0;
     test->os_test_result = 0;
@@ -323,6 +323,7 @@ static void test_task(void* p)
       if(test->os_test_result) wav_play(audio_file_warning);
 
       test_0_init(intf);
+      osDelay(1000);
     }
 
     err_flg = 0;

@@ -162,6 +162,8 @@ static void _cbDialog(WM_MESSAGE* pMsg)
           if(status == 0)
           {
             status = 1;
+            board_power_on();
+            osDelay(100);
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_NOTICE);
             TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0000FF));
             TEXT_SetText(hItem, ui_str.ui_config_update.updating);
@@ -189,6 +191,7 @@ static void _cbDialog(WM_MESSAGE* pMsg)
             TEXT_SetText(hItem, ui_str.ui_config_update.btn_back);
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_UPDATE);
             TEXT_SetText(hItem, ui_str.ui_config_update.btn_update);
+            board_power_off();
             status = 0;
           }
 

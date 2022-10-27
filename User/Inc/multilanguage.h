@@ -40,17 +40,17 @@ typedef enum ml_id_e //: uint16_t
   ML_UI_OSTEST_RESULT_TITLE = 0x0500,
   ML_UI_OSTEST_RESULT_BTN_BACK = 0x0501,
   ML_UI_OSTEST_RESULT_BTN_EXPORT_DATA = 0x0502,
-  ML_UI_OSTEST_RESULT_BTN_MAKE_CONFIG = 0x0503,
+  ML_UI_OSTEST_RESULT_BTN_LEARN = 0x0503,
   ML_UI_OSTEST_RESULT_BTN_NO = 0x0504,
   ML_UI_OSTEST_RESULT_BTN_YES = 0x0505,
   ML_UI_OSTEST_RESULT_EXPORTING = 0x0510,
   ML_UI_OSTEST_RESULT_EXPORT_FINISHED = 0x0511,
   ML_UI_OSTEST_RESULT_EXPORT_FAILED = 0x0512,
   ML_UI_OSTEST_RESULT_EXPORT_DATA_TO_STORAGE = 0x0513,
-  ML_UI_OSTEST_RESULT_MAKING = 0x0514,
-  ML_UI_OSTEST_RESULT_MAKE_FINISHED = 0x0515,
-  ML_UI_OSTEST_RESULT_MAKE_FAILED = 0x0516,
-  ML_UI_OSTEST_RESULT_MAKE_CONFIG_AND_WRITE_FLASH = 0x0517,
+  ML_UI_OSTEST_RESULT_LEARNING = 0x0514,
+  ML_UI_OSTEST_RESULT_LEARN_FINISHED = 0x0515,
+  ML_UI_OSTEST_RESULT_LEARN_FAILED = 0x0516,
+  ML_UI_OSTEST_RESULT_LEARN_AND_WRITE_FLASH = 0x0517,
 
   ML_UI_NONSUPPORT_TITLE = 0x0600,
   ML_UI_NONSUPPORT_INFO = 0x0610,
@@ -96,7 +96,7 @@ typedef enum ml_id_e //: uint16_t
   ML_UI_M_OSTEST_FUNCTION = 0x2510,
   ML_UI_M_OSTEST_FUNCTION_ENABLE = 0x2511,
   ML_UI_M_OSTEST_FUNCTION_DISABLE = 0x2512,
-  ML_UI_M_OSTEST_ERROR_EXP_CONFIG = 0x2520,
+  ML_UI_M_OSTEST_MAX_ERROR = 0x2520,
   ML_UI_M_OSTEST_EDIT_CANCEL = 0x25A0,
   ML_UI_M_OSTEST_EDIT_CONFIRM = 0x25A1,
 
@@ -254,7 +254,7 @@ struct ui_ostest_result_s
   const char* title;
   const char* btn_back;
   const char* btn_exp_data;
-  const char* btn_make_config;
+  const char* btn_learn;
   const char* btn_no;
   const char* btn_yes;
 
@@ -262,10 +262,10 @@ struct ui_ostest_result_s
   const char* export_finished;
   const char* export_failed;
   const char* export_data_to_storage;
-  const char* making;
-  const char* make_finished;
-  const char* make_failed;
-  const char* make_config_and_write_to_flash;
+  const char* learning;
+  const char* learn_finished;
+  const char* learn_failed;
+  const char* learn_and_write_to_flash;
 };
 
 struct ui_nonsupport_s
@@ -331,7 +331,7 @@ struct ui_m_ostest_s
   const char* function_enable;
   const char* function_disable;
 
-  const char* error_exp_config;
+  const char* max_error;
 };
 
 struct ui_m_clone_s

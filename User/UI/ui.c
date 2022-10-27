@@ -10,11 +10,6 @@
 #include "string.h"
 #include "config.h"
 
-static uint32_t battery_value;
-static WM_MESSAGE msg = {
-  .MsgId = UI_MSG_BATTERY
-};
-
 static osThreadId_t ui_tid;
 static const osThreadAttr_t ui_t_attr =
 {
@@ -22,6 +17,8 @@ static const osThreadAttr_t ui_t_attr =
   .stack_size = 1024 * 20,
   .priority = (osPriority_t)osPriorityNormal,
 };
+
+static osMessageQueueId_t ui_mq;
 
 /**
   * @brief 初始化界面控件的皮肤
@@ -119,7 +116,7 @@ void ui_battery_level_icon_updata(WM_HWIN image, uint8_t show_charge_lvl)
   if(icon)
     resource_unload(icon);
 
-  if(!show_charge_lvl && battery_get_status() == BAT_STA_CHARGE)
+  if((show_charge_lvl == 0) && (battery_get_status() == BAT_STA_CHARGE))
   {
     name = "battery_charging";
   }
@@ -153,7 +150,7 @@ void ui_battery_level_icon_updata(WM_HWIN image, uint8_t show_charge_lvl)
  */
 static void battery_changed_cb(uint8_t lvl, uint8_t status)
 {
-  battery_value = lvl | (status << 8);
+  ui_send_msg(UI_MSG_BATTERY);
 }
 
 /**
@@ -389,6 +386,25 @@ __exit:
 #endif
 
 /**
+ * @brief 发送一个消息到UI消息队列
+ *
+ * @param id 消息ID
+ * @return int 错误码
+ */
+int ui_send_msg(int id)
+{
+  if(ui_mq)
+  {
+    if(osMessageQueuePut(ui_mq, &id, 0, 0) == osOK)
+      return 0;
+    else
+      return -1;
+  }
+
+  return -2;
+}
+
+/**
  * @brief UI初始化
  *
  * @return int 错误码
@@ -396,6 +412,8 @@ __exit:
 int ui_init(void)
 {
   GUI_Init();
+
+  ui_mq = osMessageQueueNew(10, sizeof(int), 0);
 
   //加载字库
   font_load();
@@ -442,23 +460,23 @@ int ui_init(void)
 void ui_exec(void)
 {
   uint32_t tick;
+  WM_MESSAGE msg = { 0 };
 
   tick = osKernelGetTickCount();
   while(1)
   {
-    //HAL_IWDG_Refresh(&hiwdg1);
     IWDG1->KR = IWDG_KEY_RELOAD;
+
+    while(osMessageQueueGet(ui_mq, &msg.MsgId, 0, 0) == osOK)
+    {
+      WM_BroadcastMessage(&msg);
+      IWDG1->KR = IWDG_KEY_RELOAD;
+    }
+
     GUI_Exec();
 
     tick += 40;
     osDelayUntil(tick);
-
-    //广播电池信息
-    if(msg.Data.v != battery_value)
-    {
-      msg.Data.v = battery_value;
-      WM_BroadcastMessage(&msg);
-    }
 
     ui_key_detect();
   }
@@ -485,6 +503,8 @@ void ui_start(void)
 {
   osKernelLock();
   if(ui_tid == 0)
+  {
     ui_tid = osThreadNew(ui_task, NULL, &ui_t_attr);
+  }
   osKernelUnlock();
 }

@@ -630,20 +630,23 @@ static void _cbDialog(WM_MESSAGE* pmsg)
         }
       }
 
-      hitem = WM_GetDialogItem(hwin, ID_LISTVIEW_CURRENT);
-      vi_updata(hitem);
-
-      if(vdd_is_exception)
+      if(stage != TEST_STAGE_OS)
       {
-        hide_func_test_ui(hwin);
-        hitem = WM_GetDialogItem(hwin, ID_TEXT_WAIT);
-        TEXT_SetText(hitem, ui_str.ui_test_3.info_device_exception);
-        WM_ShowWindow(hitem);
-        test_stop(module);
-        WM_DeleteTimer(htimer);
-        stage = TEST_STAGE_WAIT;
-        play_warning();
-        break;
+        hitem = WM_GetDialogItem(hwin, ID_LISTVIEW_CURRENT);
+        vi_updata(hitem);
+
+        if(vdd_is_exception)
+        {
+          hide_func_test_ui(hwin);
+          hitem = WM_GetDialogItem(hwin, ID_TEXT_WAIT);
+          TEXT_SetText(hitem, ui_str.ui_test_3.info_device_exception);
+          WM_ShowWindow(hitem);
+          test_stop(module);
+          WM_DeleteTimer(htimer);
+          stage = TEST_STAGE_WAIT;
+          play_warning();
+          break;
+        }
       }
 
       if(stage != test->stage_get())

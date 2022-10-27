@@ -134,28 +134,46 @@ static int make_config_to_board(void)
   int err;
   uint16_t data_error_pct;
   float data_error;
-  const config_file_st* config_file;
   cJSON* json;
   char str_buf[4];
   char* json_str;
+  test_module_st* _module;
 
   err = 0;
 
   if(module == 0)
   {
     err = -1;
+    goto __exit;
   }
 
-  config_file = config_file_load_from_board(&module->board_header);
+  board_power_on();
+  osDelay(100);
+
+  _module = test_module_load();
+  if(_module == 0)
+  {
+    err = -2;
+    goto __exit;
+  }
+
+  if(module->id.code != _module->id.code)
+  {
+    err = -3;
+    goto __module_unload;
+  }
 
   json = 0;
 
-  if(config_file)
+  if(_module->config_file)
   {
-    if(memcmp(config_file->file.type, "json", 4) == 0)
-      json = cJSON_Parse((char*)config_file->file.data);
-    config_file_unload(config_file);
-    config_file = 0;
+    if(memcmp(_module->config_file->file.type, "json", 4))
+    {
+      err = -4;
+      goto __module_unload;
+    }
+
+    json = cJSON_Parse((char*)(_module->config_file->file.data));
   }
 
   if(json == 0)
@@ -163,33 +181,32 @@ static int make_config_to_board(void)
     json = cJSON_CreateObject();
     if(json == 0)
     {
-      err = -2;
-      goto __exit;
+      err = -5;
+      goto __module_unload;
     }
   }
 
   cJSON* j_test = cJSON_GetObjectItem(json, json_obj_test);
   if(j_test == 0)
   {
-    if(cJSON_AddObjectToObject(json, json_obj_test) == 0)
+    j_test = cJSON_AddObjectToObject(json, json_obj_test);
+    if(j_test == 0)
     {
-      err = -3;
+      err = -6;
       goto __delele_json;
     }
   }
 
-  cJSON* j_os = cJSON_GetObjectItem(j_test, json_obj_os);
-  if(j_os)
-  {
-    cJSON_Delete(j_os);
-  }
+  cJSON_DeleteItemFromObject(j_test, json_obj_os);
 
-  j_os = cJSON_AddObjectToObject(j_test, json_obj_os);
+  cJSON* j_os = cJSON_AddObjectToObject(j_test, json_obj_os);
   if(j_os == 0)
   {
-    err = -4;
+    err = -7;
     goto __delele_json;
   }
+
+  IWDG1->KR = IWDG_KEY_RELOAD;
 
   data_error_pct = 5;
   US_GET(ostest_mk_conf_err_pct, &data_error_pct);
@@ -203,7 +220,7 @@ static int make_config_to_board(void)
     cJSON* js_item = cJSON_AddObjectToObject(j_os, str_buf);
     if(js_item == 0)
     {
-      err = -5;
+      err = -8;
       goto __delele_json;
     }
 
@@ -213,25 +230,25 @@ static int make_config_to_board(void)
 
     if(cJSON_AddNumberToObject(js_item, json_obj_max, max) == 0)
     {
-      err = -6;
+      err = -9;
       goto __delele_json;
     }
 
     if(cJSON_AddNumberToObject(js_item, json_obj_min, min) == 0)
     {
-      err = -7;
+      err = -10;
       goto __delele_json;
     }
 
     if(cJSON_AddStringToObject(js_item, json_obj_color_in, "0xFFFFFF") == 0)
     {
-      err = -8;
+      err = -11;
       goto __delele_json;
     }
 
     if(cJSON_AddStringToObject(js_item, json_obj_color_out, "0xFF0000") == 0)
     {
-      err = -9;
+      err = -12;
       goto __delele_json;
     }
   }
@@ -239,22 +256,26 @@ static int make_config_to_board(void)
   json_str = cJSON_Print(json);
   if(json_str == 0)
   {
-    err = -10;
+    err = -13;
     goto __delele_json;
   }
   cJSON_Delete(json);
 
-  if(config_file_data_write_to_board(&module->board_header, json_str, strlen(json_str)))
+  if(config_file_data_write_to_board(&_module->board_header, json_str, strlen(json_str)))
   {
-    err = -11;
+    err = -14;
   }
 
   cJSON_free(json_str);
 
-  goto __exit;
+  goto __module_unload;
 
 __delele_json:
   cJSON_Delete(json);
+
+__module_unload:
+  test_module_unload(_module);
+  board_power_off();
 
 __exit:
   return err;
@@ -358,7 +379,7 @@ static void _cbDialog(WM_MESSAGE* pMsg)
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_ostest_result.btn_make_config);
+      TEXT_SetText(hItem, ui_str.ui_ostest_result.btn_learn);
 
       WM_SetFocus(pMsg->hWin);
       break;
@@ -389,7 +410,7 @@ static void _cbDialog(WM_MESSAGE* pMsg)
             TEXT_SetText(hItem, ui_str.ui_ostest_result.btn_exp_data);
             WM_ShowWindow(hItem);
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_MAKE_CONF);
-            TEXT_SetText(hItem, ui_str.ui_ostest_result.btn_make_config);
+            TEXT_SetText(hItem, ui_str.ui_ostest_result.btn_learn);
             WM_ShowWindow(hItem);
           }
           break;
@@ -455,18 +476,18 @@ static void _cbDialog(WM_MESSAGE* pMsg)
             WM_HideWindow(WM_GetDialogItem(pMsg->hWin, ID_TEXT_MAKE_CONF));
 
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_INFO);
-            TEXT_SetText(hItem, ui_str.ui_ostest_result.making);
+            TEXT_SetText(hItem, ui_str.ui_ostest_result.learning);
             GUI_Exec();
 
             //开始生成配置
             int err = make_config_to_board();
             if(err == 0)
             {
-              TEXT_SetText(hItem, ui_str.ui_ostest_result.make_finished);
+              TEXT_SetText(hItem, ui_str.ui_ostest_result.learn_finished);
             }
             else
             {
-              snprintf(str_buf, sizeof(str_buf), "%s (%d)", ui_str.ui_ostest_result.make_failed, err);
+              snprintf(str_buf, sizeof(str_buf), "%s (%d)", ui_str.ui_ostest_result.learn_failed, err);
               TEXT_SetText(hItem, str_buf);
             }
 
@@ -474,7 +495,7 @@ static void _cbDialog(WM_MESSAGE* pMsg)
             TEXT_SetText(hItem, ui_str.ui_ostest_result.btn_back);
             WM_ShowWindow(hItem);
             hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_MAKE_CONF);
-            TEXT_SetText(hItem, ui_str.ui_ostest_result.btn_make_config);
+            TEXT_SetText(hItem, ui_str.ui_ostest_result.btn_learn);
             WM_ShowWindow(hItem);
             WM_ShowWindow(WM_GetDialogItem(pMsg->hWin, ID_TEXT_EXPORT_DATA));
             GUI_Exec();
@@ -482,7 +503,7 @@ static void _cbDialog(WM_MESSAGE* pMsg)
           }
 
           hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_INFO);
-          TEXT_SetText(hItem, ui_str.ui_ostest_result.make_config_and_write_to_flash);
+          TEXT_SetText(hItem, ui_str.ui_ostest_result.learn_and_write_to_flash);
           hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_BACK);
           TEXT_SetText(hItem, ui_str.ui_ostest_result.btn_no);
           hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_MAKE_CONF);

@@ -45,6 +45,7 @@ typedef void (*ui_close_cb_func_t)(void*);
 
 int ui_init(void);
 void ui_start(void);
+int ui_send_msg(int id);
 void ui_show_logo(void);
 int ui_screenshot(void);
 

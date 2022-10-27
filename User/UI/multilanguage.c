@@ -66,17 +66,17 @@ const ml_str_id_st ml_str_id[] =
   {&ui_str.ui_ostest_result.title,ML_UI_OSTEST_RESULT_TITLE},
   {&ui_str.ui_ostest_result.btn_back,ML_UI_OSTEST_RESULT_BTN_BACK},
   {&ui_str.ui_ostest_result.btn_exp_data,ML_UI_OSTEST_RESULT_BTN_EXPORT_DATA},
-  {&ui_str.ui_ostest_result.btn_make_config,ML_UI_OSTEST_RESULT_BTN_MAKE_CONFIG},
+  {&ui_str.ui_ostest_result.btn_learn,ML_UI_OSTEST_RESULT_BTN_LEARN},
   {&ui_str.ui_ostest_result.btn_no,ML_UI_OSTEST_RESULT_BTN_NO},
   {&ui_str.ui_ostest_result.btn_yes,ML_UI_OSTEST_RESULT_BTN_YES},
   {&ui_str.ui_ostest_result.exporting,ML_UI_OSTEST_RESULT_EXPORTING},
   {&ui_str.ui_ostest_result.export_finished,ML_UI_OSTEST_RESULT_EXPORT_FINISHED},
   {&ui_str.ui_ostest_result.export_failed,ML_UI_OSTEST_RESULT_EXPORT_FAILED},
   {&ui_str.ui_ostest_result.export_data_to_storage,ML_UI_OSTEST_RESULT_EXPORT_DATA_TO_STORAGE},
-  {&ui_str.ui_ostest_result.making,ML_UI_OSTEST_RESULT_MAKING},
-  {&ui_str.ui_ostest_result.make_finished,ML_UI_OSTEST_RESULT_MAKE_FINISHED},
-  {&ui_str.ui_ostest_result.make_failed,ML_UI_OSTEST_RESULT_MAKE_FAILED},
-  {&ui_str.ui_ostest_result.make_config_and_write_to_flash,ML_UI_OSTEST_RESULT_MAKE_CONFIG_AND_WRITE_FLASH},
+  {&ui_str.ui_ostest_result.learning,ML_UI_OSTEST_RESULT_LEARNING},
+  {&ui_str.ui_ostest_result.learn_finished,ML_UI_OSTEST_RESULT_LEARN_FINISHED},
+  {&ui_str.ui_ostest_result.learn_failed,ML_UI_OSTEST_RESULT_LEARN_FAILED},
+  {&ui_str.ui_ostest_result.learn_and_write_to_flash,ML_UI_OSTEST_RESULT_LEARN_AND_WRITE_FLASH},
 
   {&ui_str.ui_nonsupport.title,ML_UI_NONSUPPORT_TITLE},
   {&ui_str.ui_nonsupport.info,ML_UI_NONSUPPORT_INFO},
@@ -116,7 +116,7 @@ const ml_str_id_st ml_str_id[] =
   {&ui_str.ui_m_ostest.function,ML_UI_M_OSTEST_FUNCTION},
   {&ui_str.ui_m_ostest.function_enable,ML_UI_M_OSTEST_FUNCTION_ENABLE},
   {&ui_str.ui_m_ostest.function_disable,ML_UI_M_OSTEST_FUNCTION_DISABLE},
-  {&ui_str.ui_m_ostest.error_exp_config,ML_UI_M_OSTEST_ERROR_EXP_CONFIG},
+  {&ui_str.ui_m_ostest.max_error,ML_UI_M_OSTEST_MAX_ERROR},
   {&ui_str.ui_m_ostest_edit.btn_cancel,ML_UI_M_OSTEST_EDIT_CANCEL},
   {&ui_str.ui_m_ostest_edit.btn_confirm,ML_UI_M_OSTEST_EDIT_CONFIRM},
 
@@ -259,17 +259,17 @@ static void language_cn_config(void)
   ui_str.ui_ostest_result.title = "开短路测试结果";
   ui_str.ui_ostest_result.btn_back = "返回";
   ui_str.ui_ostest_result.btn_exp_data = "导出数据";
-  ui_str.ui_ostest_result.btn_make_config = "生成数据";
+  ui_str.ui_ostest_result.btn_learn = "学习";
   ui_str.ui_ostest_result.btn_no = "否";
   ui_str.ui_ostest_result.btn_yes = "是";
   ui_str.ui_ostest_result.exporting = "导出中...";
   ui_str.ui_ostest_result.export_finished = "导出完成";
   ui_str.ui_ostest_result.export_failed = "导出失败";
   ui_str.ui_ostest_result.export_data_to_storage = "导出数据到存储？";
-  ui_str.ui_ostest_result.making = "生成中...";
-  ui_str.ui_ostest_result.make_finished = "生成配置已完成";
-  ui_str.ui_ostest_result.make_failed = "生成失败";
-  ui_str.ui_ostest_result.make_config_and_write_to_flash = "生成配置并写入小板？";
+  ui_str.ui_ostest_result.learning = "学习中...";
+  ui_str.ui_ostest_result.learn_finished = "已学习到小板中";
+  ui_str.ui_ostest_result.learn_failed = "失败";
+  ui_str.ui_ostest_result.learn_and_write_to_flash = "学习并写入小板？";
 
   ui_str.ui_nonsupport.title = "错误";
   ui_str.ui_nonsupport.info = "不支持！";
@@ -309,7 +309,7 @@ static void language_cn_config(void)
   ui_str.ui_m_ostest.function = "功能";
   ui_str.ui_m_ostest.function_enable = "启用";
   ui_str.ui_m_ostest.function_disable = "关闭";
-  ui_str.ui_m_ostest.error_exp_config = "误差 - 生成配置";
+  ui_str.ui_m_ostest.max_error = "最大误差";
 
   ui_str.ui_m_clone.title = "克隆";
   ui_str.ui_m_clone.btn_back = "返回";
@@ -453,17 +453,17 @@ static void language_en_config(void)
   ui_str.ui_ostest_result.title = "OSTest Results";
   ui_str.ui_ostest_result.btn_back = "Back";
   ui_str.ui_ostest_result.btn_exp_data = "Export";
-  ui_str.ui_ostest_result.btn_make_config = "Make";
+  ui_str.ui_ostest_result.btn_learn = "Make";
   ui_str.ui_ostest_result.btn_no = "No";
   ui_str.ui_ostest_result.btn_yes = "Yes";
   ui_str.ui_ostest_result.exporting = "Exporting...";
   ui_str.ui_ostest_result.export_finished = "Export Finished";
   ui_str.ui_ostest_result.export_failed = "Export Failed";
   ui_str.ui_ostest_result.export_data_to_storage = "Export Data To Storage?";
-  ui_str.ui_ostest_result.making = "Making...";
-  ui_str.ui_ostest_result.make_finished = "Make Finished";
-  ui_str.ui_ostest_result.make_failed = "Make Failed";
-  ui_str.ui_ostest_result.make_config_and_write_to_flash = "Make Config To Small Board?";
+  ui_str.ui_ostest_result.learning = "Learning...";
+  ui_str.ui_ostest_result.learn_finished = "Finished";
+  ui_str.ui_ostest_result.learn_failed = "Failed";
+  ui_str.ui_ostest_result.learn_and_write_to_flash = "Learn and Write To Small Board?";
 
   ui_str.ui_nonsupport.title = "Error";
   ui_str.ui_nonsupport.info = "Nonsupport!";
@@ -503,7 +503,7 @@ static void language_en_config(void)
   ui_str.ui_m_ostest.function = "Function";
   ui_str.ui_m_ostest.function_enable = "Enable";
   ui_str.ui_m_ostest.function_disable = "Disable";
-  ui_str.ui_m_ostest.error_exp_config = "Error - Make Config";
+  ui_str.ui_m_ostest.max_error = "Max Error";
 
   ui_str.ui_m_clone.title = "Clone";
   ui_str.ui_m_clone.btn_back = "Back";

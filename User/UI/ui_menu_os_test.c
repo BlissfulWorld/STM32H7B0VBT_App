@@ -54,7 +54,7 @@ static void item_func_set(uint32_t val)
 
 static uint32_t item_func_get(void)
 {
-  uint8_t tmp = 0;
+  uint8_t tmp = 1;
   US_GET(ostest, &tmp);
   return (uint32_t)(tmp & 0x000000FF);
 }
@@ -101,7 +101,7 @@ static void item_mk_conf_err_string(char* str_buf, uint32_t size_max, uint32_t v
 static const os_test_menu_item_st menu_item[] =
 {
   {&ui_str.ui_m_ostest.function,item_func_set,item_func_get,item_func_convert,item_func_string},
-  {&ui_str.ui_m_ostest.error_exp_config,item_mk_conf_err_set,item_mk_conf_err_get,item_mk_conf_err_convert,item_mk_conf_err_string},
+  {&ui_str.ui_m_ostest.max_error,item_mk_conf_err_set,item_mk_conf_err_get,item_mk_conf_err_convert,item_mk_conf_err_string},
 };
 
 static struct ui_menu_os_test_var_s
