@@ -1,12 +1,5 @@
 #include "ui.h"
 #include "DIALOG.h"
-#include "stdint.h"
-#include "test.h"
-#include "battery.h"
-#include "stdio.h"
-#include "ff.h"
-#include "cmsis_os.h"
-#include "wav.h"
 #include "pwdn_watchdog.h"
 
 typedef struct menu_item_s

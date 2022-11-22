@@ -1,9 +1,7 @@
+#include "test_0.h"
 #include "stdio.h"
 #include "string.h"
-#include "config.h"
-#include "i2c.h"
 #include "cmsis_os.h"
-#include "test.h"
 
 #define PROX_I2C_ID 0xb0
 

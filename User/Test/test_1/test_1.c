@@ -1,25 +1,17 @@
 #include "test_1.h"
-#include "conFig.h"
-#include "main.h"
 #include "gpio.h"
-#include "i2c.h"
-#include "adc.h"
 #include "pca9535.h"
-#include "hw.h"
 #include "cmsis_os.h"
-#include "ui.h"
 #include "string.h"
 #include "stdio.h"
 #include "cJSON.h"
 #include "json_obj.h"
-#include "ui.h"
 #include "wav.h"
-#include "tim.h"
+#include "resource.h"
+#include "mic.h"
 
 extern void test_1_als_init(void);
 extern void test_1_prox_init(void);
-extern int test_1_mic_init(void);
-extern int test_1_mic_deinit(void);
 extern void test_1_spkramp_init(void);
 extern void test_1_als_set_intf(const test_1_interface_st* i);
 extern void test_1_prox_set_intf(const test_1_interface_st* i);
@@ -34,13 +26,6 @@ extern uint8_t test_1_als_detect(void);
 extern void test_1_als_update_data(void);
 extern uint8_t test_1_als_get_percentage(void);
 extern uint8_t test_1_als_is_rdy(void);
-
-extern uint8_t test_1_mic_get_percentage(void);
-extern void test_1_mic_update_data(void);
-extern int test_1_mic_record_start(void);
-extern int test_1_mic_record_stop(void);
-extern int test_1_mic_record_play(void);
-extern uint8_t test_1_mic_record_get_progress(void);
 
 extern void test_1_spkramp_test_poll(void);
 extern void test_1_spkramp_test_poll_end(void);
@@ -156,7 +141,7 @@ void test_1_init(const test_1_interface_st* intf)
 
   test_1_als_init();
   test_1_prox_init();
-  test_1_mic_init();
+  mic_init();
   test_1_spkramp_init();
 }
 
@@ -164,7 +149,7 @@ static void test_1_deinit(const test_1_interface_st* intf)
 {
   GPIO_InitTypeDef gpio_init;
 
-  test_1_mic_deinit();
+  mic_deinit();
 
   pca9535_set_output(1, 0);
 
@@ -322,7 +307,7 @@ static void test_task(void* p)
     test_1_spkramp_test_poll();
     test->codec_aout_to_hac_test_res = codec_aout_to_hac_test(intf);
     test->yogi_rdy = yogi_detect(intf);
-    test_1_mic_update_data();
+    mic_update_data();
     test_1_als_update_data();
     test_1_prox_update_data();
     test_1_spkramp_play();
@@ -330,7 +315,7 @@ static void test_task(void* p)
     tick = HAL_GetTick();
     while(is_test)
     {
-      test_1_mic_update_data();
+      mic_update_data();
       test_1_als_update_data();
 
       if(HAL_GetTick() - tick > 50)
@@ -713,11 +698,11 @@ int test_1_start(test_module_st* module, const test_1_interface_st* intf, const 
   test->_1.prox_is_rdy = prox_is_rdy;
   test->_1.als_get = als_get;
   test->_1.als_is_rdy = als_is_rdy;
-  test->_1.mic_get = test_1_mic_get_percentage;
-  test->_1.mic_record_play = test_1_mic_record_play;
-  test->_1.mic_record_start = test_1_mic_record_start;
-  test->_1.mic_record_get_progress = test_1_mic_record_get_progress;
-  test->_1.mic_record_stop = test_1_mic_record_stop;
+  test->_1.mic_get = mic_get_percentage;
+  test->_1.mic_record_play = mic_record_play;
+  test->_1.mic_record_start = mic_record_start;
+  test->_1.mic_record_get_progress = mic_record_get_progress;
+  test->_1.mic_record_stop = mic_record_stop;
   test->_1.ma_get = test_ma_get;
   test->_1.mv_get = test_mv_get;
   test->_1.ma_is_update = test_ma_is_update;

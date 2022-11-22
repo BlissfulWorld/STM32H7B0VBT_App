@@ -206,6 +206,23 @@ typedef enum ml_id_e //: uint16_t
   ML_UI_TEST_3_NO_OSTEST = 0x861E,
   ML_UI_TEST_3_INFO_DEVICE_EXCEPTION = 0x861F,
 
+  ML_UI_TEST_4_TITLE = 0x8700,
+  ML_UI_TEST_4_BTN_NONE1 = 0x8701,
+  ML_UI_TEST_4_BTN_MENU = 0x8702,
+  ML_UI_TEST_4_BTN_RECORD_PLAY = 0x8703,
+  ML_UI_TEST_4_INFO_NO_FOUND_MODULE = 0x8710,
+  ML_UI_TEST_4_INFO_DOING_OSTEST = 0x8711,
+  ML_UI_TEST_4_MIC1 = 0x8712,
+  ML_UI_TEST_4_MIC1_FOUND = 0x8713,
+  ML_UI_TEST_4_MIC1_NO_FOUND = 0x8714,
+  ML_UI_TEST_4_MIC = 0x8715,
+  ML_UI_TEST_4_OSTEST = 0x8716,
+  ML_UI_TEST_4_OSTEST_RESULT_NORMAL = 0x8717,
+  ML_UI_TEST_4_OSTEST_RESULT_OC = 0x8718,
+  ML_UI_TEST_4_OSTEST_RESULT_SC = 0x8719,
+  ML_UI_TEST_4_OSTEST_RESULT_TOTAL = 0x871A,
+  ML_UI_TEST_4_INFO_DEVICE_EXCEPTION = 0x871B,
+
 }ml_id_et;
 
 struct ui_lanuch_s
@@ -472,6 +489,26 @@ struct ui_test_3_s
   const char* info_device_exception;
 };
 
+struct ui_test_4_s
+{
+  const char* title;
+  const char* btn_menu;
+  const char* btn_record_play;
+
+  const char* info_no_found_module;
+  const char* info_doing_ostest;
+  const char* mic1;
+  const char* mic1_found;
+  const char* mic1_no_found;
+  const char* mic;
+  const char* ostest;
+  const char* ostest_result_normal;
+  const char* ostest_result_oc;
+  const char* ostest_result_sc;
+  const char* ostest_result_total;
+  const char* info_device_exception;
+};
+
 struct ui_str_s
 {
   const char* name;
@@ -500,6 +537,7 @@ struct ui_str_s
   struct ui_test_1_s ui_test_1;
   struct ui_test_2_s ui_test_2;
   struct ui_test_3_s ui_test_3;
+  struct ui_test_4_s ui_test_4;
 };
 
 extern struct ui_str_s ui_str;

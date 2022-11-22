@@ -30,10 +30,12 @@ int spiflash_product_id_read(uint8_t* manufacturer, uint8_t* device)
     *manufacturer = rx_buffer[4];
     *device = rx_buffer[5];
     SPIFLASH_CS_SET();
+    HAL_Delay(1);
     return 0;
   }
 
   SPIFLASH_CS_SET();
+  HAL_Delay(1);
   return -1;
 }
 
@@ -63,6 +65,7 @@ int spiflash_uid_read(uint8_t* uid)
   HAL_SPI_Receive(&hspi3, uid, 16, 160);
 
   SPIFLASH_CS_SET();
+  HAL_Delay(1);
 
   return 0;
 }
@@ -106,6 +109,7 @@ int spiflash_read(uint32_t address, void* pdata, uint32_t size)
 
     IWDG1->KR = IWDG_KEY_RELOAD;
   }
+  HAL_Delay(1);
 
   return 0;
 }
@@ -133,6 +137,8 @@ static int read_status_register(uint8_t* value)
     err = -1;
   }
   SPIFLASH_CS_SET();
+
+  HAL_Delay(1);
 
   return err;
 }
@@ -178,6 +184,8 @@ static int write_enable(uint32_t timout)
       }
     }
   }
+
+  HAL_Delay(1);
 
   return err;
 }
@@ -254,6 +262,8 @@ int spiflash_write(uint32_t address, const void* pdata, uint32_t size, uint32_t 
     IWDG1->KR = IWDG_KEY_RELOAD;
   }
 
+  HAL_Delay(1);
+
   return err;
 }
 
@@ -313,6 +323,8 @@ int spiflash_erase_sector(uint32_t address, uint32_t timout)
   {
     err = -1;
   }
+
+  HAL_Delay(1);
 
   return err;
 }

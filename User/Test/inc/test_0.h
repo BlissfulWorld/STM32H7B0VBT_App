@@ -63,28 +63,9 @@ typedef struct test_0_interface_s
 
 }test_0_interface_st;
 
-extern const test_module_id_ut ip7_id;
-extern const test_module_id_ut ip7plus_id;
-extern const test_module_id_ut ip8plus_id;
-
-int ip7_test_start(test_module_st* module, const char* title);
-int ip7plus_test_start(test_module_st* module, const char* title);
-int ip8plus_test_start(test_module_st* module, const char* title);
-
-#define ip7_test_stop test_0_stop
-#define ip7plus_test_stop test_0_stop
-#define ip8plus_test_stop test_0_stop
-
-#define ip7_test_is_running test_0_is_running
-#define ip7plus_test_is_running test_0_is_running
-#define ip8plus_test_is_running test_0_is_running
-
-int ip7_test_start(test_module_st* module, const char* title);
-int ip7plus_test_start(test_module_st* module, const char* title);
-int ip8plus_test_start(test_module_st* module, const char* title);
-
 int test_0_start(test_module_st* module, const test_0_interface_st* intf, const test_0_config_st* default_config, const char* title);
 void test_0_stop(void);
 int test_0_is_running(void);
 
+extern void ui_test_0_open(test_0_st* _test_, const char* _title_);
 #endif

@@ -1,9 +1,10 @@
-#include "test.h"
+#include "mic.h"
 #include "string.h"
 //#include "analog_mic.h"
 #include "digital_mic.h"
 #include "cmsis_os.h"
 #include "analog_speaker.h"
+#include "config.h"
 
 #define SAMPLE_RATE_HZ        (16000)
 #define MIC_RECORD_MAX_LENGTH (SAMPLE_RATE_HZ * MIC_RECORD_TIME_DEPTH)
@@ -18,7 +19,7 @@ static uint32_t record_count;
 static uint8_t stage;
 static uint32_t play_count;
 
-int test_3_mic_init(void)
+int mic_init(void)
 {
   if(mic_record == 0)
   {
@@ -36,7 +37,7 @@ int test_3_mic_init(void)
   return 0;
 }
 
-int test_3_mic_deinit(void)
+int mic_deinit(void)
 {
   if(mic_record)
   {
@@ -49,7 +50,7 @@ int test_3_mic_deinit(void)
   return 0;
 }
 
-uint8_t test_3_mic_get_percentage(void)
+uint8_t mic_get_percentage(void)
 {
   uint16_t value;
 
@@ -61,24 +62,24 @@ uint8_t test_3_mic_get_percentage(void)
   return value;
 }
 
-void test_3_mic_update_data(void)
+void mic_update_data(void)
 {
   mic = digital_mic_get_current_value();
 }
 
-static void test_3_mic_record_cb(void)
+static void mic_record_cb(void)
 {
   record_count = MIC_RECORD_MAX_LENGTH;
   stage = STAGE_FINISHED;
 }
 
-int test_3_mic_record_start(void)
+int mic_record_start(void)
 {
   if(mic_record)
   {
     stage = STAGE_RECORDING;
     digital_mic_record_stop();
-    return digital_mic_record_start(mic_record, MIC_RECORD_MAX_LENGTH, test_3_mic_record_cb);
+    return digital_mic_record_start(mic_record, MIC_RECORD_MAX_LENGTH, mic_record_cb);
   }
   else
   {
@@ -86,7 +87,7 @@ int test_3_mic_record_start(void)
   }
 }
 
-int test_3_mic_record_stop(void)
+int mic_record_stop(void)
 {
   stage = STAGE_FINISHED;
   record_count = MIC_RECORD_MAX_LENGTH - digital_mic_record_get_count();
@@ -94,7 +95,7 @@ int test_3_mic_record_stop(void)
   return 0;
 }
 
-uint8_t test_3_mic_record_get_progress(void)
+uint8_t mic_record_get_progress(void)
 {
   if(stage == STAGE_RECORDING)
     return (MIC_RECORD_MAX_LENGTH - digital_mic_record_get_count()) * 100 / MIC_RECORD_MAX_LENGTH;
@@ -136,7 +137,7 @@ static uint32_t data_cb(void* p, void* buffer, uint32_t max)
   return 0;
 }
 
-int test_3_mic_record_play(void)
+int mic_record_play(void)
 {
   if(stage)
   {

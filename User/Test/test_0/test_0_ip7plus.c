@@ -1,4 +1,4 @@
-#include "test.h"
+#include "test_0.h"
 #include "hw_i2c.h"
 #include "hw_sim_i2c.h"
 
@@ -186,3 +186,8 @@ int ip7plus_test_start(test_module_st* module, const char* title)
 {
   return test_0_start(module, &intf, &config_default, title);
 }
+
+const test_st test_ip7plus = 
+{
+  &ip7plus_id, ip7plus_test_start, test_0_stop, test_0_is_running, "XP 7 PLUS"
+};

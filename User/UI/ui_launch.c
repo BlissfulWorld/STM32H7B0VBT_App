@@ -1,18 +1,9 @@
 #include "ui.h"
 #include "DIALOG.h"
-#include "stdint.h"
-#include "test.h"
-#include "battery.h"
 #include "stdio.h"
 #include "disk.h"
 #include "cmsis_os.h"
-#include "wav.h"
-#include "stdio.h"
-#include "config.h"
 #include "sw_info.h"
-#include "backlight.h"
-#include "lcd.h"
-#include "user_settings.h"
 #include "pwdn_watchdog.h"
 #include "resource.h"
 
@@ -107,7 +98,7 @@ static void _cbDialog(WM_MESSAGE* pMsg)
         WM_InvalidateRect(pMsg->hWin, &(GUI_RECT){.x0 = 0, .y0 = 320 - 28, .x1 = 240, .y1 = 320});
         GUI_Exec();
         resource_update();
-        osDelay(1000);
+        osKernelLock();
         //复位
         while(1);
       }

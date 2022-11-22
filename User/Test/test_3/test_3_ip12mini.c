@@ -1,4 +1,4 @@
-#include "test.h"
+#include "test_3.h"
 #include "hw_i2c.h"
 #include "hw_sim_i2c.h"
 
@@ -138,3 +138,8 @@ int ip12mini_test_start(test_module_st* module, const char* title)
 {
   return test_3_start(module, &intf, &config_default, title);
 }
+
+const test_st test_ip12mini = 
+{
+  &ip12mini_id, ip12mini_test_start, test_3_stop, test_3_is_running, "XP 12 MINI"
+};

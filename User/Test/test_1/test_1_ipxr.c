@@ -1,4 +1,4 @@
-#include "test.h"
+#include "test_1.h"
 #include "hw_i2c.h"
 #include "hw_sim_i2c.h"
 
@@ -132,3 +132,8 @@ int ipxr_test_start(test_module_st* module, const char* title)
 {
   return test_1_start(module, &intf, &config_default, title);
 }
+
+const test_st test_ipxr = 
+{
+  &ipxr_id, ipxr_test_start, test_1_stop, test_1_is_running, "XP XR"
+};

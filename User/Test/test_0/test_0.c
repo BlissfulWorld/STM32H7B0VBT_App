@@ -1,24 +1,18 @@
 #include "test_0.h"
-#include "config.h"
-#include "main.h"
 #include "gpio.h"
-#include "i2c.h"
-#include "adc.h"
 #include "pca9535.h"
 #include "hw.h"
 #include "cmsis_os.h"
-#include "ui.h"
 #include "string.h"
 #include "stdio.h"
 #include "cJSON.h"
 #include "json_obj.h"
-#include "ui.h"
 #include "wav.h"
+#include "resource.h"
+#include "mic.h"
 
 extern void test_0_als_init(void);
 extern void test_0_prox_init(void);
-extern int test_0_mic_init(void);
-extern int test_0_mic_deinit(void);
 extern void test_0_als_set_intf(const test_0_interface_st* i);
 extern void test_0_prox_set_intf(const test_0_interface_st* i);
 
@@ -31,13 +25,6 @@ extern uint8_t test_0_als_detect(void);
 extern void test_0_als_update_data(void);
 extern uint8_t test_0_als_get_percentage(void);
 extern uint8_t test_0_als_is_rdy(void);
-
-extern uint8_t test_0_mic_get_percentage(void);
-extern void test_0_mic_update_data(void);
-extern int test_0_mic_record_start(void);
-extern int test_0_mic_record_stop(void);
-extern int test_0_mic_record_play(void);
-extern uint8_t test_0_mic_record_get_progress(void);
 
 static struct
 {
@@ -148,14 +135,14 @@ static void test_0_init(const test_0_interface_st* intf)
 
   test_0_als_init();
   test_0_prox_init();
-  test_0_mic_init();
+  mic_init();
 }
 
 static void test_0_deinit(const test_0_interface_st* intf)
 {
   GPIO_InitTypeDef gpio_init;
 
-  test_0_mic_deinit();
+  mic_deinit();
 
   pca9535_set_output(1, 0);
 
@@ -331,14 +318,14 @@ static void test_task(void* p)
     i = 0;
     test->spk_pn = spk_pn_detect(intf);
     test->cam_rdy = test_0_cam_detect();
-    test_0_mic_update_data();
+    mic_update_data();
     test_0_als_update_data();
     test_0_prox_update_data();
     test->stage = TEST_STAGE_FUNC;
     tick = HAL_GetTick();
     while(is_test)
     {
-      test_0_mic_update_data();
+      mic_update_data();
       test_0_als_update_data();
 
       if(HAL_GetTick() - tick > 50)
@@ -696,11 +683,11 @@ int test_0_start(test_module_st* module, const test_0_interface_st* intf, const 
   test->_0.prox_is_rdy = test_0_prox_is_rdy;
   test->_0.als_get = test_0_als_get;
   test->_0.als_is_rdy = test_0_als_is_rdy;
-  test->_0.mic_get = test_0_mic_get_percentage;
-  test->_0.mic_record_play = test_0_mic_record_play;
-  test->_0.mic_record_start = test_0_mic_record_start;
-  test->_0.mic_record_get_progress = test_0_mic_record_get_progress;
-  test->_0.mic_record_stop = test_0_mic_record_stop;
+  test->_0.mic_get = mic_get_percentage;
+  test->_0.mic_record_play = mic_record_play;
+  test->_0.mic_record_start = mic_record_start;
+  test->_0.mic_record_get_progress = mic_record_get_progress;
+  test->_0.mic_record_stop = mic_record_stop;
   test->_0.cam_is_rdy = test_0_cam_is_rdy;
   test->_0.ma_get = test_ma_get;
   test->_0.mv_get = test_mv_get;

@@ -25,7 +25,7 @@ int os_test_get_volt(const uint8_t* gnd_list, const uint8_t* func_list, float* r
   GPIO_InitTypeDef GPIO_InitStruct = { 0 };
 
   //提升任务级别，防止被打断
-  osThreadGetPriority(osThreadGetId());
+  priority = osThreadGetPriority(osThreadGetId());
   osThreadSetPriority(osThreadGetId(), osPriorityRealtime7);
 
   //等待I2C2空闲

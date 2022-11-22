@@ -1,4 +1,4 @@
-#include "test.h"
+#include "test_2.h"
 #include "hw_i2c.h"
 #include "hw_sim_i2c.h"
 
@@ -132,3 +132,8 @@ int ip11pro_test_start(test_module_st* module, const char* title)
 {
   return test_2_start(module, &intf, &config_default, title);
 }
+
+const test_st test_ip11pro = 
+{
+  &ip11pro_id, ip11pro_test_start, test_2_stop, test_2_is_running, "XP 11 PRO"
+};

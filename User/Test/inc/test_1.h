@@ -58,28 +58,9 @@ typedef struct test_1_interface_s
   int (*i2c_fix)(void);
 }test_1_interface_st;
 
-extern const test_module_id_ut ipx_id;
-extern const test_module_id_ut ipxs_id;
-extern const test_module_id_ut ipxsmax_id;
-extern const test_module_id_ut ipxr_id;
-
-int ipx_test_start(test_module_st* module, const char* title);
-int ipxs_test_start(test_module_st* module, const char* title);
-#define ipxsmax_test_start ipxs_test_start
-int ipxr_test_start(test_module_st* module, const char* title);
-
-#define ipx_test_stop test_1_stop
-#define ipxs_test_stop test_1_stop
-#define ipxsmax_test_stop test_1_stop
-#define ipxr_test_stop test_1_stop
-
-#define ipx_test_is_running test_1_is_running
-#define ipxs_test_is_running test_1_is_running
-#define ipxsmax_test_is_running test_1_is_running
-#define ipxr_test_is_running test_1_is_running
-
 int test_1_start(test_module_st* module, const test_1_interface_st* intf, const test_1_config_st* default_config, const char* title);
 void test_1_stop(void);
 int test_1_is_running(void);
 
+extern void ui_test_1_open(test_1_st* _test_, const char* _title_);
 #endif

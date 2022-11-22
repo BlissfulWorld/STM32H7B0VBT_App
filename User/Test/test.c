@@ -5,36 +5,45 @@
 #include "hw_i2c.h"
 #include "driver_ina219_basic.h"
 
-typedef struct test_s
-{
-  const test_module_id_ut* id;
-  int (*start)(test_module_st* module, const char* title);
-  void (*stop)(void);
-  int (*is_running)(void);
-  const char* title;
-}test_st;
-
 test_module_st* module;
 
-static const test_st test_list[] =
+extern const test_st test_ip7;
+extern const test_st test_ip7plus;
+extern const test_st test_ip8plus;
+extern const test_st test_ipx;
+extern const test_st test_ipxs;
+extern const test_st test_ipxsmax;
+extern const test_st test_ipxr;
+extern const test_st test_ip11;
+extern const test_st test_ip11pro;
+extern const test_st test_ip11promax;
+extern const test_st test_ip12mini;
+extern const test_st test_ip12;
+extern const test_st test_ip12pro;
+extern const test_st test_ip12promax;
+extern const test_st test_ipx_j6400;
+
+static const test_st* test_list[] =
 {
-  {&ip7_id,           ip7_test_start,        ip7_test_stop,        ip7_test_is_running,        "XP 7"},
-  {&ip7plus_id,       ip7plus_test_start,    ip7plus_test_stop,    ip7plus_test_is_running,    "XP 7 PLUS"},
-  {&ip8plus_id,       ip8plus_test_start,    ip8plus_test_stop,    ip8plus_test_is_running,    "XP 8 PLUS"},
-  {&ipx_id,           ipx_test_start,        ipx_test_stop,        ipx_test_is_running,        "XP X"},
-  {&ipxs_id,          ipxs_test_start,       ipxs_test_stop,       ipxs_test_is_running,       "XP XS"},
-  {&ipxsmax_id,       ipxsmax_test_start,    ipxsmax_test_stop,    ipxsmax_test_is_running,    "XP XS MAX"},
-  {&ipxr_id,          ipxr_test_start,       ipxr_test_stop,       ipxr_test_is_running,       "XP XR"},
-  {&ip11_id,          ip11_test_start,       ip11_test_stop,       ip11_test_is_running,       "XP 11"},
-  {&ip11pro_id,       ip11pro_test_start,    ip11pro_test_stop,    ip11pro_test_is_running,    "XP 11 PRO"},
-  {&ip11promax_id,    ip11promax_test_start, ip11promax_test_stop, ip11promax_test_is_running, "XP 11 PRO MAX"},
-  {&ip12mini_id,      ip12mini_test_start,   ip12mini_test_stop,   ip12mini_test_is_running,   "XP 12 MINI"},
-  {&ip12_id,          ip12_test_start,       ip12_test_stop,       ip12_test_is_running,       "XP 12"},
-  {&ip12pro_id,       ip12pro_test_start,    ip12pro_test_stop,    ip12pro_test_is_running,    "XP 12 PRO"},
-  {&ip12promax_id,    ip12promax_test_start, ip12promax_test_stop, ip12promax_test_is_running, "XP 12 PRO MAX"},
+  &test_ip7,
+  &test_ip7plus,
+  &test_ip8plus,
+  &test_ipx,
+  &test_ipxs,
+  &test_ipxsmax,
+  &test_ipxr,
+  &test_ip11,
+  &test_ip11pro,
+  &test_ip11promax,
+  &test_ip12mini,
+  &test_ip12,
+  &test_ip12pro,
+  &test_ip12promax,
+
+  &test_ipx_j6400,
 
 
-  {0},//结尾
+  0,//结尾
 };
 
 //引脚定义
@@ -68,9 +77,9 @@ const hw_pin_st test_pin[51] =
   {0,0},              //25
   {0,0},              //26
   {GPIOA,GPIO_PIN_8}, //27
-  {GPIOE,GPIO_PIN_6}, //28
+  {0,0},//{GPIOE,GPIO_PIN_6}, //28
   {GPIOE,GPIO_PIN_5}, //29
-  {GPIOE,GPIO_PIN_12},//30
+  {0,0},//{GPIOE,GPIO_PIN_12},//30
   {GPIOE,GPIO_PIN_4}, //31
   {GPIOD,GPIO_PIN_7}, //32
   {GPIOB,GPIO_PIN_4}, //33
@@ -260,12 +269,12 @@ uint8_t test_ma_is_update(uint8_t idx)
 
 int test_start(test_module_st* module)
 {
-  for(uint32_t i = 0;test_list[i].id;i++)
+  for(uint32_t i = 0;test_list[i]->id;i++)
   {
-    if(module->id.code == test_list[i].id->code)
+    if(module->id.code == test_list[i]->id->code)
     {
       test_current_start();
-      test_list[i].start(module, test_list[i].title);
+      test_list[i]->start(module, test_list[i]->title);
       return 0;
     }
   }
@@ -275,12 +284,12 @@ int test_start(test_module_st* module)
 
 int test_stop(test_module_st* module)
 {
-  for(uint32_t i = 0;test_list[i].id;i++)
+  for(uint32_t i = 0;test_list[i];i++)
   {
-    if(module->id.code == test_list[i].id->code)
+    if(module->id.code == test_list[i]->id->code)
     {
-      test_list[i].stop();
-      while(test_list[i].is_running()) osDelay(50);
+      test_list[i]->stop();
+      while(test_list[i]->is_running()) osDelay(50);
       test_current_stop();
       return 0;
     }

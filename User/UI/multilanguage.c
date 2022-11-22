@@ -223,6 +223,22 @@ const ml_str_id_st ml_str_id[] =
   {&ui_str.ui_test_3.key_up_check,ML_UI_TEST_3_KEY_UP_CHECK},
   {&ui_str.ui_test_3.no_ostest,ML_UI_TEST_3_NO_OSTEST},
   {&ui_str.ui_test_3.info_device_exception,ML_UI_TEST_3_INFO_DEVICE_EXCEPTION},
+
+  {&ui_str.ui_test_4.title,ML_UI_TEST_4_TITLE},
+  {&ui_str.ui_test_4.btn_menu,ML_UI_TEST_4_BTN_MENU},
+  {&ui_str.ui_test_4.btn_record_play,ML_UI_TEST_4_BTN_RECORD_PLAY},
+  {&ui_str.ui_test_4.info_no_found_module,ML_UI_TEST_4_INFO_NO_FOUND_MODULE},
+  {&ui_str.ui_test_4.info_doing_ostest,ML_UI_TEST_4_INFO_DOING_OSTEST},
+  {&ui_str.ui_test_4.mic1,ML_UI_TEST_4_MIC1},
+  {&ui_str.ui_test_4.mic1_found,ML_UI_TEST_4_MIC1_FOUND},
+  {&ui_str.ui_test_4.mic1_no_found,ML_UI_TEST_4_MIC1_NO_FOUND},
+  {&ui_str.ui_test_4.mic,ML_UI_TEST_4_MIC},
+  {&ui_str.ui_test_4.ostest,ML_UI_TEST_4_OSTEST},
+  {&ui_str.ui_test_4.ostest_result_normal,ML_UI_TEST_4_OSTEST_RESULT_NORMAL},
+  {&ui_str.ui_test_4.ostest_result_oc,ML_UI_TEST_4_OSTEST_RESULT_OC},
+  {&ui_str.ui_test_4.ostest_result_sc,ML_UI_TEST_4_OSTEST_RESULT_SC},
+  {&ui_str.ui_test_4.ostest_result_total,ML_UI_TEST_4_OSTEST_RESULT_TOTAL},
+  {&ui_str.ui_test_4.info_device_exception,ML_UI_TEST_4_INFO_DEVICE_EXCEPTION},
 };
 
 static void language_cn_config(void)
@@ -417,6 +433,22 @@ static void language_cn_config(void)
   ui_str.ui_test_3.key_up_check = ui_str.ui_test_2.key_up_check;
   ui_str.ui_test_3.no_ostest = ui_str.ui_test_2.no_ostest;
   ui_str.ui_test_3.info_device_exception = ui_str.ui_test_2.info_device_exception;
+
+  ui_str.ui_test_4.title = "";
+  ui_str.ui_test_4.btn_menu = ui_str.ui_test_3.btn_menu;
+  ui_str.ui_test_4.btn_record_play = ui_str.ui_test_3.btn_record_play;
+  ui_str.ui_test_4.info_no_found_module = ui_str.ui_test_3.info_no_found_module;
+  ui_str.ui_test_4.info_doing_ostest = ui_str.ui_test_3.info_doing_ostest;
+  ui_str.ui_test_4.mic1 = "麦克风1";
+  ui_str.ui_test_4.mic1_found = "有";
+  ui_str.ui_test_4.mic1_no_found = "无";
+  ui_str.ui_test_4.mic = ui_str.ui_test_3.mic;
+  ui_str.ui_test_4.ostest = ui_str.ui_test_3.ostest;
+  ui_str.ui_test_4.ostest_result_normal = ui_str.ui_test_3.ostest_result_normal;
+  ui_str.ui_test_4.ostest_result_oc = "开路";
+  ui_str.ui_test_4.ostest_result_sc = "短路";
+  ui_str.ui_test_4.ostest_result_total = "总数: ";
+  ui_str.ui_test_4.info_device_exception = ui_str.ui_test_3.info_device_exception;
 }
 
 static void language_en_config(void)
@@ -611,6 +643,22 @@ static void language_en_config(void)
   ui_str.ui_test_3.key_up_check = ui_str.ui_test_2.key_up_check;
   ui_str.ui_test_3.no_ostest = ui_str.ui_test_2.no_ostest;
   ui_str.ui_test_3.info_device_exception = ui_str.ui_test_2.info_device_exception;
+
+  ui_str.ui_test_4.title = "";
+  ui_str.ui_test_4.btn_menu = ui_str.ui_test_3.btn_menu;
+  ui_str.ui_test_4.btn_record_play = ui_str.ui_test_3.btn_record_play;
+  ui_str.ui_test_4.info_no_found_module = ui_str.ui_test_3.info_no_found_module;
+  ui_str.ui_test_4.info_doing_ostest = ui_str.ui_test_3.info_doing_ostest;
+  ui_str.ui_test_4.mic1 = "MIC1";
+  ui_str.ui_test_4.mic1_found = "Have";
+  ui_str.ui_test_4.mic1_no_found = "None";
+  ui_str.ui_test_4.mic = ui_str.ui_test_3.mic;
+  ui_str.ui_test_4.ostest = ui_str.ui_test_3.mic;
+  ui_str.ui_test_4.ostest_result_normal = ui_str.ui_test_3.ostest_result_normal;
+  ui_str.ui_test_4.ostest_result_oc = "OC";
+  ui_str.ui_test_4.ostest_result_sc = "SC";
+  ui_str.ui_test_4.ostest_result_total = "";
+  ui_str.ui_test_4.info_device_exception = ui_str.ui_test_3.info_device_exception;
 }
 
 static const char* ml_get_str(const ml_str_file_st* ml_file, ml_id_et id)

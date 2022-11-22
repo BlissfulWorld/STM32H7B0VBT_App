@@ -1,14 +1,8 @@
 #include "ui.h"
 #include "DIALOG.h"
-#include "stdint.h"
-#include "battery.h"
 #include "stdio.h"
-#include "cmsis_os.h"
-#include "stdio.h"
-#include "fatfs.h"
 #include "usb_host.h"
 #include "disk.h"
-#include "user_settings.h"
 #include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
@@ -109,6 +103,30 @@ static void file_copy_stat_cb(uint32_t total, uint32_t count, void* user)
 }
 
 /**
+ * @brief 导出资源到外部存储
+ *
+ * @return int 错误码
+ */
+static int export_resource(void)
+{
+  char path_src[128], path_dst[128];
+  const char* res_dir = "resource";
+  const char* lang_dir = "language";
+
+  snprintf(path_src, sizeof(path_src), "%s%s", DISK_SYS_PATH, lang_dir);
+  snprintf(path_dst, sizeof(path_dst), "%s%s", DISK_EXT_PATH, res_dir);
+
+  f_mkdir(path_dst);
+
+  snprintf(path_dst, sizeof(path_dst), "%s%s/%s", DISK_EXT_PATH, res_dir, lang_dir);
+
+  f_mkdir(path_dst);
+
+
+  return disk_copy_dir(path_dst, path_src, 0, 0, 0);
+}
+
+/**
  * @brief 导出APP到外部存储
  *
  * @return int 错误码
@@ -130,6 +148,8 @@ static int export_app(void)
 
   if(disk_copy_file(path_dst, path_src, file_copy_stat_cb, 0) != FR_OK)
     err = -1;
+
+  export_resource();
 
 __exit:
   f_resut = res;

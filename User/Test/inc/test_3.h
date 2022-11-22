@@ -63,7 +63,7 @@ extern const test_module_id_ut ip12_id;
 extern const test_module_id_ut ip12pro_id;
 extern const test_module_id_ut ip12promax_id;
 
-int ip12mini_test_start(test_module_st* module, const char* title);
+/*int ip12mini_test_start(test_module_st* module, const char* title);
 #define ip12_test_start       ip12mini_test_start
 #define ip12pro_test_start    ip12mini_test_start
 #define ip12promax_test_start ip12mini_test_start
@@ -76,10 +76,11 @@ int ip12mini_test_start(test_module_st* module, const char* title);
 #define ip12mini_test_is_running test_3_is_running
 #define ip12_test_is_running       test_3_is_running
 #define ip12pro_test_is_running    test_3_is_running
-#define ip12promax_test_is_running test_3_is_running
+#define ip12promax_test_is_running test_3_is_running*/
 
 int test_3_start(test_module_st* module, const test_3_interface_st* intf, const test_3_config_st* default_config, const char* title);
 void test_3_stop(void);
 int test_3_is_running(void);
 
+extern void ui_test_3_open(test_3_st* _test_, const char* _title_);
 #endif

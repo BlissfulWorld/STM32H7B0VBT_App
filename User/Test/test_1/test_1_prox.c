@@ -1,9 +1,7 @@
+#include "test_1.h"
 #include "stdio.h"
 #include "string.h"
-#include "config.h"
-#include "i2c.h"
 #include "cmsis_os.h"
-#include "test.h"
 
 typedef struct
 {

@@ -1,15 +1,7 @@
 #include "ui.h"
 #include "DIALOG.h"
-#include "stdint.h"
-#include "test.h"
-#include "battery.h"
-#include "stdio.h"
 #include "fatfs.h"
 #include "cmsis_os.h"
-#include "wav.h"
-#include "stdio.h"
-#include "config.h"
-#include "sw_info.h"
 #include "pwdn_watchdog.h"
 #include "cJSON.h"
 #include "json_obj.h"
@@ -23,7 +15,7 @@
 #define ID_TEXT_BOTTOM      (GUI_ID_USER + 0x04)
 
 #define ID_TEXT_HEADER      (GUI_ID_USER + 0x10)
-#define ID_LISTVIEW_RESULT  (GUI_ID_USER + 0x11)
+#define ID_LISTVIEW_RESULT  (GUI_ID_USER + 0x11)            
 #define ID_TEXT_INFO        (GUI_ID_USER + 0x12)
 
 #define ID_TEXT_BACK        (GUI_ID_USER + 0x30)
@@ -148,7 +140,7 @@ static int make_config_to_board(void)
   }
 
   board_power_on();
-  osDelay(100);
+  osDelay(200);
 
   _module = test_module_load();
   if(_module == 0)
@@ -480,7 +472,16 @@ static void _cbDialog(WM_MESSAGE* pMsg)
             GUI_Exec();
 
             //开始生成配置
-            int err = make_config_to_board();
+            int err = -1;
+            for(uint32_t i = 0;i < 5;i++)
+            {
+              err = make_config_to_board();
+              if(err == 0)
+              {
+                break;
+              }
+              osDelay(400);
+            }
             if(err == 0)
             {
               TEXT_SetText(hItem, ui_str.ui_ostest_result.learn_finished);

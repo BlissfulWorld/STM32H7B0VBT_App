@@ -44,6 +44,15 @@ typedef struct muc_vdd_io_power_test_s
   char alarm[16];
 }muc_vdd_io_power_test_st;
 
+typedef struct test_s
+{
+  const test_module_id_ut* id;
+  int (*start)(test_module_st* module, const char* title);
+  void (*stop)(void);
+  int (*is_running)(void);
+  const char* title;
+}test_st;
+
 #define TEST_STAGE_WAIT (0)
 #define TEST_STAGE_OS   (1)
 #define TEST_STAGE_FUNC (2)
@@ -114,8 +123,5 @@ double test_mv_get(uint8_t idx);
 uint8_t test_ma_is_update(uint8_t idx);
 
 #include "os_test.h"
-#include "test_0.h"
-#include "test_1.h"
-#include "test_2.h"
-#include "test_3.h"
+
 #endif

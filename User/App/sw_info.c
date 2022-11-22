@@ -31,5 +31,5 @@ const sw_info_st sw_info __attribute__((section(".ARM.__at_0x00000000"))) =
   .version = SOFTWARE_VERSION,
   .boot_addr = 0x24000000,
   .map =
-    {{0x24000000,0x00050000}},
+    {{0x24000000,0x00060000}},
 };

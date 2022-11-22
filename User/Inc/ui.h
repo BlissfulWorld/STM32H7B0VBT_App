@@ -59,12 +59,6 @@ extern void ui_nonsupport_open(void);
 extern void ui_charge_open(void);
 extern void ui_overcurrent_protection_open(ui_close_cb_func_t cb, void* user);
 
-extern void ui_test_0_open(test_0_st* _test_, const char* _title_);
-extern void ui_test_1_open(test_1_st* _test_, const char* _title_);
-extern void ui_test_2_open(test_2_st* _test_, const char* _title_);
-extern void ui_test_3_open(test_3_st* _test_, const char* _title_);
-
-
 extern void ui_menu_open(ui_close_cb_func_t close_cb, void* user);
 extern void ui_menu_brightness_open(WM_HWIN _back_);
 extern void ui_menu_volume_open(WM_HWIN _back_);

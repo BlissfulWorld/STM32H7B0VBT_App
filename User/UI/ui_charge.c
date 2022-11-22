@@ -1,18 +1,8 @@
 #include "ui.h"
 #include "DIALOG.h"
-#include "stdint.h"
-#include "test.h"
 #include "battery.h"
-#include "stdio.h"
-#include "ff.h"
-#include "cmsis_os.h"
-#include "wav.h"
-#include "stdio.h"
-#include "config.h"
-#include "sw_info.h"
 #include "backlight.h"
 #include "lcd.h"
-#include "user_settings.h"
 
 #define FONT_DEF      (font_ext)
 

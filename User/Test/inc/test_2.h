@@ -57,24 +57,9 @@ typedef struct test_2_interface_s
   int (*i2c_fix)(void);
 }test_2_interface_st;
 
-extern const test_module_id_ut ip11_id;
-extern const test_module_id_ut ip11pro_id;
-extern const test_module_id_ut ip11promax_id;
-
-int ip11_test_start(test_module_st* module, const char* title);
-int ip11pro_test_start(test_module_st* module, const char* title);
-#define ip11promax_test_start ip11pro_test_start
-
-#define ip11_test_stop test_2_stop
-#define ip11pro_test_stop test_2_stop
-#define ip11promax_test_stop test_2_stop
-
-#define ip11_test_is_running test_2_is_running
-#define ip11pro_test_is_running test_2_is_running
-#define ip11promax_test_is_running test_2_is_running
-
 int test_2_start(test_module_st* module, const test_2_interface_st* intf, const test_2_config_st* default_config, const char* title);
 void test_2_stop(void);
 int test_2_is_running(void);
 
+extern void ui_test_2_open(test_2_st* _test_, const char* _title_);
 #endif

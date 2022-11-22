@@ -1,22 +1,7 @@
 #include "ui.h"
 #include "DIALOG.h"
-#include "stdint.h"
-#include "test.h"
-#include "battery.h"
-#include "stdio.h"
-#include "ff.h"
-#include "cmsis_os.h"
+#include "fatfs.h"
 #include "wav.h"
-#include "stdio.h"
-#include "config.h"
-#include "sw_info.h"
-#include "test.h"
-#include "cJSON.h"
-#include "string.h"
-#include "ff.h"
-#include "hash.h"
-#include "spi.h"
-#include "config_file.h"
 #include "pwdn_watchdog.h"
 
 #define FONT_DEF      (font_ext)
@@ -299,7 +284,6 @@ static void _cbDialog(WM_MESSAGE* pMsg)
         hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_INFO);
         snprintf(str, sizeof(str), "%s\n%s", ui_str.ui_home.waiting, (osKernelGetTickCount() / 500) & 1 ? "---" : "+++");
         TEXT_SetText(hItem, str);
-
       }
 
       board_power_off();
