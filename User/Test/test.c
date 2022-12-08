@@ -9,6 +9,7 @@ test_module_st* module;
 
 extern const test_st test_ip7;
 extern const test_st test_ip7plus;
+extern const test_st test_ip8;
 extern const test_st test_ip8plus;
 extern const test_st test_ipx;
 extern const test_st test_ipxs;
@@ -27,6 +28,7 @@ static const test_st* test_list[] =
 {
   &test_ip7,
   &test_ip7plus,
+  &test_ip8,
   &test_ip8plus,
   &test_ipx,
   &test_ipxs,

@@ -661,6 +661,11 @@
               <FilePath>..\User\Test\test_0\test_0_ip7plus.c</FilePath>
             </File>
             <File>
+              <FileName>test_0_ip8.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\test_0\test_0_ip8.c</FilePath>
+            </File>
+            <File>
               <FileName>test_0_ip8plus.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Test\test_0\test_0_ip8plus.c</FilePath>
