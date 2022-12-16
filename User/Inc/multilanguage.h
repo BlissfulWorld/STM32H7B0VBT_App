@@ -57,7 +57,7 @@ typedef enum ml_id_e //: uint16_t
 
   ML_UI_MENU_TITLE = 0x2000,
   ML_UI_MENU_BTN_BACK = 0x2001,
-  ML_UI_MENU_BTN_CONFIRM = 0x2002,
+  ML_UI_MENU_BTN_OPEN = 0x2002,
   ML_UI_MENU_BTN_NONE3 = 0x2003,
   ML_UI_MENU_BRIGHTNESS = 0x2010,
   ML_UI_MENU_VOLUME = 0x2011,
@@ -207,7 +207,7 @@ typedef enum ml_id_e //: uint16_t
   ML_UI_TEST_3_INFO_DEVICE_EXCEPTION = 0x861F,
 
   ML_UI_TEST_4_TITLE = 0x8700,
-  ML_UI_TEST_4_BTN_NONE1 = 0x8701,
+  ML_UI_TEST_4_BTN_FFC = 0x8701,
   ML_UI_TEST_4_BTN_MENU = 0x8702,
   ML_UI_TEST_4_BTN_RECORD_PLAY = 0x8703,
   ML_UI_TEST_4_INFO_NO_FOUND_MODULE = 0x8710,
@@ -222,6 +222,9 @@ typedef enum ml_id_e //: uint16_t
   ML_UI_TEST_4_OSTEST_RESULT_SC = 0x8719,
   ML_UI_TEST_4_OSTEST_RESULT_TOTAL = 0x871A,
   ML_UI_TEST_4_INFO_DEVICE_EXCEPTION = 0x871B,
+  ML_UI_TEST_4_FFC_XP = 0x871C,
+  ML_UI_TEST_4_FFC_A = 0x871D,
+  ML_UI_TEST_4_FFC_UNKNOWN = 0x871E,
 
 }ml_id_et;
 
@@ -296,7 +299,7 @@ struct ui_menu_s
 {
   const char* title;
   const char* btn_back;
-  const char* btn_confirm;
+  const char* btn_open;
 
   const char* brightness;
   const char* volume;
@@ -492,6 +495,7 @@ struct ui_test_3_s
 struct ui_test_4_s
 {
   const char* title;
+  const char* btn_ffc;
   const char* btn_menu;
   const char* btn_record_play;
 
@@ -507,6 +511,9 @@ struct ui_test_4_s
   const char* ostest_result_sc;
   const char* ostest_result_total;
   const char* info_device_exception;
+  const char* ffc_xp;
+  const char* ffc_a;
+  const char* ffc_unknown;
 };
 
 struct ui_str_s

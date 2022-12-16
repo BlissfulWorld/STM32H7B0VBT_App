@@ -630,6 +630,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\Test\os_test.c</FilePath>
             </File>
+            <File>
+              <FileName>spk_pn_pin_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Test\spk_pn_pin_test.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -916,11 +921,6 @@
               <FilePath>..\User\UI\ui_menu_about.c</FilePath>
             </File>
             <File>
-              <FileName>ui_menu_os_test_edit.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\UI\ui_menu_os_test_edit.c</FilePath>
-            </File>
-            <File>
               <FileName>ui_charge.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\UI\ui_charge.c</FilePath>
@@ -934,6 +934,11 @@
               <FileName>ui_os_test_result.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\UI\ui_os_test_result.c</FilePath>
+            </File>
+            <File>
+              <FileName>ui_dialog_edit.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\UI\ui_dialog_edit.c</FilePath>
             </File>
           </Files>
         </Group>

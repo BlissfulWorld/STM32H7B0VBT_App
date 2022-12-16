@@ -225,7 +225,7 @@ static void _cbDialog(WM_MESSAGE* pMsg)
           var->select = LISTVIEW_GetSel(hItem);
           if(var->select >= 0)
           {
-            ui_menu_os_test_edit_open(edit_cb,
+            ui_dialog_edit_open(edit_cb,
               (void*)pMsg->hWin,
               menu_item[var->select].set,
               menu_item[var->select].get,

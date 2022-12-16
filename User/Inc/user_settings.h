@@ -40,12 +40,15 @@ typedef struct user_settings_item_s
   USI(ostest_mk_conf_err_type, 1);
   //误差百分比
   USI(ostest_mk_conf_err_pct, 2);
+
+  //测试4的各个引脚的检测使能
+  USI(test_4_io_mask, 4);
 }user_settings_item_st;
 
 extern user_settings_item_st* user_settings_item;
 
 int us_load(void);
-int us_set(uint16_t ofs, void* pdata, uint16_t data_len);
+int us_set(uint16_t ofs, const void* pdata, uint16_t data_len);
 int us_get(uint16_t ofs, void* pbuffer, uint16_t data_len);
 
 #define US_OFS(item)         ((uint16_t)(uint32_t)&(((user_settings_item_st *)0)->_##item##_))

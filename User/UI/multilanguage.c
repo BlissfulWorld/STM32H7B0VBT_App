@@ -83,7 +83,7 @@ const ml_str_id_st ml_str_id[] =
 
   {&ui_str.ui_menu.title,ML_UI_MENU_TITLE},
   {&ui_str.ui_menu.btn_back,ML_UI_MENU_BTN_BACK},
-  {&ui_str.ui_menu.btn_confirm,ML_UI_MENU_BTN_CONFIRM},
+  {&ui_str.ui_menu.btn_open,ML_UI_MENU_BTN_OPEN},
   {&ui_str.ui_menu.brightness,ML_UI_MENU_BRIGHTNESS},
   {&ui_str.ui_menu.volume,ML_UI_MENU_VOLUME},
   {&ui_str.ui_menu.standby,ML_UI_MENU_STANDBY},
@@ -225,6 +225,7 @@ const ml_str_id_st ml_str_id[] =
   {&ui_str.ui_test_3.info_device_exception,ML_UI_TEST_3_INFO_DEVICE_EXCEPTION},
 
   {&ui_str.ui_test_4.title,ML_UI_TEST_4_TITLE},
+  {&ui_str.ui_test_4.btn_ffc,ML_UI_TEST_4_BTN_FFC},
   {&ui_str.ui_test_4.btn_menu,ML_UI_TEST_4_BTN_MENU},
   {&ui_str.ui_test_4.btn_record_play,ML_UI_TEST_4_BTN_RECORD_PLAY},
   {&ui_str.ui_test_4.info_no_found_module,ML_UI_TEST_4_INFO_NO_FOUND_MODULE},
@@ -239,6 +240,8 @@ const ml_str_id_st ml_str_id[] =
   {&ui_str.ui_test_4.ostest_result_sc,ML_UI_TEST_4_OSTEST_RESULT_SC},
   {&ui_str.ui_test_4.ostest_result_total,ML_UI_TEST_4_OSTEST_RESULT_TOTAL},
   {&ui_str.ui_test_4.info_device_exception,ML_UI_TEST_4_INFO_DEVICE_EXCEPTION},
+  {&ui_str.ui_test_4.ffc_xp,ML_UI_TEST_4_FFC_XP},
+  {&ui_str.ui_test_4.ffc_a,ML_UI_TEST_4_FFC_A},
 };
 
 static void language_cn_config(void)
@@ -292,7 +295,7 @@ static void language_cn_config(void)
 
   ui_str.ui_menu.title = "菜单";
   ui_str.ui_menu.btn_back = "返回";
-  ui_str.ui_menu.btn_confirm = "确定";
+  ui_str.ui_menu.btn_open = "打开";
   ui_str.ui_menu.brightness = "亮度";
   ui_str.ui_menu.volume = "系统音量";
   ui_str.ui_menu.standby = "待机";
@@ -435,6 +438,7 @@ static void language_cn_config(void)
   ui_str.ui_test_3.info_device_exception = ui_str.ui_test_2.info_device_exception;
 
   ui_str.ui_test_4.title = "";
+  ui_str.ui_test_4.btn_ffc = "排线";
   ui_str.ui_test_4.btn_menu = ui_str.ui_test_3.btn_menu;
   ui_str.ui_test_4.btn_record_play = ui_str.ui_test_3.btn_record_play;
   ui_str.ui_test_4.info_no_found_module = ui_str.ui_test_3.info_no_found_module;
@@ -449,6 +453,9 @@ static void language_cn_config(void)
   ui_str.ui_test_4.ostest_result_sc = "短路";
   ui_str.ui_test_4.ostest_result_total = "总数: ";
   ui_str.ui_test_4.info_device_exception = ui_str.ui_test_3.info_device_exception;
+  ui_str.ui_test_4.ffc_xp = "原排";
+  ui_str.ui_test_4.ffc_a = "排线A";
+  ui_str.ui_test_4.ffc_unknown = "未知";
 }
 
 static void language_en_config(void)
@@ -502,7 +509,7 @@ static void language_en_config(void)
 
   ui_str.ui_menu.title = "Menu";
   ui_str.ui_menu.btn_back = "Back";
-  ui_str.ui_menu.btn_confirm = "Confirm";
+  ui_str.ui_menu.btn_open = "Open";
   ui_str.ui_menu.brightness = "Brightness";
   ui_str.ui_menu.volume = "System Volume";
   ui_str.ui_menu.standby = "Standby";
@@ -645,6 +652,7 @@ static void language_en_config(void)
   ui_str.ui_test_3.info_device_exception = ui_str.ui_test_2.info_device_exception;
 
   ui_str.ui_test_4.title = "";
+  ui_str.ui_test_4.btn_ffc = "FFC";
   ui_str.ui_test_4.btn_menu = ui_str.ui_test_3.btn_menu;
   ui_str.ui_test_4.btn_record_play = ui_str.ui_test_3.btn_record_play;
   ui_str.ui_test_4.info_no_found_module = ui_str.ui_test_3.info_no_found_module;
@@ -659,6 +667,9 @@ static void language_en_config(void)
   ui_str.ui_test_4.ostest_result_sc = "SC";
   ui_str.ui_test_4.ostest_result_total = "";
   ui_str.ui_test_4.info_device_exception = ui_str.ui_test_3.info_device_exception;
+  ui_str.ui_test_4.ffc_xp = "FFC_XP";
+  ui_str.ui_test_4.ffc_a = "FFC_A";
+  ui_str.ui_test_4.ffc_unknown = "Unknown";
 }
 
 static const char* ml_get_str(const ml_str_file_st* ml_file, ml_id_et id)

@@ -10,6 +10,7 @@
 #include "wav.h"
 #include "resource.h"
 #include "mic.h"
+#include "spk_pn_pin_test.h"
 
 extern void test_0_als_init(void);
 extern void test_0_prox_init(void);
@@ -170,78 +171,6 @@ static uint8_t test_0_cam_detect(void)
   return 0;
 }
 
-static uint8_t spk_pn_detect(const test_0_interface_st* intf)
-{
-  uint8_t p = 0, n = 0;
-
-  GPIO_InitTypeDef gpio_init;
-
-  gpio_init.Alternate = 0;
-  gpio_init.Pull = GPIO_NOPULL;
-  gpio_init.Speed = GPIO_SPEED_FREQ_HIGH;
-  gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
-
-  //SPK_OUT_P
-  HAL_GPIO_WritePin(test_pin[intf->spk_out_p_pin].gpio, test_pin[intf->spk_out_p_pin].pin, GPIO_PIN_SET);
-  gpio_init.Pin = test_pin[intf->spk_out_p_pin].pin;
-  HAL_GPIO_Init(test_pin[intf->spk_out_p_pin].gpio, &gpio_init);
-
-  //SPK_OUT_N
-  HAL_GPIO_WritePin(test_pin[intf->spk_out_n_pin].gpio, test_pin[intf->spk_out_n_pin].pin, GPIO_PIN_SET);
-  gpio_init.Pin = test_pin[intf->spk_out_n_pin].pin;
-  HAL_GPIO_Init(test_pin[intf->spk_out_n_pin].gpio, &gpio_init);
-
-  osDelay(1);
-
-  //SPK_VSENSE_P
-  if(HAL_GPIO_ReadPin(test_pin[intf->spk_vsense_p_pin].gpio, test_pin[intf->spk_vsense_p_pin].pin) == GPIO_PIN_SET)
-  {
-    p++;
-  }
-
-  //SPK_VSENSE_N
-  if(HAL_GPIO_ReadPin(test_pin[intf->spk_vsense_n_pin].gpio, test_pin[intf->spk_vsense_n_pin].pin) == GPIO_PIN_SET)
-  {
-    n++;
-  }
-
-  //SPK_OUT_P
-  HAL_GPIO_WritePin(test_pin[intf->spk_out_p_pin].gpio, test_pin[intf->spk_out_p_pin].pin, GPIO_PIN_RESET);
-
-  //SPK_OUT_N
-  HAL_GPIO_WritePin(test_pin[intf->spk_out_n_pin].gpio, test_pin[intf->spk_out_n_pin].pin, GPIO_PIN_RESET);
-
-
-  osDelay(1);
-
-  //SPK_VSENSE_P
-  if(HAL_GPIO_ReadPin(test_pin[intf->spk_vsense_p_pin].gpio, test_pin[intf->spk_vsense_p_pin].pin) == GPIO_PIN_RESET)
-  {
-    p++;
-  }
-
-  //SPK_VSENSE_N
-  if(HAL_GPIO_ReadPin(test_pin[intf->spk_vsense_n_pin].gpio, test_pin[intf->spk_vsense_n_pin].pin) == GPIO_PIN_RESET)
-  {
-    n++;
-  }
-
-  gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
-  gpio_init.Mode = GPIO_MODE_INPUT;
-
-  //SPK_OUT_P
-  HAL_GPIO_WritePin(test_pin[intf->spk_out_p_pin].gpio, test_pin[intf->spk_out_p_pin].pin, GPIO_PIN_SET);
-  gpio_init.Pin = test_pin[intf->spk_out_p_pin].pin;
-  HAL_GPIO_Init(test_pin[intf->spk_out_p_pin].gpio, &gpio_init);
-
-  //SPK_OUT_N
-  HAL_GPIO_WritePin(test_pin[intf->spk_out_n_pin].gpio, test_pin[intf->spk_out_n_pin].pin, GPIO_PIN_SET);
-  gpio_init.Pin = test_pin[intf->spk_out_n_pin].pin;
-  HAL_GPIO_Init(test_pin[intf->spk_out_n_pin].gpio, &gpio_init);
-
-  return (p == 2 ? (1) : 0) | (n == 2 ? (2) : 0);
-}
-
 static void test_task(void* p)
 {
   int i = 0;
@@ -316,7 +245,7 @@ static void test_task(void* p)
     err_flg = 0;
     err_flg_new = 0x0000001F;
     i = 0;
-    test->spk_pn = spk_pn_detect(intf);
+    test->spk_pn = spk_pn_pin_test(intf->spk_out_p_pin, intf->spk_out_n_pin, intf->spk_vsense_p_pin, intf->spk_vsense_n_pin);
     test->cam_rdy = test_0_cam_detect();
     mic_update_data();
     test_0_als_update_data();
@@ -339,7 +268,7 @@ static void test_task(void* p)
           flag |= (1U << 0);
         }
 
-        test->spk_pn = spk_pn_detect(intf);
+        test->spk_pn = spk_pn_pin_test(intf->spk_out_p_pin, intf->spk_out_n_pin, intf->spk_vsense_p_pin, intf->spk_vsense_n_pin);
         if((test->spk_pn & 1) != 0)
         {
           flag |= (1U << 1);

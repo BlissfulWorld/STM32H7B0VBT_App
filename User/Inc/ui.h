@@ -69,7 +69,7 @@ extern void ui_menu_clone_app(WM_HWIN _back_);
 extern void ui_menu_language_open(WM_HWIN back);
 extern void ui_menu_about_open(WM_HWIN _back_);
 
-extern void ui_menu_os_test_edit_open(void cb(void* p), void* p, void (*set) (uint32_t val), uint32_t(*get) (void), uint32_t(*convert) (uint32_t), void (*string) (char*, uint32_t, uint32_t));
+extern void ui_dialog_edit_open(void cb(void* p), void* p, void (*set) (uint32_t val), uint32_t(*get) (void), uint32_t(*convert) (uint32_t), void (*string) (char*, uint32_t, uint32_t));
 
 extern void ui_os_test_result_open(const char* _name_, WM_HWIN _back_, const os_test_st* _os_test_, const float* _data_, uint8_t _len_);
 

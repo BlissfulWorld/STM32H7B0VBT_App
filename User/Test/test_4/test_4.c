@@ -11,6 +11,7 @@
 #include "wav.h"
 #include "resource.h"
 #include "hw_i2c.h"
+#include "user_settings.h"
 
 static const osThreadAttr_t test_tid_attr = {
   .name = "test 4",
@@ -93,9 +94,10 @@ static struct
   uint8_t io_open_circuit_count;
   uint16_t io_short_circuit_data[sizeof(io) * sizeof(io) - sizeof(io)];
   uint32_t io_short_circuit_count;
+  uint32_t io_mask;
 }*test;
 
-static void test_io_init(const test_4_io_st* io_list, uint8_t length)
+static void test_io_init(const test_4_io_st* io_list, uint8_t length, uint32_t io_mask)
 {
   GPIO_InitTypeDef gpio_init;
   gpio_init.Alternate = 0;
@@ -104,12 +106,15 @@ static void test_io_init(const test_4_io_st* io_list, uint8_t length)
   gpio_init.Mode = GPIO_MODE_INPUT;
   for(uint8_t i = 0;i < length;i++)
   {
-    gpio_init.Pin = test_pin[io_list[i].mcu_pin].pin;
-    HAL_GPIO_Init(test_pin[io_list[i].mcu_pin].gpio, &gpio_init);
+    if((io_mask & (1u << i)))
+    {
+      gpio_init.Pin = test_pin[io_list[i].mcu_pin].pin;
+      HAL_GPIO_Init(test_pin[io_list[i].mcu_pin].gpio, &gpio_init);
+    }
   }
 }
 
-static void test_io_deinit(const test_4_io_st* io_list, uint8_t length)
+static void test_io_deinit(const test_4_io_st* io_list, uint8_t length, uint32_t io_mask)
 {
   GPIO_InitTypeDef gpio_init;
 
@@ -119,8 +124,11 @@ static void test_io_deinit(const test_4_io_st* io_list, uint8_t length)
   gpio_init.Mode = GPIO_MODE_INPUT;
   for(uint8_t i = 0;i < length;i++)
   {
-    gpio_init.Pin = test_pin[io_list[i].mcu_pin].pin;
-    HAL_GPIO_Init(test_pin[io_list[i].mcu_pin].gpio, &gpio_init);
+    if((io_mask & (1u << i)))
+    {
+      gpio_init.Pin = test_pin[io_list[i].mcu_pin].pin;
+      HAL_GPIO_Init(test_pin[io_list[i].mcu_pin].gpio, &gpio_init);
+    }
   }
 }
 
@@ -131,13 +139,16 @@ static void test_io_deinit(const test_4_io_st* io_list, uint8_t length)
  * @param length 列表长度
  * @return int 1：有被拉高 0：没有被拉高
  */
-static int test_io_is_have_high_lvl(const test_4_io_st* io_list, uint8_t length)
+static int test_io_is_have_high_lvl(const test_4_io_st* io_list, uint8_t length, uint32_t io_mask)
 {
   for(uint8_t i = 0;i < length;i++)
   {
-    if(HAL_GPIO_ReadPin(test_pin[io_list[i].mcu_pin].gpio, test_pin[io_list[i].mcu_pin].pin) == GPIO_PIN_SET)
+    if((io_mask & (1u << i)))
     {
-      return 1;
+      if(HAL_GPIO_ReadPin(test_pin[io_list[i].mcu_pin].gpio, test_pin[io_list[i].mcu_pin].pin) == GPIO_PIN_SET)
+      {
+        return 1;
+      }
     }
   }
 
@@ -152,15 +163,18 @@ static int test_io_is_have_high_lvl(const test_4_io_st* io_list, uint8_t length)
  * @param pbuffer 用于存储检测结果的缓存
  * @return uint8_t 开路引脚数量
  */
-static uint8_t test_io_check_open_circuit(const test_4_io_st* io_list, uint8_t length, uint8_t* pbuffer)
+static uint8_t test_io_check_open_circuit(const test_4_io_st* io_list, uint8_t length, uint32_t io_mask, uint8_t* pbuffer)
 {
   uint8_t oc_cnt = 0;
   for(uint8_t i = 0;i < length;i++)
   {
-    if(HAL_GPIO_ReadPin(test_pin[io_list[i].mcu_pin].gpio, test_pin[io_list[i].mcu_pin].pin) == GPIO_PIN_RESET)
+    if((io_mask & (1u << i)))
     {
-      pbuffer[oc_cnt] = io_list[i].num;
-      oc_cnt++;
+      if(HAL_GPIO_ReadPin(test_pin[io_list[i].mcu_pin].gpio, test_pin[io_list[i].mcu_pin].pin) == GPIO_PIN_RESET)
+      {
+        pbuffer[oc_cnt] = io_list[i].num;
+        oc_cnt++;
+      }
     }
   }
 
@@ -175,7 +189,7 @@ static uint8_t test_io_check_open_circuit(const test_4_io_st* io_list, uint8_t l
  * @param pbuffer 用于存储检测结果的缓存
  * @return uint32_t 开路引脚对数量
  */
-static uint32_t test_io_check_short_circuit(const test_4_io_st* io_list, uint8_t length, uint16_t* pbuffer)
+static uint32_t test_io_check_short_circuit(const test_4_io_st* io_list, uint8_t length, uint32_t io_mask, uint16_t* pbuffer)
 {
   GPIO_InitTypeDef gpio_init = { 0 };
   uint32_t sc_cnt = 0;
@@ -184,31 +198,34 @@ static uint32_t test_io_check_short_circuit(const test_4_io_st* io_list, uint8_t
 
   for(uint8_t i = 0;i < length;i++)
   {
-    //置低引脚
-    HAL_GPIO_WritePin(test_pin[io_list[i].mcu_pin].gpio, test_pin[io_list[i].mcu_pin].pin, GPIO_PIN_RESET);
-
-    gpio_init.Pin = test_pin[io_list[i].mcu_pin].pin;
-
-    gpio_init.Pull = GPIO_NOPULL;
-    gpio_init.Mode = GPIO_MODE_OUTPUT_OD;
-    HAL_GPIO_Init(test_pin[io_list[i].mcu_pin].gpio, &gpio_init);
-
-    osDelay(10);
-
-    //遍历其他引脚是否被拉低
-    for(uint8_t j = i + 1;j < length;j++)
+    if((io_mask & (1u << i)))
     {
-      if(HAL_GPIO_ReadPin(test_pin[io_list[j].mcu_pin].gpio, test_pin[io_list[j].mcu_pin].pin) == GPIO_PIN_RESET)
-      {
-        pbuffer[sc_cnt] = ((uint16_t)io_list[i].num << 8) | ((uint16_t)io_list[j].num & 0x00FF);
-        sc_cnt++;
-      }
-    }
+      //置低引脚
+      HAL_GPIO_WritePin(test_pin[io_list[i].mcu_pin].gpio, test_pin[io_list[i].mcu_pin].pin, GPIO_PIN_RESET);
 
-    //恢复引脚
-    gpio_init.Pull = GPIO_PULLDOWN;
-    gpio_init.Mode = GPIO_MODE_INPUT;
-    HAL_GPIO_Init(test_pin[io_list[i].mcu_pin].gpio, &gpio_init);
+      gpio_init.Pin = test_pin[io_list[i].mcu_pin].pin;
+
+      gpio_init.Pull = GPIO_NOPULL;
+      gpio_init.Mode = GPIO_MODE_OUTPUT_OD;
+      HAL_GPIO_Init(test_pin[io_list[i].mcu_pin].gpio, &gpio_init);
+
+      osDelay(10);
+
+      //遍历其他引脚是否被拉低
+      for(uint8_t j = i + 1;j < length;j++)
+      {
+        if(HAL_GPIO_ReadPin(test_pin[io_list[j].mcu_pin].gpio, test_pin[io_list[j].mcu_pin].pin) == GPIO_PIN_RESET)
+        {
+          pbuffer[sc_cnt] = ((uint16_t)io_list[i].num << 8) | ((uint16_t)io_list[j].num & 0x00FF);
+          sc_cnt++;
+        }
+      }
+
+      //恢复引脚
+      gpio_init.Pull = GPIO_PULLDOWN;
+      gpio_init.Mode = GPIO_MODE_INPUT;
+      HAL_GPIO_Init(test_pin[io_list[i].mcu_pin].gpio, &gpio_init);
+    }
   }
 
   return sc_cnt;
@@ -310,7 +327,7 @@ static void test_task(void* p)
     test_4_init();
     test->stage = TEST_STAGE_WAIT;
 
-    test_io_init(io, sizeof(io) / sizeof(io[0]));
+    test_io_init(io, sizeof(io) / sizeof(io[0]), test->io_mask);
 
     //等待引脚被拉高
     i = 0;
@@ -326,7 +343,7 @@ static void test_task(void* p)
 
       osDelay(10);
 
-      if(test->mic1_rdy || test_io_is_have_high_lvl(io, sizeof(io) / sizeof(io[0])))
+      if(test->mic1_rdy || test_io_is_have_high_lvl(io, sizeof(io) / sizeof(io[0]), test->io_mask))
       {
         i++;
         if(i > 5) break;
@@ -351,11 +368,11 @@ static void test_task(void* p)
     test->io_test_error = 0;
 
     //开路测试
-    test->io_open_circuit_count = test_io_check_open_circuit(io, sizeof(io) / sizeof(io[0]), test->io_open_circuit_data);
+    test->io_open_circuit_count = test_io_check_open_circuit(io, sizeof(io) / sizeof(io[0]), test->io_mask, test->io_open_circuit_data);
     if(test->io_open_circuit_count == 0)
     {
       //短路测试
-      test->io_short_circuit_count = test_io_check_short_circuit(io, sizeof(io) / sizeof(io[0]), test->io_short_circuit_data);
+      test->io_short_circuit_count = test_io_check_short_circuit(io, sizeof(io) / sizeof(io[0]), test->io_mask, test->io_short_circuit_data);
 
       if(test->io_short_circuit_count)
         test->io_test_error = -2;
@@ -394,7 +411,7 @@ static void test_task(void* p)
       }
 
       //检测模组是否已取出
-      if((test_io_is_have_high_lvl(io, sizeof(io) / sizeof(io[0])) == 0) && (test->mic1_rdy == 0))
+      if((test_io_is_have_high_lvl(io, sizeof(io) / sizeof(io[0]), test->io_mask) == 0) && (test->mic1_rdy == 0))
       {
         break;
       }
@@ -677,6 +694,9 @@ int test_4_start(test_module_st* module, const char* title)
   test->_4.io_open_circuit_count_get = io_open_circuit_count_get;
   test->_4.io_short_circuit_count_get = io_short_circuit_count_get;
   test->_4.io_short_circuit_data_get = io_short_circuit_data_get;
+
+  test->io_mask = 0x1FFFFF;
+  US_GET(test_4_io_mask, &(test->io_mask));
 
   err = 0;
   is_test = 1;

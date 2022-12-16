@@ -1,6 +1,7 @@
 #include "test_1.h"
 #include "tim.h"
 #include "cmsis_os.h"
+#include "spk_pn_pin_test.h"
 
 #define PLAY_COUNT_MAX (30)
 
@@ -62,65 +63,7 @@ void test_1_spkramp_test_poll(void)
   }
   else
   {
-    uint8_t p = 0, n = 0;
-
-    HAL_GPIO_WritePin(test_pin[intf->coil_to_spkramp_top_vsense_p_pin].gpio, test_pin[intf->coil_to_spkramp_top_vsense_p_pin].pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(test_pin[intf->coil_to_spkramp_top_vsense_n_pin].gpio, test_pin[intf->coil_to_spkramp_top_vsense_n_pin].pin, GPIO_PIN_RESET);
-
-    gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
-    gpio_init.Pull = GPIO_NOPULL;
-    gpio_init.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    gpio_init.Alternate = 0;
-
-    gpio_init.Pin = test_pin[intf->coil_to_spkramp_top_vsense_p_pin].pin;
-    HAL_GPIO_Init(test_pin[intf->coil_to_spkramp_top_vsense_p_pin].gpio, &gpio_init);
-
-    gpio_init.Pin = test_pin[intf->coil_to_spkramp_top_vsense_n_pin].pin;
-    HAL_GPIO_Init(test_pin[intf->coil_to_spkramp_top_vsense_n_pin].gpio, &gpio_init);
-
-    osDelay(1);
-
-    //SPK_VSENSE_P
-    if(HAL_GPIO_ReadPin(SPKRAMP_PWM_GPIO_Port, SPKRAMP_PWM_Pin) == GPIO_PIN_RESET)
-    {
-      p++;
-    }
-
-    //SPK_VSENSE_N
-    if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8) == GPIO_PIN_RESET)
-    {
-      n++;
-    }
-
-    HAL_GPIO_WritePin(test_pin[intf->coil_to_spkramp_top_vsense_p_pin].gpio, test_pin[intf->coil_to_spkramp_top_vsense_p_pin].pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(test_pin[intf->coil_to_spkramp_top_vsense_n_pin].gpio, test_pin[intf->coil_to_spkramp_top_vsense_n_pin].pin, GPIO_PIN_SET);
-
-    osDelay(1);
-
-    //SPK_VSENSE_P
-    if(HAL_GPIO_ReadPin(SPKRAMP_PWM_GPIO_Port, SPKRAMP_PWM_Pin) == GPIO_PIN_SET)
-    {
-      p++;
-    }
-
-    //SPK_VSENSE_N
-    if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8) == GPIO_PIN_SET)
-    {
-      n++;
-    }
-
-    gpio_init.Mode = GPIO_MODE_INPUT;
-    gpio_init.Pull = GPIO_NOPULL;
-    gpio_init.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    gpio_init.Alternate = 0;
-
-    gpio_init.Pin = test_pin[intf->coil_to_spkramp_top_vsense_p_pin].pin;
-    HAL_GPIO_Init(test_pin[intf->coil_to_spkramp_top_vsense_p_pin].gpio, &gpio_init);
-
-    gpio_init.Pin = test_pin[intf->coil_to_spkramp_top_vsense_n_pin].pin;
-    HAL_GPIO_Init(test_pin[intf->coil_to_spkramp_top_vsense_n_pin].gpio, &gpio_init);
-
-    result = (p == 2 ? (1) : 0) | (n == 2 ? (2) : 0);
+    result = spk_pn_pin_test(MP_PC7, MP_PC8, intf->coil_to_spkramp_top_vsense_p_pin, intf->coil_to_spkramp_top_vsense_n_pin);
   }
 }
 

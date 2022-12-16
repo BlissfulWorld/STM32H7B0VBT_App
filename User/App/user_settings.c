@@ -47,7 +47,7 @@ int us_load(void)
   * @param data_len 数据长度
   * @retval 0:成功 1:失败
   */
-int us_set(uint16_t ofs, void* pdata, uint16_t data_len)
+int us_set(uint16_t ofs, const void* pdata, uint16_t data_len)
 {
   if(user_settings_item == 0)
     return -1;

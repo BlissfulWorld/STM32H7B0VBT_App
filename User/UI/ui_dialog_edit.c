@@ -155,7 +155,7 @@ static void _cbDialog(WM_MESSAGE* pMsg)
   }
 }
 
-void ui_menu_os_test_edit_open(void cb(void* p), void* p, void (*set) (uint32_t val), uint32_t(*get) (void), uint32_t(*convert) (uint32_t), void (*string) (char*, uint32_t, uint32_t))
+void ui_dialog_edit_open(void cb(void* p), void* p, void (*set) (uint32_t val), uint32_t(*get) (void), uint32_t(*convert) (uint32_t), void (*string) (char*, uint32_t, uint32_t))
 {
   var = pvPortMalloc(sizeof(struct ui_menu_os_test_var_s));
   if(var)

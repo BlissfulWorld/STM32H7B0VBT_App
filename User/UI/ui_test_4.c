@@ -33,7 +33,7 @@
 #define ID_LISTVIEW_CURRENT (GUI_ID_USER + 0x60)
 
 
-#define ID_TEXT_BTN_NONE    (GUI_ID_USER + 0xA0)
+#define ID_TEXT_BTN_FFC     (GUI_ID_USER + 0xA0)
 #define ID_TEXT_BTN_MENU    (GUI_ID_USER + 0xA1)
 #define ID_TEXT_BTN_MIC     (GUI_ID_USER + 0xA2)
 
@@ -73,7 +73,7 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 
   { LISTVIEW_CreateIndirect,0, ID_LISTVIEW_CURRENT,      0, ITEM7_OFFSET, 240,  88,   0, 0x00, 0},
 
-  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_NONE,        20, 320 - 28,  60,  28,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_BTN_FFC,         20, 320 - 28,  60,  28,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_BTN_MENU,        90, 320 - 28,  60,  28,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_BTN_MIC,        160, 320 - 28,  60,  28,   0,  0x0, 0},
 };
@@ -84,6 +84,9 @@ static test_4_st* test;
 static uint8_t stage, mic_record;
 static uint8_t error_vi[9];
 static uint8_t vdd_is_exception;
+static uint8_t btn;
+const uint32_t ffc_io_mask[2] = { 0x1FFFFF,0x1FF7FF };
+const char** ffc_name[2] = { &ui_str.ui_test_4.ffc_xp,&ui_str.ui_test_4.ffc_a };
 
 static void play_warning(void)
 {
@@ -93,6 +96,53 @@ static void play_warning(void)
 static void menu_close_cb(void* p)
 {
   test_start(module);
+}
+
+static void ffc_edit_cb(void* p)
+{
+  test_start(module);
+}
+
+static void ffc_set(uint32_t val)
+{
+  if(val >= sizeof(ffc_io_mask) / sizeof(uint32_t))
+    val = sizeof(ffc_io_mask) / sizeof(uint32_t) - 1;
+
+  US_SET(test_4_io_mask, &ffc_io_mask[val]);
+}
+
+static uint32_t ffc_get(void)
+{
+  uint32_t i;
+  uint32_t ffc = 0x1FFFFF;
+  US_GET(test_4_io_mask, &ffc);
+
+  for(i = 0;i < sizeof(ffc_io_mask) / sizeof(uint32_t);i++)
+  {
+    if(ffc_io_mask[i] == ffc)
+      break;
+  }
+
+  return i;
+}
+
+static uint32_t ffc_convert(uint32_t val)
+{
+  return val != 0 && val <= 0x80000000 ? 1 : 0;
+}
+
+static void ffc_string(char* str_buf, uint32_t size_max, uint32_t val)
+{
+  const char* str;
+  if(val < sizeof(ffc_name) / sizeof(const char**))
+  {
+    str = *ffc_name[val];
+  }
+  else
+  {
+    str = ui_str.ui_test_4.ffc_unknown;
+  }
+  snprintf(str_buf, size_max, "%s", str);
 }
 
 static void vi_updata(WM_HWIN listview)
@@ -313,6 +363,13 @@ static void wm_init_dialog(WM_HWIN hwin)
 
   WM_EnableMemdev(hitem);
 
+  hitem = WM_GetDialogItem(hwin, ID_TEXT_BTN_FFC);
+  TEXT_SetTextAlign(hitem, GUI_TA_RIGHT | GUI_TA_TOP);
+  TEXT_SetBkColor(hitem, GUI_MAKE_COLOR(0xabc88b));
+  TEXT_SetTextColor(hitem, GUI_MAKE_COLOR(0x0));
+  TEXT_SetFont(hitem, FONT_DEF);
+  TEXT_SetText(hitem, ui_str.ui_test_4.btn_ffc);
+
   hitem = WM_GetDialogItem(hwin, ID_TEXT_BTN_MENU);
   TEXT_SetTextAlign(hitem, GUI_TA_HCENTER | GUI_TA_TOP);
   TEXT_SetBkColor(hitem, GUI_MAKE_COLOR(0xabc88b));
@@ -410,7 +467,7 @@ static void _cbDialog(WM_MESSAGE* pmsg)
       {
         case UI_KEY(OK, ONCLICK):
         {
-          analog_speaker_stop();
+          btn = (uint8_t)ID_TEXT_BTN_MENU;
           GUI_EndDialog(hwin, 0);
           break;
         }
@@ -456,6 +513,15 @@ static void _cbDialog(WM_MESSAGE* pmsg)
               test->mic_record_play();
             }
           }
+          break;
+        }
+        case UI_KEY(LEFT, LONGPRESS):
+        {
+          hide_func_test_ui(hwin);
+          WM_HideWindow(WM_GetDialogItem(hwin, ID_LISTVIEW_CURRENT));
+          GUI_Exec();
+          btn = (uint8_t)ID_TEXT_BTN_FFC;
+          GUI_EndDialog(hwin, 0);
           break;
         }
       }
@@ -608,8 +674,14 @@ static void _cbDialog(WM_MESSAGE* pmsg)
     }
     case WM_DELETE:
     {
+      analog_speaker_stop();
       test_stop(module);
-      ui_menu_open(menu_close_cb, 0);
+      if(btn == (uint8_t)ID_TEXT_BTN_MENU)
+        ui_menu_open(menu_close_cb, 0);
+      else
+      {
+        ui_dialog_edit_open(ffc_edit_cb, 0, ffc_set, ffc_get, ffc_convert, ffc_string);
+      }
       break;
     }
     default:

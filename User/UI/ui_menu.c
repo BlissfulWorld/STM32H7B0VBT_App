@@ -19,7 +19,7 @@ typedef struct menu_item_s
 #define ID_LISTVIEW_MENU    (GUI_ID_USER + 0x10)
 
 #define ID_TEXT_BACK        (GUI_ID_USER + 0x30)
-#define ID_TEXT_OK          (GUI_ID_USER + 0x31)
+#define ID_TEXT_OPEN        (GUI_ID_USER + 0x31)
 #define ID_TEXT_NONE        (GUI_ID_USER + 0x32)
 
 static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
@@ -31,7 +31,7 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { LISTVIEW_CreateIndirect,0, ID_LISTVIEW_MENU,         0,  44, 240, 320 - 30 - 44,   0,  0x00, 0},
 
   { TEXT_CreateIndirect,    0, ID_TEXT_BACK,            20, 320 - 28,  60,  28,   0,  0x0, 0},
-  { TEXT_CreateIndirect,    0, ID_TEXT_OK,              90, 320 - 28,  60,  28,   0,  0x0, 0},
+  { TEXT_CreateIndirect,    0, ID_TEXT_OPEN,            90, 320 - 28,  60,  28,   0,  0x0, 0},
   { TEXT_CreateIndirect,    0, ID_TEXT_NONE,           160, 320 - 28,  60,  28,   0,  0x0, 0},
 };
 
@@ -74,8 +74,8 @@ static void update_text(WM_HWIN win)
   hItem = WM_GetDialogItem(win, ID_TEXT_BACK);
   TEXT_SetText(hItem, ui_str.ui_menu.btn_back);
 
-  hItem = WM_GetDialogItem(win, ID_TEXT_OK);
-  TEXT_SetText(hItem, ui_str.ui_menu.btn_confirm);
+  hItem = WM_GetDialogItem(win, ID_TEXT_OPEN);
+  TEXT_SetText(hItem, ui_str.ui_menu.btn_open);
 }
 
 static void _cbDialog(WM_MESSAGE* pMsg)
@@ -132,12 +132,12 @@ static void _cbDialog(WM_MESSAGE* pMsg)
       TEXT_SetFont(hItem, FONT_DEF);
       TEXT_SetText(hItem, ui_str.ui_menu.btn_back);
 
-      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OK);
+      hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_OPEN);
       TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
       TEXT_SetBkColor(hItem, GUI_MAKE_COLOR(0xabc88b));
       TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x0));
       TEXT_SetFont(hItem, FONT_DEF);
-      TEXT_SetText(hItem, ui_str.ui_menu.btn_confirm);
+      TEXT_SetText(hItem, ui_str.ui_menu.btn_open);
 
       hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_NONE);
       TEXT_SetTextAlign(hItem, GUI_TA_LEFT | GUI_TA_TOP);

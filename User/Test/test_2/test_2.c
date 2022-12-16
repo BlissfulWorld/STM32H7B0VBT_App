@@ -179,50 +179,64 @@ static uint8_t yogi_detect(const test_2_interface_st* intf)
 static uint8_t codec_aout_to_hac_test(const test_2_interface_st* intf)
 {
   uint8_t p_pin, n_pin;
-
   uint8_t cnt = 0;
+  GPIO_InitTypeDef gpio_init = { 0 };
 
   p_pin = intf->codec_aout_to_hac_conn_p_pin;
   n_pin = intf->codec_aout_to_hac_conn_n_pin;
 
-  GPIO_InitTypeDef gpio_init;
-
-  gpio_init.Alternate = 0;
-  gpio_init.Pull = GPIO_NOPULL;
   gpio_init.Speed = GPIO_SPEED_FREQ_HIGH;
+
+  gpio_init.Pull = GPIO_PULLDOWN;
+  gpio_init.Mode = GPIO_MODE_INPUT;
+
+  gpio_init.Pin = test_pin[n_pin].pin;
+  HAL_GPIO_Init(test_pin[n_pin].gpio, &gpio_init);
+
+  gpio_init.Pull = GPIO_NOPULL;
   gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
 
-  //SPK_OUT_P
-  HAL_GPIO_WritePin(test_pin[intf->codec_aout_to_hac_conn_p_pin].gpio, test_pin[p_pin].pin, GPIO_PIN_SET);
+  //P
+  HAL_GPIO_WritePin(test_pin[p_pin].gpio, test_pin[p_pin].pin, GPIO_PIN_SET);
   gpio_init.Pin = test_pin[p_pin].pin;
   HAL_GPIO_Init(test_pin[p_pin].gpio, &gpio_init);
 
-  osDelay(1);
+  osDelay(2);
 
-  //SPK_VSENSE_P
+  //n
   if(HAL_GPIO_ReadPin(test_pin[n_pin].gpio, test_pin[n_pin].pin) == GPIO_PIN_SET)
   {
     cnt++;
   }
 
-  //SPK_OUT_P
+  gpio_init.Pull = GPIO_PULLUP;
+  gpio_init.Mode = GPIO_MODE_INPUT;
+
+  gpio_init.Pin = test_pin[n_pin].pin;
+  HAL_GPIO_Init(test_pin[n_pin].gpio, &gpio_init);
+
+  //p
   HAL_GPIO_WritePin(test_pin[p_pin].gpio, test_pin[p_pin].pin, GPIO_PIN_RESET);
 
-  osDelay(1);
+  osDelay(2);
 
-  //SPK_VSENSE_P
+  //n
   if(HAL_GPIO_ReadPin(test_pin[n_pin].gpio, test_pin[n_pin].pin) == GPIO_PIN_RESET)
   {
     cnt++;
   }
 
   gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
+  gpio_init.Pull = GPIO_NOPULL;
   gpio_init.Mode = GPIO_MODE_INPUT;
 
-  //SPK_OUT_P
-  HAL_GPIO_WritePin(test_pin[p_pin].gpio, test_pin[p_pin].pin, GPIO_PIN_SET);
+  //P
   gpio_init.Pin = test_pin[p_pin].pin;
   HAL_GPIO_Init(test_pin[p_pin].gpio, &gpio_init);
+
+  //n
+  gpio_init.Pin = test_pin[n_pin].pin;
+  HAL_GPIO_Init(test_pin[n_pin].gpio, &gpio_init);
 
   return cnt == 2 ? 1 : 0;
 }
